@@ -117,49 +117,56 @@
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
+                                <chmod perm="ugo+rwx" type="file">
+                                    <fileset dir="${distribution.artifact}/plugins/infinispan4/bin">
+                                        <include name="**/*.sh" />
+                                        <include name="**/*.py" />
+                                    </fileset>
+                                </chmod>
+
 
                                 <!--<copy todir="${distribution.artifact}/plugins/infinispan51">
                                     <fileset dir="plugins/infinispan51/target/distribution/plugin-infinispan51-bin/plugin-infinispan51">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/infinispan50">
                                     <fileset dir="plugins/infinispan50/target/distribution/plugin-infinispan50-bin/plugin-infinispan50">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/jgroups">
                                     <fileset dir="plugins/jgroups/target/distribution/plugin-jgroups-bin/plugin-jgroups">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/jbosscache3">
                                     <fileset dir="plugins/jbosscache3/target/distribution/plugin-jbosscache3-bin/plugin-jbosscache3">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/jbosscache2">
                                     <fileset dir="plugins/jbosscache2/target/distribution/plugin-jbosscache2-bin/plugin-jbosscache2">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/ehcache25">
                                     <fileset dir="plugins/ehcache25/target/distribution/plugin-ehcache25-bin/plugin-ehcache25">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/terracotta3">
                                     <fileset dir="plugins/terracotta3/target/distribution/plugin-terracotta3-bin/plugin-terracotta3">
                                         <include name="**/*" />
                                     </fileset>
                                 </copy>
-
+        
                                 <copy todir="${distribution.artifact}/plugins/chm">
                                     <fileset dir="plugins/chm/target/distribution/plugin-chm-bin/plugin-chm">
                                         <include name="**/*" />
