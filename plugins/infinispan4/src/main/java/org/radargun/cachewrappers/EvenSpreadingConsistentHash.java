@@ -8,7 +8,14 @@ import org.infinispan.remoting.transport.Address;
 import org.infinispan.util.Immutables;
 import org.radargun.stressors.ObjectKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Mircea.Markus@jboss.com
@@ -129,4 +136,9 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    public Set<Address> getCaches() {
       return existing.getCaches();
    }
+
+   /*@Override
+   public ReplicationGroup getGroupFor(Object key, int replicationCount) {
+      return null;  // TODO: Customise this generated block
+   }*/
 }

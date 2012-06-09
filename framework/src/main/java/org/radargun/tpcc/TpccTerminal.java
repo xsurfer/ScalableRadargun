@@ -20,13 +20,13 @@ public class TpccTerminal {
 
    public final static String[] nameTokens = {"BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"};
 
-   private final double paymentWeight;
+   private double paymentWeight;
 
-   private final double orderStatusWeight;
+   private double orderStatusWeight;
 
    private final int indexNode;
 
-   private final int localWarehouseID;
+   private int localWarehouseID;
 
 
    public TpccTerminal(double paymentWeight, double orderStatusWeight, int indexNode, int localWarehouseID) {
@@ -36,7 +36,7 @@ public class TpccTerminal {
       this.localWarehouseID = localWarehouseID;
    }
 
-   public final TpccTransaction createTransaction(int type) {
+   public synchronized final TpccTransaction createTransaction(int type) {
       switch (type) {
          case PAYMENT:
             return new PaymentTransaction(indexNode, localWarehouseID);
@@ -51,11 +51,11 @@ public class TpccTerminal {
       }
    }
 
-   public final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster) {
+   public synchronized final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster) {
       return createTransaction(chooseTransactionType(isPassiveReplication, isTheMaster));
    }
 
-   public final int chooseTransactionType(boolean isPassiveReplication, boolean isTheMaster) {
+   public synchronized final int chooseTransactionType(boolean isPassiveReplication, boolean isTheMaster) {
       double transactionType = Math.min(TpccTools.doubleRandomNumber(1, 100), 100.0);
 
       double realPaymentWeight = paymentWeight, realOrderStatusWeight = orderStatusWeight;
@@ -81,5 +81,17 @@ public class TpccTerminal {
       } else {
          return NEW_ORDER;
       }
+   }
+
+   public synchronized void setPaymentWeight(double paymentWeight) {
+      this.paymentWeight = paymentWeight;
+   }
+
+   public synchronized void setOrderStatusWeight(double orderStatusWeight) {
+      this.orderStatusWeight = orderStatusWeight;
+   }
+
+   public synchronized void setLocalWarehouseID(int localWarehouseID) {
+      this.localWarehouseID = localWarehouseID;
    }
 }

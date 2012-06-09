@@ -18,9 +18,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -104,6 +104,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private Producer[] producers;
    private StatSampler statSampler;
 
+   private final List<Stressor> stressors = new LinkedList<Stressor>();
 
    public Map<String, String> stress(CacheWrapper wrapper) {
       if (wrapper == null) {
@@ -156,7 +157,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       startTime = System.currentTimeMillis();
       log.info("Executing: " + this.toString());
 
-      List<Stressor> stressors;
       try {
          if (this.arrivalRate != 0.0) { //Open system
             log.info("Starting " + producers.length + " producers");
@@ -167,7 +167,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          if (statSampler != null) {
             statSampler.start();
          }
-         stressors = executeOperations();
+         executeOperations();
       } catch (Exception e) {
          throw new RuntimeException(e);
       }
@@ -463,7 +463,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    private List<Stressor> executeOperations() throws Exception {
-      List<Stressor> stressors = new ArrayList<Stressor>();
 
       List<Integer> listLocalWarehouses;
       if (accessSameWarehouse) {
@@ -495,13 +494,12 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    private class Stressor extends Thread {
-      private int localWarehouseID;
       private int threadIndex;
-      private int nodeIndex;
       private long simulTime;
       private double arrivalRate;
-      private double paymentWeight;
-      private double orderStatusWeight;
+
+      private final TpccTerminal terminal;
+
       private int nrFailures = 0;
       private int nrWrFailures = 0;
       private int nrWrFailuresOnCommit = 0;
@@ -545,14 +543,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       public Stressor(int localWarehouseID, int threadIndex, int nodeIndex, long simulTime, double arrivalRate,
                       double paymentWeight, double orderStatusWeight) {
          super("Stressor-" + threadIndex);
-         this.localWarehouseID = localWarehouseID;
          this.threadIndex = threadIndex;
-         this.nodeIndex = nodeIndex;
          this.simulTime = simulTime;
          this.arrivalRate = arrivalRate;
-         this.paymentWeight = paymentWeight;
-         this.orderStatusWeight = orderStatusWeight;
-
+         this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
       }
 
       @Override
@@ -564,8 +558,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          } catch (InterruptedException e) {
             log.warn(e);
          }
-
-         TpccTerminal terminal = new TpccTerminal(this.paymentWeight, this.orderStatusWeight, this.nodeIndex, localWarehouseID);
 
          long delta = 0L;
          long end;
@@ -882,4 +874,22 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             '}';
    }
 
+   public void highContention() {
+      for (Stressor stressor : stressors) {
+         stressor.terminal.setLocalWarehouseID(1);
+      }
+   }
+
+   public void lowContention() {
+      for (Stressor stressor : stressors) {
+         stressor.terminal.setLocalWarehouseID(nodeIndex + 1);
+      }
+   }
+   
+   public void lowContentionAndRead() {
+      for (Stressor stressor : stressors) {
+         stressor.terminal.setLocalWarehouseID(nodeIndex + 1);
+         //TODO which percentage?
+      }
+   }
 }

@@ -1,17 +1,18 @@
 package org.radargun.stages;
 
-import static java.lang.Double.parseDouble;
-import static org.radargun.utils.Utils.numberFormat;
+import org.radargun.CacheWrapper;
+import org.radargun.DistStageAck;
+import org.radargun.jmx.annotations.MBean;
+import org.radargun.jmx.annotations.ManagedOperation;
+import org.radargun.state.MasterState;
+import org.radargun.stressors.TpccStressor;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-import org.radargun.CacheWrapper;
-import org.radargun.DistStageAck;
-import org.radargun.state.MasterState;
-import org.radargun.stressors.TpccStressor;
+import static java.lang.Double.parseDouble;
+import static org.radargun.utils.Utils.numberFormat;
 
 /**
  * Simulate the activities found in complex OLTP application environments.
@@ -28,6 +29,7 @@ import org.radargun.stressors.TpccStressor;
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Pedro Ruivo
  */
+@MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
 public class TpccBenchmarkStage extends AbstractDistStage {
    
    private static final String SIZE_INFO = "SIZE_INFO";
@@ -74,7 +76,9 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     */
    private long statsSamplingInterval = 0;
 
-   private CacheWrapper cacheWrapper;
+   private transient CacheWrapper cacheWrapper;
+   
+   private transient TpccStressor tpccStressor;
 
    public DistStageAck executeOnSlave() {
       DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress());
@@ -86,7 +90,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
-      TpccStressor tpccStressor = new TpccStressor();
+      tpccStressor = new TpccStressor();
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
       tpccStressor.setNumOfThreads(this.numOfThreads);
@@ -192,6 +196,22 @@ public class TpccBenchmarkStage extends AbstractDistStage {
             ", statsSamplingInterval=" + statsSamplingInterval +
             ", cacheWrapper=" + cacheWrapper +
             ", " + super.toString();
+   }
+   
+   @ManagedOperation(description = "Change the workload to decrease contention between transactions")
+   public void lowContention() {
+      tpccStressor.lowContention();
+   }
+
+   @ManagedOperation(description = "Change the workload to increase contention between transactions")
+   public void highContention() {
+      tpccStressor.highContention();
+   }
+
+   @ManagedOperation(description = "Change the workload to decrease contention between transactions and to a read " +
+         "intensive")
+   public void lowContentionAndRead() {
+      tpccStressor.lowContentionAndRead();
    }
 
 }
