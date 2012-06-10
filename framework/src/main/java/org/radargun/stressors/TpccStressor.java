@@ -620,14 +620,11 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                transaction.executeTransaction(cacheWrapper);
             } catch (Throwable e) {
                successful = false;
-               log.warn(e);
+               log.warn("Exception while executing transaction: " + e.getMessage());
+               log.debug("Execution error", e);
                if (e instanceof ElementNotFoundException) {
                   this.appFailures++;
-               }
-
-               if (e instanceof Exception) {
-                  e.printStackTrace();
-               }
+               }               
             }
 
             //here we try to finalize the transaction
