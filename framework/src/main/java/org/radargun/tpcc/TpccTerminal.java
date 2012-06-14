@@ -83,11 +83,13 @@ public class TpccTerminal {
       }
    }
 
-   public synchronized void setPaymentWeight(double paymentWeight) {
-      this.paymentWeight = paymentWeight;
+   public synchronized void change(int localWarehouseID, double paymentWeight, double orderStatusWeight) {
+      setLocalWarehouseID(localWarehouseID);
+      setPercentages(paymentWeight, orderStatusWeight);      
    }
 
-   public synchronized void setOrderStatusWeight(double orderStatusWeight) {
+   public synchronized void setPercentages(double paymentWeight, double orderStatusWeight) {      
+      this.paymentWeight = paymentWeight;
       this.orderStatusWeight = orderStatusWeight;
    }
 

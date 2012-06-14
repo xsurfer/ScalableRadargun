@@ -21,8 +21,8 @@ case $1 in
   -low) OP="lowContention"; shift 1;;
   -read) OP="lowContentionAndRead"; shift 1;;
   -h) help_and_exit;;
-  -*) echo "Unknown option $1" shift 1;;
-  *) echo "Unknown parameter $1" shift 1;;
+  -*) echo "Unknown option $1"; shift 1;;
+  *) echo "Unknown parameter $1"; shift 1;;
 esac
 done
 

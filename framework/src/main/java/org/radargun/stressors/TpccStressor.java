@@ -873,20 +873,17 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    public void highContention() {
       for (Stressor stressor : stressors) {
-         stressor.terminal.setLocalWarehouseID(1);
+         stressor.terminal.change(1, 85, 10);         
       }
    }
 
    public void lowContention() {
       for (Stressor stressor : stressors) {
-         stressor.terminal.setLocalWarehouseID(nodeIndex + 1);
+         stressor.terminal.change(nodeIndex + 1, 45, 50);         
       }
    }
    
    public void lowContentionAndRead() {
-      for (Stressor stressor : stressors) {
-         stressor.terminal.setLocalWarehouseID(nodeIndex + 1);
-         //TODO which percentage?
-      }
+      //no-op
    }
 }

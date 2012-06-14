@@ -33,6 +33,8 @@ import static org.radargun.utils.Utils.numberFormat;
 public class TpccBenchmarkStage extends AbstractDistStage {
    
    private static final String SIZE_INFO = "SIZE_INFO";
+   private static final String SCRIPT_LAUNCH = "_script_launch_";
+   private static final String SCRIPT_PATH = "/home/pruivo/changeWorkload.sh";
 
    /**
     * the number of threads that will work on this slave
@@ -80,6 +82,37 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    
    private transient TpccStressor tpccStressor;
 
+   @Override
+   public void initOnMaster(MasterState masterState, int slaveIndex) {
+      super.initOnMaster(masterState, slaveIndex);
+      Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
+      if (started == null || !started) {         
+         masterState.put(SCRIPT_LAUNCH, startScript());
+      }
+   }
+   
+   private Boolean startScript() {
+      try {
+         Runtime.getRuntime().exec(SCRIPT_PATH+ " -start");
+         log.info("Script " + SCRIPT_PATH + " started successfully");
+         return Boolean.TRUE;
+      } catch (Exception e) {
+         log.warn("Error starting script " + SCRIPT_PATH + ". " + e.getMessage());
+         return Boolean.FALSE;
+      }
+   }
+
+   private Boolean stopScript() {
+      try {
+         Runtime.getRuntime().exec(SCRIPT_PATH + " -stop");
+         log.info("Script " + SCRIPT_PATH + " stopped successfully");
+         return Boolean.TRUE;
+      } catch (Exception e) {
+         log.warn("Error stopping script " + SCRIPT_PATH + ". " + e.getMessage());
+         return Boolean.FALSE;
+      }
+   }
+
    public DistStageAck executeOnSlave() {
       DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress());
       this.cacheWrapper = slaveState.getCacheWrapper();
@@ -122,6 +155,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
+      stopScript();
       logDurationInfo(acks);
       boolean success = true;
       Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
@@ -147,7 +181,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
          } else {
             log.trace("No report received from slave: " + ack.getSlaveIndex());
          }
-      }
+      }      
       return success;
    }
 
