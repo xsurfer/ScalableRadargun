@@ -3,6 +3,7 @@ package org.radargun.stages;
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
+import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.TpccStressor;
@@ -31,7 +32,7 @@ import static org.radargun.utils.Utils.numberFormat;
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
 public class TpccBenchmarkStage extends AbstractDistStage {
-   
+
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
    private static final String SCRIPT_PATH = "/home/pruivo/changeWorkload.sh";
@@ -40,22 +41,22 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     * the number of threads that will work on this slave
     */
    private int numOfThreads = 10;
-   
+
    /**
     * total time (in seconds) of simulation for each stressor thread
     */
    private long perThreadSimulTime = 180L;
-   
+
    /**
     * average arrival rate of the transactions to the system
     */
    private int arrivalRate = 0;
-   
+
    /**
     * percentage of Payment transactions
     */
    private int paymentWeight = 45;
-   
+
    /**
     * percentage of Order Status transactions
     */
@@ -79,18 +80,18 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    private long statsSamplingInterval = 0;
 
    private transient CacheWrapper cacheWrapper;
-   
+
    private transient TpccStressor tpccStressor;
 
    @Override
    public void initOnMaster(MasterState masterState, int slaveIndex) {
       super.initOnMaster(masterState, slaveIndex);
       Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
-      if (started == null || !started) {         
+      if (started == null || !started) {
          masterState.put(SCRIPT_LAUNCH, startScript());
       }
    }
-   
+
    private Boolean startScript() {
       try {
          Runtime.getRuntime().exec(SCRIPT_PATH+ " -start");
@@ -181,14 +182,14 @@ public class TpccBenchmarkStage extends AbstractDistStage {
          } else {
             log.trace("No report received from slave: " + ack.getSlaveIndex());
          }
-      }      
+      }
       return success;
    }
 
    public void setNumOfThreads(int numOfThreads) {
       this.numOfThreads = numOfThreads;
    }
-   
+
    public void setPerThreadSimulTime(long perThreadSimulTime) {
       this.perThreadSimulTime = perThreadSimulTime;
    }
@@ -231,7 +232,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
             ", cacheWrapper=" + cacheWrapper +
             ", " + super.toString();
    }
-   
+
    @ManagedOperation(description = "Change the workload to decrease contention between transactions")
    public void lowContention() {
       tpccStressor.lowContention();
@@ -248,4 +249,18 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       tpccStressor.lowContentionAndRead();
    }
 
+   @ManagedAttribute(description = "Returns the number of threads created", writable = false)
+   public final int getNumOfThreads() {
+      return tpccStressor.getNumberOfThreads();
+   }
+
+   @ManagedAttribute(description = "Returns the number of threads actually running", writable = false)
+   public final int getNumberOfActiveThreads() {
+      return tpccStressor.getNumberOfActiveThreads();
+   }
+
+   @ManagedOperation(description = "Change the number of threads running, creating more threads if needed")
+   public final void setNumberOfActiveThreads(int numberOfActiveThreads) {
+      tpccStressor.setNumberOfRunningThreads(numberOfActiveThreads);
+   }
 }
