@@ -234,19 +234,18 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    }
 
    @ManagedOperation(description = "Change the workload to decrease contention between transactions")
-   public void lowContention() {
-      tpccStressor.lowContention();
+   public void lowContention(boolean largeWriteSet, int writePercentage) {
+      tpccStressor.lowContention(largeWriteSet, writePercentage);
    }
 
    @ManagedOperation(description = "Change the workload to increase contention between transactions")
-   public void highContention() {
-      tpccStressor.highContention();
+   public void highContention(boolean largeWriteSet, int writePercentage) {
+      tpccStressor.highContention(largeWriteSet, writePercentage);
    }
 
-   @ManagedOperation(description = "Change the workload to decrease contention between transactions and to a read " +
-         "intensive")
-   public void lowContentionAndRead() {
-      tpccStressor.lowContentionAndRead();
+   @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
+   public void randomContention(boolean largeWriteSet, int writePercentage) {
+      tpccStressor.randomContention(largeWriteSet, writePercentage);
    }
 
    @ManagedAttribute(description = "Returns the number of threads created", writable = false)

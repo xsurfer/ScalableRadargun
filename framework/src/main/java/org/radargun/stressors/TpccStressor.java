@@ -905,22 +905,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             '}';
    }
 
-   public void highContention() {
-      for (Stressor stressor : stressors) {
-         stressor.terminal.change(1, 85, 10);
-      }
-   }
-
-   public void lowContention() {
-      for (Stressor stressor : stressors) {
-         stressor.terminal.change(nodeIndex + 1, 45, 50);
-      }
-   }
-
-   public void lowContentionAndRead() {
-      //no-op
-   }
-
    private synchronized void finishBenchmark() {
       running = false;
       for (Stressor stressor : stressors) {
@@ -974,9 +958,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    private Stressor createStressor(int threadIndex) {
-      int localWarehouse = listLocalWarehouses.isEmpty() ?
-            -1 :
-            listLocalWarehouses.get(threadIndex % listLocalWarehouses.size());
+      int localWarehouse = getWarehouseForThread(threadIndex);
       return new Stressor(localWarehouse, threadIndex, nodeIndex, arrivalRate, paymentWeight,orderStatusWeight);
    }
 
@@ -995,5 +977,55 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       while (running) {
          wait();
       }
+   }
+
+   /*
+    * For the review, the workload is the following:
+    * 
+    * high contention: change(1, 85, 10);
+    * low contention: change(nodeIndex + 1, 45, 50); 
+    */
+
+   public synchronized final void highContention(boolean largeWriteSet, int writePercentage) {
+      if (!running) {
+         return;
+      }
+      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
+      orderStatusWeight = 100 - writePercentage;
+      for (Stressor stressor : stressors) {
+         stressor.terminal.change(1, paymentWeight, orderStatusWeight);
+      }
+   }
+
+   public synchronized final void lowContention(boolean largeWriteSet, int writePercentage) {
+      if (!running) {
+         return;
+      }
+      if (listLocalWarehouses.isEmpty()) {
+         TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
+      }
+      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
+      orderStatusWeight = 100 - writePercentage;
+      for (Stressor stressor : stressors) {
+         stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
+      }
+   }
+
+   public synchronized final void randomContention(boolean largeWriteSet, int writePercentage) {
+      if (!running) {
+         return;
+      }
+      if (listLocalWarehouses.isEmpty()) {
+         TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
+      }
+      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
+      orderStatusWeight = 100 - writePercentage;
+      for (Stressor stressor : stressors) {
+         stressor.terminal.change(-1, paymentWeight, orderStatusWeight);
+      }
+   }
+
+   private int getWarehouseForThread(int threadIdx) {
+      return listLocalWarehouses.isEmpty() ? -1 : listLocalWarehouses.get(threadIdx % listLocalWarehouses.size());
    }
 }
