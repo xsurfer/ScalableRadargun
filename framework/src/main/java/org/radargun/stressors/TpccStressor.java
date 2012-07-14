@@ -559,7 +559,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             startPoint.await();
             log.info("Starting thread: " + getName());
          } catch (InterruptedException e) {
-            log.warn(e);
+            log.warn("Interrupted while waiting for starting in " + getName());
          }
 
          long end;
@@ -621,8 +621,11 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                transaction.executeTransaction(cacheWrapper);
             } catch (Throwable e) {
                successful = false;
-               log.warn("Exception while executing transaction: " + e.getMessage());
-               log.debug("Execution error", e);
+               if (log.isDebugEnabled()) {
+                  log.debug("Exception while executing transaction.", e);
+               } else {
+                  log.warn("Exception while executing transaction: " + e.getMessage());
+               }
                if (e instanceof ElementNotFoundException) {
                   this.appFailures++;
                }
@@ -656,8 +659,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
                }
             } catch (Throwable rb) {
-               log.info(this.threadIndex + "Error while committing");
-
                nrFailures++;
 
                if (!isReadOnly) {
@@ -672,13 +673,14 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                   nrRdFailures++;
                }
                successful = false;
-               log.warn(rb);
-
+               if (log.isDebugEnabled()) {
+                  log.debug("Error while committing", rb);
+               } else {
+                  log.warn("Error while committing: " + rb.getMessage());
+               }
             }
 
-
             end = System.nanoTime();
-
 
             if (this.arrivalRate == 0.0) {  //Closed system
                start = startService;
@@ -801,7 +803,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
 
       public void run() {
-         log.debug("Starting " + getName() + " with rate of " + rate.getLambda());
+         if (log.isDebugEnabled()) {
+            log.debug("Starting " + getName() + " with rate of " + rate.getLambda());
+         }
          while (assertRunning()) {
             try {
                queue.offer(new RequestType(System.nanoTime(), terminal.chooseTransactionType(
@@ -964,12 +968,15 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    private void calculateLocalWarehouses() {
       if (accessSameWarehouse) {
-         log.debug("Find the local warehouses. Number of Warehouses=" + TpccTools.NB_WAREHOUSES + ", number of slaves=" +
-                         numSlaves + ", node index=" + nodeIndex);
          TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
-         log.debug("Local warehouses are " + listLocalWarehouses);
+         if (log.isDebugEnabled()) {
+            log.debug("Find the local warehouses. Number of Warehouses=" + TpccTools.NB_WAREHOUSES + ", number of slaves=" +
+                            numSlaves + ", node index=" + nodeIndex + ".Local warehouses are " + listLocalWarehouses);
+         }
       } else {
-         log.debug("Local warehouses are disabled. Choose a random warehouse in each transaction");
+         if (log.isDebugEnabled()) {
+            log.debug("Local warehouses are disabled. Choose a random warehouse in each transaction");
+         }
       }
    }
 
