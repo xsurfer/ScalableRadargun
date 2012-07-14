@@ -995,6 +995,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       for (Stressor stressor : stressors) {
          stressor.terminal.change(1, paymentWeight, orderStatusWeight);
       }
+      for (Producer producer : producers) {
+         producer.terminal.change(1, paymentWeight, orderStatusWeight);
+      }
    }
 
    public synchronized final void lowContention(boolean largeWriteSet, int writePercentage) {
@@ -1009,6 +1012,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       for (Stressor stressor : stressors) {
          stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
       }
+      for (Producer producer : producers) {
+         //in the producers, the warehouse is not needed
+         producer.terminal.change(-1, paymentWeight, orderStatusWeight);
+      }
    }
 
    public synchronized final void randomContention(boolean largeWriteSet, int writePercentage) {
@@ -1022,6 +1029,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       orderStatusWeight = 100 - writePercentage;
       for (Stressor stressor : stressors) {
          stressor.terminal.change(-1, paymentWeight, orderStatusWeight);
+      }
+      for (Producer producer : producers) {
+         producer.terminal.change(-1, paymentWeight, orderStatusWeight);
       }
    }
 
