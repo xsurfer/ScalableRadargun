@@ -324,8 +324,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       //duration = duration / 1000000; // nanosec to millisec
       //readsDurations = readsDurations / 1000; //nanosec to microsec
       //writesDurations = writesDurations / 1000; //nanosec to microsec
-      newOrderDurations = newOrderDurations / 1000; //nanosec to microsec
-      paymentDurations = paymentDurations / 1000;//nanosec to microsec
+      //newOrderDurations = newOrderDurations / 1000; //nanosec to microsec
+      //paymentDurations = paymentDurations / 1000;//nanosec to microsec
       successful_readsDurations = successful_readsDurations / 1000; //nanosec to microsec
       successful_writesDurations = successful_writesDurations / 1000; //nanosec to microsec
       successful_commitWriteDurations = successful_commitWriteDurations / 1000; //nanosec to microsec
@@ -361,25 +361,23 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          results.put("READS_PER_SEC", str(rdPerSec));
       }
 
-      if (writesDurations + readsDurations == 0)
+      if (duration == 0)
          results.put("WRITES_PER_SEC", str(0));
       else {
          wrtPerSec = writes / (duration / 1000.0);
          results.put("WRITES_PER_SEC", str(wrtPerSec));
       }
 
-      if (writesDurations + readsDurations == 0)
+      if (duration == 0)
          results.put("NEW_ORDER_PER_SEC", str(0));
       else {
          newOrderPerSec = newOrderTransactions / (duration / 1000.0);
-
          results.put("NEW_ORDER_PER_SEC", str(newOrderPerSec));
       }
-      if (writesDurations + readsDurations == 0)
+      if (duration == 0)
          results.put("PAYMENT_PER_SEC", str(0));
       else {
          paymentPerSec = paymentTransactions / (duration / 1000.0);
-
          results.put("PAYMENT_PER_SEC", str(paymentPerSec));
       }
 
