@@ -24,6 +24,7 @@
             threadParallelLoad="true"
             batchLevel="100"
             numLoaderThreads="2"/>
+      <ResetStats />
       <CacheSize
             statName="CACHE_SIZE_BEFORE_BENCH" />
       <TpccBenchmark

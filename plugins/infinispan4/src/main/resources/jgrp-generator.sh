@@ -190,6 +190,11 @@ echo "   <FRAG2" >> ${DEST_FILE}
 echo "         frag_size=\"60K\"" >> ${DEST_FILE}
 echo "         />" >> ${DEST_FILE}
 echo "   <pbcast.STATE_TRANSFER/>" >> ${DEST_FILE}
+echo "   <COMPRESS" >> ${DEST_FILE}
+echo "         compression_level=\"9\"" >> ${DEST_FILE}
+echo "         min_size=\"10K\"" >> ${DEST_FILE}
+echo "         />" >> ${DEST_FILE}
+
 echo "</config>" >> ${DEST_FILE}
 
 echo "Finished!"
