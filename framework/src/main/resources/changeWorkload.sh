@@ -23,7 +23,7 @@ case $1 in
   -write-percentage) WRITE_PERCENT=$2; shift 2;;
   -large-write-set) LARGE_WS="-large-ws"; shift 1;;
   -jmx-mbean) OBJ=$2; shift 2;;
-  -nr-threads) NR_THREADS="-nr-threads "$2; shift 2;;
+  -nr-threads) NR_THREADS="-nr-thread "$2; shift 2;;
   -h) help_and_exit;;
   -*) echo "Unknown option $1"; shift 1;;
   *) SLAVES=${SLAVES}" "$1; shift 1;;

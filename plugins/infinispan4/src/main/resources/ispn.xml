@@ -42,7 +42,7 @@
                 enabled="false"/>
         <clustering mode="r">
             <sync
-                    replTimeout="150000" />
+                    replTimeout="15000" />
             <stateTransfer
                     fetchInMemoryState="false"
                     chunkSize="100"

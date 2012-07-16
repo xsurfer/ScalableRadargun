@@ -210,7 +210,7 @@ echo "                    replQueueInterval=\"5000\"" >> ${DEST_FILE}
 echo "                    asyncMarshalling=\"false\" />" >> ${DEST_FILE}
 else
 echo "            <sync" >> ${DEST_FILE}
-echo "                    replTimeout=\"150000\" />" >> ${DEST_FILE}
+echo "                    replTimeout=\"15000\" />" >> ${DEST_FILE}
 fi
 
 #replicated mode or invalidation
