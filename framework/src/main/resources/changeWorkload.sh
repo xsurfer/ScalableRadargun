@@ -11,7 +11,7 @@ OP="-high"
 OBJ="TpccBenchmark"
 
 help_and_exit() {
-echo "usage: $0 -high|-low|-random -write-percentage <write percentage> [-large-write-set] [-jmx-mbean <mbean name>] [-nr-threads <value>] <slaves list hostname:port>"
+echo "usage: $0 -high|-low|-random -order <read only percentage> -order <write percentage> [-jmx-mbean <mbean name>] [-nr-threads <value>] <slaves list hostname:port>"
 exit 0;
 }
 
@@ -20,8 +20,8 @@ case $1 in
   -high) OP="-high"; shift 1;;
   -low) OP="-low"; shift 1;;
   -random) OP="-random"; shift 1;;
-  -write-percentage) WRITE_PERCENT=$2; shift 2;;
-  -large-write-set) LARGE_WS="-large-ws"; shift 1;;
+  -order) READ_PERCENT=$2; shift 2;;
+  -payment) WRITE_PERCENT=$2; shift 2;;
   -jmx-mbean) OBJ=$2; shift 2;;
   -nr-threads) NR_THREADS="-nr-thread "$2; shift 2;;
   -h) help_and_exit;;
@@ -30,27 +30,30 @@ case $1 in
 esac
 done
 
-if [ -z "$WRITE_PERCENT" ]; then
-echo "Write Percentage is required";
-help_and_exit;
-fi
-
 if [ -z "$SLAVES" ]; then
 echo "No slaves found!";
 help_and_exit;
 fi
 
+if [ -n "$WRITE_PERCENT" ]; then
+WRITE_PERCENT="-payment-percent ${WRITE_PERCENT}";
+fi
+
+if [ -n "READ_PERCENT" ]; then
+READ_PERCENT="-order-percent ${READ_PERCENT}";
+fi
+
 for slave in ${SLAVES}; do
 
 if [[ "$slave" == *:* ]]; then
-HOST=`echo $slave | cut -d: -f1`
-PORT=`echo $slave | cut -d: -f2`
+HOST="-hostname "`echo $slave | cut -d: -f1`
+PORT="-port "`echo $slave | cut -d: -f2`
 else
-HOST=$slave
-PORT=${JMX_SLAVES_PORT}
+HOST="-hostname "$slave
+PORT="-port "${JMX_SLAVES_PORT}
 fi
 
-CMD="java -cp ${CP} ${JAVA} ${OP} -jmx-component ${OBJ} -write-percent ${WRITE_PERCENT} -hostname ${HOST} -port ${PORT} ${LARGE_WS} ${NR_THREADS}"
+CMD="java -cp ${CP} ${JAVA} ${OP} -jmx-component ${OBJ} ${WRITE_PERCENT} ${READ_PERCENT} ${NR_THREADS} ${HOST} ${PORT}"
 echo $CMD
 eval $CMD
 

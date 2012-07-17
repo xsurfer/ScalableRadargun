@@ -991,52 +991,61 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
     * low contention: change(nodeIndex + 1, 45, 50); 
     */
 
-   public synchronized final void highContention(boolean largeWriteSet, int writePercentage) {
+   public synchronized final void highContention(int payment, int order) {
       if (!running) {
          return;
       }
-      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
-      orderStatusWeight = 100 - writePercentage;
+      paymentWeight = payment;
+      orderStatusWeight = order;
+      
+      log.info("Change to high contention workload:");
       for (Stressor stressor : stressors) {
          stressor.terminal.change(1, paymentWeight, orderStatusWeight);
+         log.info(stressor.getName() + " terminal is " + stressor.terminal);
       }
       for (Producer producer : producers) {
          producer.terminal.change(1, paymentWeight, orderStatusWeight);
+         log.info(producer.getName() + " terminal is " + producer.terminal);
       }
    }
 
-   public synchronized final void lowContention(boolean largeWriteSet, int writePercentage) {
+   public synchronized final void lowContention(int payment, int order) {
       if (!running) {
          return;
       }
       if (listLocalWarehouses.isEmpty()) {
          TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
       }
-      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
-      orderStatusWeight = 100 - writePercentage;
-      for (Stressor stressor : stressors) {
+      paymentWeight = payment;
+      orderStatusWeight = order;
+
+      log.info("Change to low contention workload:");
+      for (Stressor stressor : stressors) {         
          stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
+         log.info(stressor.getName() + " terminal is " + stressor.terminal);
       }
       for (Producer producer : producers) {
          //in the producers, the warehouse is not needed
          producer.terminal.change(-1, paymentWeight, orderStatusWeight);
+         log.info(producer.getName() + " terminal is " + producer.terminal);
       }
    }
 
-   public synchronized final void randomContention(boolean largeWriteSet, int writePercentage) {
+   public synchronized final void randomContention(int payment, int order) {
       if (!running) {
          return;
       }
-      if (listLocalWarehouses.isEmpty()) {
-         TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
-      }
-      paymentWeight = (int) (writePercentage * (largeWriteSet ? 0.05 : 0.95));
-      orderStatusWeight = 100 - writePercentage;
+      paymentWeight = payment;
+      orderStatusWeight = order;
+
+      log.info("Change to random contention workload:");
       for (Stressor stressor : stressors) {
          stressor.terminal.change(-1, paymentWeight, orderStatusWeight);
+         log.info(stressor.getName() + " terminal is " + stressor.terminal);
       }
       for (Producer producer : producers) {
          producer.terminal.change(-1, paymentWeight, orderStatusWeight);
+         log.info(producer.getName() + " terminal is " + producer.terminal);
       }
    }
 

@@ -101,4 +101,13 @@ public class TpccTerminal {
    public synchronized void setLocalWarehouseID(int localWarehouseID) {
       this.localWarehouseID = localWarehouseID;
    }
+
+   @Override
+   public String toString() {
+      return "TpccTerminal{" +
+            "paymentWeight=" + paymentWeight +
+            ", orderStatusWeight=" + orderStatusWeight +            
+            ", localWarehouseID=" + (localWarehouseID == -1 ? "random" : localWarehouseID) +
+            '}';
+   }
 }

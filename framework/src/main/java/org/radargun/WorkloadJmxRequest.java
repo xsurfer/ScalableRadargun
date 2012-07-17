@@ -22,7 +22,8 @@ public class WorkloadJmxRequest {
       LOW_CONTENTION("-low", true),
       RANDOM_CONTENTION("-random", true),
       LARGE_WRITE_SET("-large-ws", true),
-      WRITE_PERCENTAGE("-write-percent", false),
+      PAYMENT_PERCENTAGE("-payment-percent", false),
+      ORDER_STATUS_PERCENTAGE("-order-percent", false),
       NUMBER_THREADS("-nr-thread", false),
       JMX_HOSTNAME("-hostname", false),
       JMX_PORT("-port", false),
@@ -83,9 +84,9 @@ public class WorkloadJmxRequest {
 
    private final ObjectName benchmarkComponent;
    private final Workload workload;
-   private final MBeanServerConnection mBeanServerConnection;
-   private final boolean largeWriteSet;
-   private final int writePercentage;
+   private final MBeanServerConnection mBeanServerConnection;   
+   private final int orderPercentage;
+   private final int paymentPercentage;
    private final int nrThreads;
 
    public static void main(String[] args) throws Exception {
@@ -115,16 +116,16 @@ public class WorkloadJmxRequest {
                                                      arguments.getValue(Option.JMX_HOSTNAME),
                                                      arguments.getValue(Option.JMX_PORT),
                                                      workload,
-                                                     Integer.parseInt(arguments.getValue(Option.WRITE_PERCENTAGE)),
-                                                     arguments.hasOption(Option.LARGE_WRITE_SET),
+                                                     Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
+                                                     Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)),                                                     
                                                      Integer.parseInt(arguments.getValue(Option.NUMBER_THREADS)));
       } else if (!hasThread && hasWorkload) {
          workloadJmxRequest = new WorkloadJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
                                                      arguments.getValue(Option.JMX_HOSTNAME),
                                                      arguments.getValue(Option.JMX_PORT),
                                                      workload,
-                                                     Integer.parseInt(arguments.getValue(Option.WRITE_PERCENTAGE)),
-                                                     arguments.hasOption(Option.LARGE_WRITE_SET));
+                                                     Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
+                                                     Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)));
       } else {
          workloadJmxRequest = new WorkloadJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
                                                      arguments.getValue(Option.JMX_HOSTNAME),
@@ -135,29 +136,29 @@ public class WorkloadJmxRequest {
       workloadJmxRequest.doRequest();
    }
 
-   private WorkloadJmxRequest(String component, String hostname, String port, Workload workload, int writePercentage,
-                              boolean largeWriteSet) throws Exception {
+   private WorkloadJmxRequest(String component, String hostname, String port, Workload workload, int orderPercentage,
+                              int paymentPercentage) throws Exception {
       String connectionUrl = "service:jmx:rmi:///jndi/rmi://" + hostname + ":" + port + "/jmxrmi";
 
       JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionUrl));
       mBeanServerConnection = connector.getMBeanServerConnection();
       benchmarkComponent = new ObjectName(COMPONENT_PREFIX + component);
       this.workload = workload;
-      this.writePercentage = writePercentage;
-      this.largeWriteSet = largeWriteSet;
+      this.orderPercentage = orderPercentage;
+      this.paymentPercentage = paymentPercentage;
       this.nrThreads = -1;
    }
 
-   private WorkloadJmxRequest(String component, String hostname, String port, Workload workload, int writePercentage,
-                              boolean largeWriteSet, int nrThreads) throws Exception {
+   private WorkloadJmxRequest(String component, String hostname, String port, Workload workload, int orderPercentage,
+                              int paymentPercentage, int nrThreads) throws Exception {
       String connectionUrl = "service:jmx:rmi:///jndi/rmi://" + hostname + ":" + port + "/jmxrmi";
 
       JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionUrl));
       mBeanServerConnection = connector.getMBeanServerConnection();
       benchmarkComponent = new ObjectName(COMPONENT_PREFIX + component);
       this.workload = workload;
-      this.writePercentage = writePercentage;
-      this.largeWriteSet = largeWriteSet;
+      this.orderPercentage = orderPercentage;
+      this.paymentPercentage = paymentPercentage;
       this.nrThreads = nrThreads;
    }
 
@@ -168,8 +169,8 @@ public class WorkloadJmxRequest {
       mBeanServerConnection = connector.getMBeanServerConnection();
       benchmarkComponent = new ObjectName(COMPONENT_PREFIX + component);
       this.workload = null;
-      this.writePercentage = -1;
-      this.largeWriteSet = false;
+      this.orderPercentage = -1;
+      this.paymentPercentage = -1;
       this.nrThreads = nrThreads;
    }
 
@@ -179,8 +180,9 @@ public class WorkloadJmxRequest {
       }
 
       if (workload != null) {
-         mBeanServerConnection.invoke(benchmarkComponent, workload.getMethodName(), new Object[] {largeWriteSet, writePercentage},
-                                      new String[] {"boolean", "int"});
+         mBeanServerConnection.invoke(benchmarkComponent, workload.getMethodName(), 
+                                      new Object[] {paymentPercentage, orderPercentage},
+                                      new String[] {"int", "int"});
       }
       if (nrThreads != -1) {
          mBeanServerConnection.invoke(benchmarkComponent, "setNumberOfActiveThreads", new Object[] {nrThreads},
@@ -226,16 +228,28 @@ public class WorkloadJmxRequest {
 
          if (hasOption(Option.HIGH_CONTENTION) || hasOption(Option.LOW_CONTENTION) ||
                hasOption(Option.RANDOM_CONTENTION)) {
-            if (!hasOption(Option.WRITE_PERCENTAGE)) {
-               throw new IllegalArgumentException("Option " + Option.WRITE_PERCENTAGE + " is required");
+            if (!hasOption(Option.ORDER_STATUS_PERCENTAGE)) {
+               throw new IllegalArgumentException("Option " + Option.ORDER_STATUS_PERCENTAGE + " is required");
+            }
+            if (!hasOption(Option.PAYMENT_PERCENTAGE)) {
+               throw new IllegalArgumentException("Option " + Option.PAYMENT_PERCENTAGE + " is required");
             }
          }
 
-         String writePercentage = argsValues.get(Option.WRITE_PERCENTAGE);
+         String writePercentage = argsValues.get(Option.PAYMENT_PERCENTAGE);
          if (writePercentage != null) {
             int value = Integer.parseInt(writePercentage);
             if (value < 0 || value > 100) {
-               throw new IllegalArgumentException("Write percentage should be between 0 and 100. Value is " +
+               throw new IllegalArgumentException("Payment percentage should be between 0 and 100. Value is " +
+                                                        writePercentage);
+            }
+         }
+
+         writePercentage = argsValues.get(Option.ORDER_STATUS_PERCENTAGE);
+         if (writePercentage != null) {
+            int value = Integer.parseInt(writePercentage);
+            if (value < 0 || value > 100) {
+               throw new IllegalArgumentException("Order status percentage should be between 0 and 100. Value is " +
                                                         writePercentage);
             }
          }
