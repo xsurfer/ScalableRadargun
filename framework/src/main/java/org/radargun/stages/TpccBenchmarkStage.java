@@ -250,4 +250,9 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public final void setNumberOfActiveThreads(int numberOfActiveThreads) {
       tpccStressor.setNumberOfRunningThreads(numberOfActiveThreads);
    }
+
+   @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
+   public final double getExpectedWritePercentage() {
+      return tpccStressor.getExpectedWritePercentage();
+   }
 }

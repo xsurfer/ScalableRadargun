@@ -1052,4 +1052,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private int getWarehouseForThread(int threadIdx) {
       return listLocalWarehouses.isEmpty() ? -1 : listLocalWarehouses.get(threadIdx % listLocalWarehouses.size());
    }
+   
+   public synchronized final double getExpectedWritePercentage(){
+      return 1.0 - (orderStatusWeight / 100.0);
+   }
 }
