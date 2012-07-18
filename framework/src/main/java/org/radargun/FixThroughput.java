@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * // TODO: Document this
+ * fixes the throughput for the PB protocol (or other) based on the expected write percentage value
  *
  * @author Pedro Ruivo
  * @since 1.1
@@ -20,7 +20,6 @@ import java.util.Map;
 public class FixThroughput implements Runnable {
 
    private static enum Header {
-      OBSERVATIONS("Observations"),
       THROUGHPUT("Throughput"),
       WRITE_THROUGHPUT("WriteTxThroughput"),
       READ_THROUGHPUT("ReadTxThroughput"),
@@ -68,6 +67,10 @@ public class FixThroughput implements Runnable {
       System.exit(0);
    }
 
+   /**
+    * fix the throughput in all line. this implements the Runnable in order to support multi-thread file processing if
+    * needed
+    */
    @Override
    public void run() {
       BufferedReader reader = getBufferedReader();
@@ -110,6 +113,12 @@ public class FixThroughput implements Runnable {
       close(writer);
    }
 
+   /**
+    * returns the buffered reader for the input file
+    *
+    * @return  the buffered reader for the input file or null if the some error occurs (file cannot be open or it is 
+    * not found)
+    */
    private BufferedReader getBufferedReader() {
       try {
          return new BufferedReader(new FileReader(filePath));
@@ -119,6 +128,11 @@ public class FixThroughput implements Runnable {
       return null;
    }
 
+   /**
+    * returns the buffered writer for the output file
+    *
+    * @return  the buffered writer for the output file or null if some error occurs (file cannot be written or others)
+    */
    private BufferedWriter getBufferedWriter() {
       try {
          return new BufferedWriter(new FileWriter(outputFilePath));
@@ -128,6 +142,11 @@ public class FixThroughput implements Runnable {
       return null;
    }
 
+   /**
+    * close a closeable instance
+    *
+    * @param closeable  the instance to close
+    */
    private void close(Closeable closeable) {
       try {
          closeable.close();
@@ -136,6 +155,12 @@ public class FixThroughput implements Runnable {
       }
    }
 
+   /**
+    * reads a line from the csv file and parse it splitting its values for each position in array
+    *
+    * @param reader  the buffered reader for the file
+    * @return        the line split
+    */
    private String[] readLine(BufferedReader reader) {
       String line = null;
       try {
@@ -146,6 +171,12 @@ public class FixThroughput implements Runnable {
       return line == null ? null :line.split(",");
    }
 
+   /**
+    * writes a lines in the output file
+    *
+    * @param line    the array with each position of the csv values
+    * @param writer  the buffered writer
+    */
    private void writeLine(String[] line, BufferedWriter writer) {
       try {
          writer.write(line[0]);
@@ -160,17 +191,27 @@ public class FixThroughput implements Runnable {
       }
    }
 
+   /**
+    * sets the headers position to get the values needed in each line
+    *
+    * @param line the header csv line
+    */
    private void setHeaderPosition(String[] line) {
       for (int idx = 0; idx < line.length; ++idx) {
          Header header = Header.fromString(line[idx]);
          if (header != null) {
             headerPosition.put(header, idx);
          }
-      }      
+      }
    }
 
-   private boolean isAllHeadersPositionValid() {      
-      for (Header header : Header.values()) {         
+   /**
+    * check if it has all the headers needed to perform the fix
+    *
+    * @return  true if the all headers needed are present, false otherwise
+    */
+   private boolean isAllHeadersPositionValid() {
+      for (Header header : Header.values()) {
          if (!headerPosition.containsKey(header)) {
             return false;
          }
@@ -178,15 +219,28 @@ public class FixThroughput implements Runnable {
       return true;
    }
 
+   /**
+    * fixes the throughput for this line
+    *
+    * @param line the csv line
+    * @return     the new throughput value
+    */
    private double fixThroughput(String[] line) {
       double writeThroughput = Double.parseDouble(line[headerPosition.get(Header.WRITE_THROUGHPUT)]);
       double readThroughput = Double.parseDouble(line[headerPosition.get(Header.READ_THROUGHPUT)]);
-      double expectedWritePercentage = Double.parseDouble(line[headerPosition.get(Header.EXPECTED_WRITE_PERCENTAGE)]);      
-      
+      double expectedWritePercentage = Double.parseDouble(line[headerPosition.get(Header.EXPECTED_WRITE_PERCENTAGE)]);
+
       return Math.min(writeThroughput / expectedWritePercentage,
                       readThroughput / (1 - expectedWritePercentage));
    }
 
+   /**
+    * calculates the output file path based on the input file path. the output file has the same name as the input file
+    * but with the suffix -fix
+    *
+    * @param inputFilePath the input file path
+    * @return              the output file path
+    */
    private String computeOutputFilePath(String inputFilePath) {
       String[] array = inputFilePath.split("\\.");
       int idx = 0;
