@@ -5,10 +5,12 @@ import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -18,6 +20,8 @@ import java.util.Map;
  * @since 1.1
  */
 public class FixThroughput implements Runnable {
+
+   private static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance(Locale.US);
 
    private static enum Header {
       THROUGHPUT("Throughput"),
@@ -104,8 +108,8 @@ public class FixThroughput implements Runnable {
       writeLine(line, writer);
 
       while ((line = readLine(reader)) != null) {
-         double throughput = fixThroughput(line);
-         line[headerPosition.get(Header.THROUGHPUT)] = Double.toString(throughput);
+         int throughput = fixThroughput(line);
+         writeNumber(line, Header.THROUGHPUT, throughput);
          writeLine(line, writer);
       }
 
@@ -225,13 +229,52 @@ public class FixThroughput implements Runnable {
     * @param line the csv line
     * @return     the new throughput value
     */
-   private double fixThroughput(String[] line) {
-      double writeThroughput = Double.parseDouble(line[headerPosition.get(Header.WRITE_THROUGHPUT)]);
-      double readThroughput = Double.parseDouble(line[headerPosition.get(Header.READ_THROUGHPUT)]);
-      double expectedWritePercentage = Double.parseDouble(line[headerPosition.get(Header.EXPECTED_WRITE_PERCENTAGE)]);
+   private int fixThroughput(String[] line) {
+      Number expectedWritePercentage = readNumber(line, Header.EXPECTED_WRITE_PERCENTAGE);
 
-      return Math.min(writeThroughput / expectedWritePercentage,
-                      readThroughput / (1 - expectedWritePercentage));
+      if (expectedWritePercentage == null) {
+         Number throughput = readNumber(line, Header.THROUGHPUT);
+         return throughput == null ? 0 : throughput.intValue();
+      } else {
+
+         Number writeThroughput = readNumber(line,  Header.WRITE_THROUGHPUT);
+         Number readThroughput = readNumber(line, Header.READ_THROUGHPUT);
+
+         if (writeThroughput == null || readThroughput == null) {
+            Number throughput = readNumber(line, Header.THROUGHPUT);
+            return throughput == null ? 0 : throughput.intValue();
+         }
+
+         return (int) Math.min(writeThroughput.doubleValue() / expectedWritePercentage.doubleValue(),
+                               readThroughput.doubleValue() / (1 - expectedWritePercentage.doubleValue()));
+      }
+   }
+
+   private Number readNumber(String[] line, Header header) {
+      int idx = headerPosition.get(header);
+
+      if (idx >= line.length) {
+         return null;
+      }
+
+      String number = line[idx];
+      if (number == null || number.isEmpty()) {
+         return null;
+      }
+      try {
+         return NUMBER_FORMAT.parse(number);
+      } catch (Exception e) {
+         return null;
+      }
+   }
+
+   private void writeNumber(String[] line, Header header, Number value) {
+      int idx = headerPosition.get(header);
+
+      if (idx >= line.length) {
+         return;
+      }
+      line[idx] = value.toString();
    }
 
    /**
