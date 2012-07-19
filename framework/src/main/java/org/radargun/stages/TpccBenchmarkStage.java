@@ -255,4 +255,14 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public final double getExpectedWritePercentage() {
       return tpccStressor.getExpectedWritePercentage();
    }
+
+   @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
+   public final int getPaymentWeight() {
+      return tpccStressor.getPaymentWeight();
+   }
+
+   @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
+   public final int getOrderStatusWeight() {
+      return tpccStressor.getOrderStatusWeight();
+   }
 }

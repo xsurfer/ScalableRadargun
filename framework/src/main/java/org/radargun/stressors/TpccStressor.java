@@ -997,7 +997,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
       paymentWeight = payment;
       orderStatusWeight = order;
-      
+
       log.info("Change to high contention workload:");
       for (Stressor stressor : stressors) {
          stressor.terminal.change(1, paymentWeight, orderStatusWeight);
@@ -1020,7 +1020,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       orderStatusWeight = order;
 
       log.info("Change to low contention workload:");
-      for (Stressor stressor : stressors) {         
+      for (Stressor stressor : stressors) {
          stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
          log.info(stressor.getName() + " terminal is " + stressor.terminal);
       }
@@ -1052,8 +1052,16 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private int getWarehouseForThread(int threadIdx) {
       return listLocalWarehouses.isEmpty() ? -1 : listLocalWarehouses.get(threadIdx % listLocalWarehouses.size());
    }
-   
+
    public synchronized final double getExpectedWritePercentage(){
       return 1.0 - (orderStatusWeight / 100.0);
+   }
+
+   public synchronized final int getPaymentWeight() {
+      return paymentWeight;
+   }
+
+   public synchronized final int getOrderStatusWeight() {
+      return orderStatusWeight;
    }
 }
