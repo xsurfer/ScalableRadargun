@@ -265,4 +265,9 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public final int getOrderStatusWeight() {
       return tpccStressor.getOrderStatusWeight();
    }
+
+   @ManagedOperation(description = "Stop the current benchmark")
+   public final void stopBenchmark() {
+      tpccStressor.stopBenchmark();
+   }
 }

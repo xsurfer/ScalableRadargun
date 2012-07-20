@@ -107,6 +107,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private StatSampler statSampler;
    private boolean running = true;
 
+   private final Timer finishBenchmarkTimer = new Timer("Finish-Benchmark-Timer");
+
    private final List<Stressor> stressors = new LinkedList<Stressor>();
    private final List<Integer> listLocalWarehouses = new LinkedList<Integer>();
 
@@ -161,7 +163,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       startTime = System.currentTimeMillis();
       log.info("Executing: " + this.toString());
 
-      new Timer("Finish-Benchmark-Task").schedule(new TimerTask() {
+      finishBenchmarkTimer.schedule(new TimerTask() {
          @Override
          public void run() {
             finishBenchmark();
@@ -908,6 +910,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    private synchronized void finishBenchmark() {
+      if (!running) {
+         return;
+      }
       running = false;
       for (Stressor stressor : stressors) {
          stressor.finish();
@@ -1063,5 +1068,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    public synchronized final int getOrderStatusWeight() {
       return orderStatusWeight;
+   }
+
+   public synchronized final void stopBenchmark() {
+      finishBenchmarkTimer.cancel();
+      finishBenchmark();
    }
 }
