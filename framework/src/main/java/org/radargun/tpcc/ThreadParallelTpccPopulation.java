@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.tpcc.domain.CustomerLookup;
+import org.radargun.utils.ThreadTpccToolsManager;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -28,11 +29,20 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
    private int parallelThreads = 4;
    private int elementsPerBlock = 100;  //items loaded per transaction
    private AtomicLong waitingPeriod;
+   private final ThreadTpccToolsManager threadTpccToolsManager;
 
    public ThreadParallelTpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves,
                                        long cLastMask, long olIdMask, long cIdMask,
                                        int parallelThreads, int elementsPerBlock) {
-      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask);
+      this(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads, elementsPerBlock,
+            false, new ThreadTpccToolsManager(System.nanoTime()));
+   }
+   
+   public ThreadParallelTpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves,
+                                       long cLastMask, long olIdMask, long cIdMask,
+                                       int parallelThreads, int elementsPerBlock, boolean populateLocalOnly, 
+                                       ThreadTpccToolsManager threadTpccToolsManager) {
+      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, populateLocalOnly);
       this.parallelThreads = parallelThreads;
       this.elementsPerBlock = elementsPerBlock;
 
@@ -46,6 +56,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       }
 
       this.waitingPeriod = new AtomicLong(0);
+      this.threadTpccToolsManager = threadTpccToolsManager;
    }
 
    @Override
@@ -68,8 +79,8 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       performMultiThreadPopulation(init_id_item, num_of_items, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateItemThread(lowerBound, upperBound);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateItemThread(threadIdx, lowerBound, upperBound);
          }
       });
    }
@@ -98,28 +109,28 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       performMultiThreadPopulation(init_id_item, num_of_items, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateStockThread(lowerBound, upperBound, warehouseId);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateStockThread(threadIdx, lowerBound, upperBound, warehouseId);
          }
       });
    }
 
    @Override
-   protected void populateCustomers(final int _warehouseId, final int _districtId){
-      if (_warehouseId < 0 || _districtId < 0) {
+   protected void populateCustomers(final int warehouseId, final int districtId){
+      if (warehouseId < 0 || districtId < 0) {
          log.warn("Trying to populate Customer with a negative warehouse or district ID. skipping...");
          return;
       }
 
-      log.trace("Populating Customers for warehouse " + _warehouseId + " and district " + _districtId);
+      log.trace("Populating Customers for warehouse " + warehouseId + " and district " + districtId);
 
       final ConcurrentHashMap<CustomerLookupQuadruple,Integer> lookupContentionAvoidance =
             new ConcurrentHashMap<CustomerLookupQuadruple, Integer>();
 
       performMultiThreadPopulation(1, TpccTools.NB_MAX_CUSTOMER, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateCustomerThread(lowerBound, upperBound, _warehouseId, _districtId, lookupContentionAvoidance);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateCustomerThread(threadIdx, lowerBound, upperBound, warehouseId, districtId, lookupContentionAvoidance);
          }
       });
 
@@ -138,8 +149,8 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       performMultiThreadPopulation(0, totalEntries, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateCustomerLookupThread(lowerBound, upperBound, vec_map);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateCustomerLookupThread(threadIdx, lowerBound, upperBound, vec_map);
          }
       });
    }
@@ -156,8 +167,8 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       performMultiThreadPopulation(1, TpccTools.NB_MAX_ORDER, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateOrderThread(lowerBound, upperBound, warehouseId, districtId);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateOrderThread(threadIdx, lowerBound, upperBound, warehouseId, districtId);
          }
       });
    }
@@ -171,6 +182,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       private long upperBound;
       private int warehouseId;
       private int districtId;
+      private final int threadIdx;
 
       @Override
       public String toString() {
@@ -182,14 +194,16 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
                '}';
       }
 
-      public PopulateOrderThread(long l, long u, int w, int d){
+      public PopulateOrderThread(int threadIdx, long l, long u, int w, int d){
          this.lowerBound = l;
          this.upperBound = u;
          this.districtId = d;
          this.warehouseId = w;
+         this.threadIdx = threadIdx;
       }
 
       public void run(){
+         tpccTools.set(threadTpccToolsManager.getTpccTools(threadIdx));
          logStart(toString());
 
          long remainder = (upperBound - lowerBound) % elementsPerBlock;
@@ -228,7 +242,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
                   seqAleaList.add(generatedSeqAlea);
                }
 
-               int o_ol_cnt = tpccTools.aleaNumber(5, 15);
+               int o_ol_cnt = tpccTools.get().aleaNumber(5, 15);
                Date aDate = new Date((new java.util.Date()).getTime());
 
                if (!txAwarePut(createOrder(orderId, districtId, warehouseId, aDate, o_ol_cnt, generatedSeqAlea))) {
@@ -251,6 +265,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       private int warehouseId;
       private int districtId;
       private ConcurrentHashMap<CustomerLookupQuadruple,Integer> lookupContentionAvoidance;
+      private final int threadIdx;
 
       @Override
       public String toString() {
@@ -263,16 +278,18 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       }
 
       @SuppressWarnings("unchecked")
-      public PopulateCustomerThread(long lowerBound, long upperBound, int warehouseId, int districtId,
+      public PopulateCustomerThread(int threadIdx, long lowerBound, long upperBound, int warehouseId, int districtId,
                                     ConcurrentHashMap c){
          this.lowerBound = lowerBound;
          this.upperBound = upperBound;
          this.districtId = districtId;
          this.warehouseId = warehouseId;
          this.lookupContentionAvoidance = c;
+         this.threadIdx = threadIdx;
       }
 
       public void run(){
+         tpccTools.set(threadTpccToolsManager.getTpccTools(threadIdx));
          logStart(toString());
 
          long remainder = (upperBound - lowerBound) % elementsPerBlock;
@@ -329,6 +346,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       private long lowerBound;
       private long upperBound;
+      private final int threadIdx;
 
       @Override
       public String toString() {
@@ -338,12 +356,14 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
                '}';
       }
 
-      public PopulateItemThread(long low, long up){
+      public PopulateItemThread(int threadIdx, long low, long up){
          this.lowerBound = low;
          this.upperBound = up;
+         this.threadIdx = threadIdx;
       }
 
       public void run(){
+         tpccTools.set(threadTpccToolsManager.getTpccTools(threadIdx));
          logStart(toString());
 
          long remainder = (upperBound - lowerBound) % elementsPerBlock;
@@ -379,6 +399,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       private long lowerBound;
       private long upperBound;
       private int warehouseId;
+      private final int threadIdx;
 
       @Override
       public String toString() {
@@ -389,13 +410,15 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
                '}';
       }
 
-      public PopulateStockThread(long low, long up, int warehouseId){
+      public PopulateStockThread(int threadIdx, long low, long up, int warehouseId){
          this.lowerBound = low;
          this.upperBound = up;
          this.warehouseId = warehouseId;
+         this.threadIdx = threadIdx;
       }
 
       public void run(){
+         tpccTools.set(threadTpccToolsManager.getTpccTools(threadIdx));
          logStart(toString());
 
          long remainder = (upperBound - lowerBound) % elementsPerBlock;
@@ -431,6 +454,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       private Vector<CustomerLookupQuadruple> vector;
       private long lowerBound;
       private long upperBound;
+      private final int threadIdx;
 
       @Override
       public String toString() {
@@ -441,13 +465,15 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       }
 
       @SuppressWarnings("unchecked")
-      public PopulateCustomerLookupThread(long l, long u, Vector v){
+      public PopulateCustomerLookupThread(int threadIdx, long l, long u, Vector v){
          this.vector = v;
          this.lowerBound = l;
          this.upperBound = u;
+         this.threadIdx = threadIdx;
       }
 
       public void run(){
+         tpccTools.set(threadTpccToolsManager.getTpccTools(threadIdx));
          logStart(toString());
 
          long remainder = (upperBound - lowerBound) % elementsPerBlock;
@@ -494,7 +520,6 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
       private int warehouseId;
       private int districtId;
       private long customerId;
-
 
       public CustomerLookupQuadruple(String c, int w, int d, long i){
          this.c_last = c;
@@ -642,7 +667,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
 
       for(int i = 1; i <= parallelThreads; i++){
          itemsToAdd = itemsPerThread + (i == parallelThreads ? threadRemainder:0);
-         Thread thread = threadCreator.createThread(lowerBound, lowerBound + itemsToAdd - 1);
+         Thread thread = threadCreator.createThread(i, lowerBound, lowerBound + itemsToAdd - 1);
          threads[i-1] = thread;
          thread.start();
          lowerBound += (itemsToAdd);
@@ -663,6 +688,6 @@ public class ThreadParallelTpccPopulation extends TpccPopulation{
    }
 
    protected interface ThreadCreator {
-      Thread createThread(long lowerBound, long upperBound);
+      Thread createThread(int threadIdx, long lowerBound, long upperBound);
    }
 }

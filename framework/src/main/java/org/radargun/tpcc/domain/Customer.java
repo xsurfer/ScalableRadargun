@@ -266,6 +266,16 @@ public class Customer implements Serializable, Comparable, DomainObject {
    }
 
    @Override
+   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {
+      String key = getKey();
+      if (localOnly) {
+         
+      } else {
+         store(wrapper, nodeIndex);
+      }
+   }
+
+   @Override
    public boolean load(CacheWrapper wrapper) throws Throwable {
 
       Customer loaded = (Customer) wrapper.get(null, this.getKey());

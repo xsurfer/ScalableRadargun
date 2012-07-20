@@ -3,6 +3,7 @@ package org.radargun.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.utils.ThreadTpccToolsManager;
 
 /**
  * This population is used when passive replication is enabled. Only the primary can perform the population.
@@ -18,7 +19,8 @@ public class PassiveReplicationTpccPopulation extends ThreadParallelTpccPopulati
    public PassiveReplicationTpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves,
                                            long cLastMask, long olIdMask, long cIdMask, int parallelThreads,
                                            int elementsPerBlock) {
-      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads, elementsPerBlock);
+      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads, 
+            elementsPerBlock, false, new ThreadTpccToolsManager(System.nanoTime()));
    }
 
    @Override
@@ -36,9 +38,9 @@ public class PassiveReplicationTpccPopulation extends ThreadParallelTpccPopulati
    protected void initializeToolsParameters() {
       initTpccTools();
 
-      long c_c_last = tpccTools.randomNumber(0, TpccTools.A_C_LAST);
-      long c_c_id = tpccTools.randomNumber(0, TpccTools.A_C_ID);
-      long c_ol_i_id = tpccTools.randomNumber(0, TpccTools.A_OL_I_ID);
+      long c_c_last = tpccTools.get().randomNumber(0, TpccTools.A_C_LAST);
+      long c_c_id = tpccTools.get().randomNumber(0, TpccTools.A_C_ID);
+      long c_ol_i_id = tpccTools.get().randomNumber(0, TpccTools.A_OL_I_ID);
 
       boolean successful = false;
       do {
@@ -112,8 +114,8 @@ public class PassiveReplicationTpccPopulation extends ThreadParallelTpccPopulati
 
       performMultiThreadPopulation(1, TpccTools.NB_MAX_ITEM, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateItemThread(lowerBound, upperBound);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateItemThread(threadIdx, lowerBound, upperBound);
          }
       });
    }
@@ -128,8 +130,8 @@ public class PassiveReplicationTpccPopulation extends ThreadParallelTpccPopulati
 
       performMultiThreadPopulation(1, TpccTools.NB_MAX_ITEM, new ThreadCreator() {
          @Override
-         public Thread createThread(long lowerBound, long upperBound) {
-            return new PopulateStockThread(lowerBound, upperBound, warehouseId);
+         public Thread createThread(int threadIdx, long lowerBound, long upperBound) {
+            return new PopulateStockThread(threadIdx, lowerBound, upperBound, warehouseId);
          }
       });
    }

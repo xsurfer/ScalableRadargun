@@ -4,9 +4,11 @@ import com.arjuna.ats.arjuna.common.arjPropertyManager;
 import com.arjuna.ats.internal.arjuna.objectstore.VolatileStore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.infinispan.AdvancedCache;
 import org.infinispan.Cache;
 import org.infinispan.config.Configuration;
 import org.infinispan.context.Flag;
+import org.infinispan.distribution.DistributionManager;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.manager.DefaultCacheManager;
@@ -102,6 +104,15 @@ public class InfinispanWrapper implements CacheWrapper {
 
    public void put(String bucket, Object key, Object value) throws Exception {
       cache.put(key, value);
+   }
+
+   @Override
+   public void putIfLocal(String bucket, Object key, Object value) throws Exception {
+      AdvancedCache<Object, Object> advancedCache = cache.getAdvancedCache();
+      DistributionManager distributionManager = advancedCache.getDistributionManager();
+      if (distributionManager == null || distributionManager.getLocality(key).isLocal()) {
+         advancedCache.withFlags(Flag.CACHE_MODE_LOCAL).put(key, value);
+      }
    }
 
    public Object get(String bucket, Object key) throws Exception {

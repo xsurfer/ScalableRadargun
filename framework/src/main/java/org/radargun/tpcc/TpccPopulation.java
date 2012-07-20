@@ -44,10 +44,17 @@ public class TpccPopulation {
    protected final long olIdMask;
    protected final long cIdMask;
 
-   protected final TpccTools tpccTools;
+   protected final ThreadLocal<TpccTools> tpccTools;
+
+   private final boolean populateLocalOnly;
 
    public TpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves, long cLastMask,
                          long olIdMask, long cIdMask) {
+      this(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, false);            
+   }
+   
+   public TpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves, long cLastMask,
+                         long olIdMask, long cIdMask, boolean populateLocalOnly) {
       this.wrapper = wrapper;
       this._seqIdCustomer = new int[TpccTools.NB_MAX_CUSTOMER];
       this.memoryBean = ManagementFactory.getMemoryMXBean();
@@ -57,7 +64,9 @@ public class TpccPopulation {
       this.cLastMask = cLastMask;
       this.olIdMask = olIdMask;
       this.cIdMask = cIdMask;
-      tpccTools = TpccTools.newInstance();
+      tpccTools = new ThreadLocal<TpccTools>();
+      tpccTools.set(TpccTools.newInstance());
+      this.populateLocalOnly = populateLocalOnly;
    }
 
    public final void initTpccTools() {
@@ -82,9 +91,9 @@ public class TpccPopulation {
       initTpccTools();
 
       if (this.slaveIndex == 0) {//Only one slave
-         long c_c_last = tpccTools.randomNumber(0, TpccTools.A_C_LAST);
-         long c_c_id = tpccTools.randomNumber(0, TpccTools.A_C_ID);
-         long c_ol_i_id = tpccTools.randomNumber(0, TpccTools.A_OL_I_ID);
+         long c_c_last = tpccTools.get().randomNumber(0, TpccTools.A_C_LAST);
+         long c_c_id = tpccTools.get().randomNumber(0, TpccTools.A_C_ID);
+         long c_ol_i_id = tpccTools.get().randomNumber(0, TpccTools.A_OL_I_ID);
 
          boolean successful = false;
          while (!successful) {
@@ -121,7 +130,7 @@ public class TpccPopulation {
 
    public String c_last() {
       String c_last = "";
-      long number = tpccTools.nonUniformRandom(getC_LAST(), TpccTools.A_C_LAST, TpccTools.MIN_C_LAST, TpccTools.MAX_C_LAST);
+      long number = tpccTools.get().nonUniformRandom(getC_LAST(), TpccTools.A_C_LAST, TpccTools.MIN_C_LAST, TpccTools.MAX_C_LAST);
       String alea = String.valueOf(number);
       while (alea.length() < 3) {
          alea = "0" + alea;
@@ -134,21 +143,21 @@ public class TpccPopulation {
 
    public long getC_LAST() {
       if (POP_C_LAST == TpccTools.NULL_NUMBER) {
-         POP_C_LAST = tpccTools.randomNumber(TpccTools.MIN_C_LAST, TpccTools.A_C_LAST);
+         POP_C_LAST = tpccTools.get().randomNumber(TpccTools.MIN_C_LAST, TpccTools.A_C_LAST);
       }
       return POP_C_LAST;
    }
 
    public long getC_ID() {
       if (POP_C_ID == TpccTools.NULL_NUMBER) {
-         POP_C_ID = tpccTools.randomNumber(0, TpccTools.A_C_ID);
+         POP_C_ID = tpccTools.get().randomNumber(0, TpccTools.A_C_ID);
       }
       return POP_C_ID;
    }
 
    public long getOL_I_ID() {
       if (POP_OL_I_ID == TpccTools.NULL_NUMBER) {
-         POP_OL_I_ID = tpccTools.randomNumber(0, TpccTools.A_OL_I_ID);
+         POP_OL_I_ID = tpccTools.get().randomNumber(0, TpccTools.A_OL_I_ID);
       }
       return POP_OL_I_ID;
    }
@@ -299,7 +308,7 @@ public class TpccPopulation {
       this._new_order = false;
       for (int orderId = 1; orderId <= TpccTools.NB_MAX_ORDER; orderId++) {
 
-         int o_ol_cnt = tpccTools.aleaNumber(5, 15);
+         int o_ol_cnt = tpccTools.get().aleaNumber(5, 15);
          Date aDate = new Date((new java.util.Date()).getTime());
 
          txAwarePut(createOrder(orderId, districtId, warehouseId, aDate, o_ol_cnt,
@@ -327,7 +336,7 @@ public class TpccPopulation {
          Date delivery_date;
 
          if (orderId >= TpccTools.LIMIT_ORDER) {
-            amount = tpccTools.aleaDouble(0.01, 9999.99, 2);
+            amount = tpccTools.get().aleaDouble(0.01, 9999.99, 2);
             delivery_date = null;
          } else {
             amount = 0.0;
@@ -353,7 +362,7 @@ public class TpccPopulation {
    protected final boolean txAwarePut(DomainObject domainObject) {
       if (wrapper.isInTransaction()) {
          try {
-            domainObject.store(wrapper, slaveIndex);
+            domainObject.storeToPopulate(wrapper, slaveIndex, populateLocalOnly);
          } catch (Throwable throwable) {
             return false;
          }
@@ -361,7 +370,7 @@ public class TpccPopulation {
          boolean putDone = false;
          do {
             try {
-               domainObject.store(wrapper, slaveIndex);
+               domainObject.storeToPopulate(wrapper, slaveIndex, populateLocalOnly);
                putDone = true;
             } catch (Throwable e) {
                logErrorWhilePut(domainObject, e);
@@ -402,7 +411,7 @@ public class TpccPopulation {
       int rand;
       int alea;
       do {
-         rand = (int) tpccTools.nonUniformRandom(getC_ID(), TpccTools.A_C_ID, deb, fin);
+         rand = (int) tpccTools.get().nonUniformRandom(getC_ID(), TpccTools.A_C_ID, deb, fin);
          alea = this._seqIdCustomer[rand];
       } while (alea == TpccTools.NULL_NUMBER);
       _seqIdCustomer[rand] = TpccTools.NULL_NUMBER;
@@ -452,54 +461,54 @@ public class TpccPopulation {
 
    protected final Warehouse createWarehouse(int warehouseId) {
       return new Warehouse(warehouseId,
-                           tpccTools.aleaChainec(6, 10),
-                           tpccTools.aleaChainec(10, 20),
-                           tpccTools.aleaChainec(10, 20),
-                           tpccTools.aleaChainec(10, 20),
-                           tpccTools.aleaChainel(2, 2),
-                           tpccTools.aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
-                           tpccTools.aleaFloat(Float.valueOf("0.0000"), Float.valueOf("0.2000"), 4),
+                           tpccTools.get().aleaChainec(6, 10),
+                           tpccTools.get().aleaChainec(10, 20),
+                           tpccTools.get().aleaChainec(10, 20),
+                           tpccTools.get().aleaChainec(10, 20),
+                           tpccTools.get().aleaChainel(2, 2),
+                           tpccTools.get().aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
+                           tpccTools.get().aleaFloat(Float.valueOf("0.0000"), Float.valueOf("0.2000"), 4),
                            TpccTools.WAREHOUSE_YTD);
    }
 
    protected final Item createItem(long itemId) {
       return new Item(itemId,
-                      tpccTools.aleaNumber(1, 10000),
-                      tpccTools.aleaChainec(14, 24),
-                      tpccTools.aleaFloat(1, 100, 2),
-                      tpccTools.sData());
+                      tpccTools.get().aleaNumber(1, 10000),
+                      tpccTools.get().aleaChainec(14, 24),
+                      tpccTools.get().aleaFloat(1, 100, 2),
+                      tpccTools.get().sData());
    }
 
    protected final Stock createStock(long stockId, int warehouseId) {
       return new Stock(stockId,
                        warehouseId,
-                       tpccTools.aleaNumber(10, 100),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
-                       tpccTools.aleaChainel(24, 24),
+                       tpccTools.get().aleaNumber(10, 100),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
+                       tpccTools.get().aleaChainel(24, 24),
                        0,
                        0,
                        0,
-                       tpccTools.sData());
+                       tpccTools.get().sData());
    }
 
    protected final District createDistrict(int districtId, int warehouseId) {
       return new District(warehouseId,
                           districtId,
-                          tpccTools.aleaChainec(6, 10),
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainel(2, 2),
-                          tpccTools.aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
-                          tpccTools.aleaFloat(Float.valueOf("0.0000"), Float.valueOf("0.2000"), 4),
+                          tpccTools.get().aleaChainec(6, 10),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainel(2, 2),
+                          tpccTools.get().aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
+                          tpccTools.get().aleaFloat(Float.valueOf("0.0000"), Float.valueOf("0.2000"), 4),
                           TpccTools.WAREHOUSE_YTD,
                           3001);
    }
@@ -508,24 +517,24 @@ public class TpccPopulation {
       return new Customer(warehouseId,
                           districtId,
                           customerId,
-                          tpccTools.aleaChainec(8, 16),
+                          tpccTools.get().aleaChainec(8, 16),
                           "OE",
                           customerLastName,
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainec(10, 20),
-                          tpccTools.aleaChainel(2, 2),
-                          tpccTools.aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
-                          tpccTools.aleaChainen(16, 16),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainec(10, 20),
+                          tpccTools.get().aleaChainel(2, 2),
+                          tpccTools.get().aleaChainen(4, 4) + TpccTools.CHAINE_5_1,
+                          tpccTools.get().aleaChainen(16, 16),
                           new Date(System.currentTimeMillis()),
-                          (tpccTools.aleaNumber(1, 10) == 1) ? "BC" : "GC",
+                          (tpccTools.get().aleaNumber(1, 10) == 1) ? "BC" : "GC",
                           500000.0,
-                          tpccTools.aleaDouble(0., 0.5, 4),
+                          tpccTools.get().aleaDouble(0., 0.5, 4),
                           -10.0,
                           10.0,
                           1,
                           0,
-                          tpccTools.aleaChainec(300, 500));
+                          tpccTools.get().aleaChainec(300, 500));
    }
 
    protected final History createHistory(long customerId, long districtId, long warehouseId) {
@@ -534,7 +543,7 @@ public class TpccPopulation {
                          warehouseId,
                          districtId,
                          warehouseId,
-                         new Date(System.currentTimeMillis()), 10, tpccTools.aleaChainec(12, 24));
+                         new Date(System.currentTimeMillis()), 10, tpccTools.get().aleaChainec(12, 24));
    }
 
    protected final Order createOrder(long orderId, long districtId, long warehouseId, Date aDate, int o_ol_cnt,
@@ -544,7 +553,7 @@ public class TpccPopulation {
                        warehouseId,
                        seqAlea,
                        aDate,
-                       (orderId < TpccTools.LIMIT_ORDER) ? tpccTools.aleaNumber(1, 10) : 0,
+                       (orderId < TpccTools.LIMIT_ORDER) ? tpccTools.get().aleaNumber(1, 10) : 0,
                        o_ol_cnt,
                        1);
    }
@@ -555,12 +564,12 @@ public class TpccPopulation {
                            districtId,
                            warehouseId,
                            orderLineId,
-                           tpccTools.nonUniformRandom(getOL_I_ID(), TpccTools.A_OL_I_ID, 1L, TpccTools.NB_MAX_ITEM),
+                           tpccTools.get().nonUniformRandom(getOL_I_ID(), TpccTools.A_OL_I_ID, 1L, TpccTools.NB_MAX_ITEM),
                            warehouseId,
                            delivery_date,
                            5,
                            amount,
-                           tpccTools.aleaChainel(12, 24));
+                           tpccTools.get().aleaChainel(12, 24));
    }
 
    protected final NewOrder createNewOrder(long orderId, long districtId, long warehouseId) {

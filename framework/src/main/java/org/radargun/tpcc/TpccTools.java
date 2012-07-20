@@ -72,14 +72,18 @@ public final class TpccTools {
 
    private final Random randAlea;
 
-   private TpccTools() {
-      randUniform = new Random(System.nanoTime() * 31);
-      randNonUniform = new Random(System.nanoTime() * 31 * 17);
-      randAlea = new Random(System.nanoTime() * 31 * 17 * 3);
+   private TpccTools(long seed) {
+      randUniform = new Random(seed * 31);
+      randNonUniform = new Random(seed * 31 * 17);
+      randAlea = new Random(seed * 31 * 17 * 3);
    }
 
    public static TpccTools newInstance() {
-      return new TpccTools();
+      return new TpccTools(System.nanoTime());
+   }
+
+   public static TpccTools newInstance(long seed) {
+      return new TpccTools(seed);
    }
 
    private String aleaChaine(int deb, int fin, int min, int max, int radix) {

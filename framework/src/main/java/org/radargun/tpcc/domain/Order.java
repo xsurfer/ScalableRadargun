@@ -122,6 +122,15 @@ public class Order implements Serializable, Comparable, DomainObject {
    }
 
    @Override
+   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {
+      if (localOnly) {
+         wrapper.putIfLocal(null, getKey(), this);
+      } else {
+         store(wrapper, nodeIndex);
+      }
+   }
+
+   @Override
    public boolean load(CacheWrapper wrapper) throws Throwable {
 
       Order loaded = (Order) wrapper.get(null, this.getKey());

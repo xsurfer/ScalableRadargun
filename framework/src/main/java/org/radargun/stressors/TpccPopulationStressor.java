@@ -69,23 +69,24 @@ public class TpccPopulationStressor extends AbstractCacheWrapperStressor {
                                                                numSlaves, cLastMask, olIdMask,
                                                                cIdMask, (threadParallelLoad ? numLoadersThread : 1),
                                                                batchLevel);
-      } else if(this.threadParallelLoad){
+      } else if(this.threadParallelLoad) {
          log.info("Performing thread-parallel population...");
          tpccPopulation = new ThreadParallelTpccPopulation(wrapper, this.numWarehouses, this.slaveIndex,
                                                            this.numSlaves, this.cLastMask, this.olIdMask,
                                                            this.cIdMask,this.numLoadersThread,this.batchLevel);
-      }
-      else{
+      } else {
          log.info("Performing population...");
          tpccPopulation = new TpccPopulation(wrapper, this.numWarehouses, this.slaveIndex, this.numSlaves,
                                              this.cLastMask, this.olIdMask, this.cIdMask);
       }
+      
       if (preloadedFromDB) {
          log.info("Skipping the population phase. The data was already preloaded from a DataBase");
          tpccPopulation.initTpccTools();
       } else {
          tpccPopulation.performPopulation();
       }
+      
       log.info("Population ended with " + wrapper.getCacheSize() + " elements!");
    }
 

@@ -44,6 +44,8 @@ public interface CacheWrapper
     */
    void put(String bucket, Object key, Object value) throws Exception;
 
+   void putIfLocal(String bucket, Object key, Object value) throws Exception;
+
    /**
     * @see #put(String, Object, Object)
     */

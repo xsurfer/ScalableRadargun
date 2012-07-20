@@ -88,6 +88,15 @@ public class Item implements Serializable, DomainObject {
    }
 
    @Override
+   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {
+      if (localOnly) {
+         wrapper.putIfLocal(null, getKey(), this);
+      } else {
+         store(wrapper, nodeIndex);
+      }
+   }
+
+   @Override
    public boolean load(CacheWrapper wrapper) throws Throwable {
 
       Item loaded = (Item) wrapper.get(null, this.getKey());

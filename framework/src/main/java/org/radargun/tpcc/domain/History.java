@@ -124,6 +124,15 @@ public class History implements Serializable, DomainObject {
    }
 
    @Override
+   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {      
+      if (localOnly) {
+         wrapper.putIfLocal(null, generateId(nodeIndex), this);
+      } else {
+         store(wrapper, nodeIndex);
+      }
+   }
+
+   @Override
    public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
