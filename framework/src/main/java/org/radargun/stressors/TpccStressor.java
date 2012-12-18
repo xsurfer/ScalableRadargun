@@ -91,6 +91,16 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
     */
    private long statsSamplingInterval = 0;
 
+   /**
+    * Specifies the msec a transaction spends in backoff after aborting
+    */
+   private long backOffTime = 0;
+
+   /**
+    * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
+    */
+   private boolean retryOnAbort = false;
+
    private CacheWrapper cacheWrapper;
    private long startTime;
    private long endTime;
@@ -98,6 +108,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private BlockingQueue<RequestType> queue;
    private AtomicLong countJobs;
    private Producer[] producers;
+   private ProducerRate backOffSleeper;
    private StatSampler statSampler;
    private boolean running = true;
 
@@ -275,6 +286,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       long numReadsDequeued = 0L;
       long numNewOrderDequeued = 0L;
       long numPaymentDequeued = 0L;
+      long numLocalTimeout = 0L;
+      long numRemoteTimeout = 0L;
 
       for (Stressor stressor : stressors) {
          //duration += stressor.totalDuration(); //in nanosec
@@ -315,6 +328,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          numReadsDequeued += stressor.numReadDequeued;
          numNewOrderDequeued += stressor.numNewOrderDequeued;
          numPaymentDequeued += stressor.numPaymentDequeued;
+         numLocalTimeout += stressor.localTimeout;
+         numRemoteTimeout += stressor.remoteTimeout;
       }
 
       //duration = duration / 1000000; // nanosec to millisec
@@ -461,6 +476,14 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str(paymentInQueueTimes / numPaymentDequeued));
       else
          results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str(0));
+      if (numLocalTimeout != 0)
+         results.put("LOCAL_TIMEOUT", str(numLocalTimeout));
+      else
+         results.put("LOCAL_TIMEOUT", str(0));
+      if (numRemoteTimeout != 0)
+         results.put("REMOTE_TIMEOUT", str(numLocalTimeout));
+      else
+         results.put("REMOTE_TIMEOUT", str(0));
 
       results.putAll(cacheWrapper.getAdditionalStats());
       saveSamples();
@@ -538,12 +561,18 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       private boolean running = true;
       private boolean active = true;
 
+      private ProducerRate backOffSleeper;
+      private long localTimeout = 0L;
+      private long remoteTimeout = 0L;
+
       public Stressor(int localWarehouseID, int threadIndex, int nodeIndex, double arrivalRate,
                       double paymentWeight, double orderStatusWeight) {
          super("Stressor-" + threadIndex);
          this.threadIndex = threadIndex;
          this.arrivalRate = arrivalRate;
          this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
+         if (backOffTime > 0)
+            this.backOffSleeper = new ProducerRate(Math.pow((double) backOffTime, -1D));
       }
 
       @Override
@@ -562,16 +591,17 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          long endInQueueTime;
 
 
-         TpccTransaction transaction;
+         TpccTransaction transaction = null;
 
          boolean isReadOnly;
-         boolean successful;
-
+         boolean successful = true;
+         boolean measureCommitTime = false;
          while (assertRunning()) {
-            successful = true;
+
+
             transaction = null;
 
-            long start = System.nanoTime();
+            long start = -1;
             if (arrivalRate != 0.0) {  //Open system
                try {
                   RequestType request = queue.take();
@@ -599,6 +629,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                                   (!cacheWrapper.isTheMaster() && !transaction.isReadOnly()))) {
                      continue;
                   }
+                  start = request.timestamp;
                } catch (InterruptedException ir) {
                   log.error("»»»»»»»THREAD INTERRUPTED WHILE TRYING GETTING AN OBJECT FROM THE QUEUE«««««««");
                }
@@ -609,74 +640,83 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
             long startService = System.nanoTime();
 
-            cacheWrapper.startTransaction();
+            do {
+               backoffIfNecessary(successful);
+               cacheWrapper.startTransaction();
 
-            try {
-               transaction.executeTransaction(cacheWrapper);
-            } catch (Throwable e) {
-               successful = false;
-               if (log.isDebugEnabled()) {
-                  log.debug("Exception while executing transaction.", e);
-               } else {
-                  log.warn("Exception while executing transaction: " + e.getMessage());
-               }
-               if (e instanceof ElementNotFoundException) {
-                  this.appFailures++;
-               }
-            }
+               try {
+                  transaction.executeTransaction(cacheWrapper);
+                  successful = true;
+               } catch (Throwable e) {
+                  successful = false;
+                  if (log.isDebugEnabled()) {
+                     log.debug("Exception while executing transaction.", e);
+                  } else {
+                     log.warn("Exception while executing transaction: " + e.getMessage());
+                  }
+                  if (e instanceof ElementNotFoundException) {
+                     this.appFailures++;
+                  } else if (isTimeoutException(e))
+                     localTimeout++;
 
-            //here we try to finalize the transaction
-            //if any read/write has failed we abort
-            boolean measureCommitTime = false;
-            try {
+               }
+
+               //here we try to finalize the transaction
+               //if any read/write has failed we abort
+
+               try {
                /* In our tests we are interested in the commit time spent for write txs*/
-               if (successful && !isReadOnly) {
-                  commit_start = System.nanoTime();
-                  measureCommitTime = true;
-               }
+                  if (successful && !isReadOnly) {
+                     commit_start = System.nanoTime();
+                     measureCommitTime = true;
+                  }
 
-               cacheWrapper.endTransaction(successful);
+                  cacheWrapper.endTransaction(successful);
 
-               if (!successful) {
+                  if (!successful) {
+                     nrFailures++;
+                     if (!isReadOnly) {
+                        nrWrFailures++;
+                        if (transaction instanceof NewOrderTransaction) {
+                           nrNewOrderFailures++;
+                        } else if (transaction instanceof PaymentTransaction) {
+                           nrPaymentFailures++;
+                        }
+
+                     } else {
+                        nrRdFailures++;
+                     }
+
+                  }
+               } catch (Throwable rb) {
                   nrFailures++;
+                  if (isTimeoutException(rb))
+                     remoteTimeout++;
+
                   if (!isReadOnly) {
                      nrWrFailures++;
+                     nrWrFailuresOnCommit++;
                      if (transaction instanceof NewOrderTransaction) {
                         nrNewOrderFailures++;
                      } else if (transaction instanceof PaymentTransaction) {
                         nrPaymentFailures++;
                      }
-
                   } else {
                      nrRdFailures++;
                   }
-
-               }
-            } catch (Throwable rb) {
-               nrFailures++;
-
-               if (!isReadOnly) {
-                  nrWrFailures++;
-                  nrWrFailuresOnCommit++;
-                  if (transaction instanceof NewOrderTransaction) {
-                     nrNewOrderFailures++;
-                  } else if (transaction instanceof PaymentTransaction) {
-                     nrPaymentFailures++;
+                  successful = false;
+                  if (log.isDebugEnabled()) {
+                     log.debug("Error while committing", rb);
+                  } else {
+                     log.warn("Error while committing: " + rb.getMessage());
                   }
-               } else {
-                  nrRdFailures++;
-               }
-               successful = false;
-               if (log.isDebugEnabled()) {
-                  log.debug("Error while committing", rb);
-               } else {
-                  log.warn("Error while committing: " + rb.getMessage());
                }
             }
+            while (retryOnAbort && !successful);
 
             end = System.nanoTime();
 
-            if (this.arrivalRate == 0.0) {  //Closed system
+            if (this.arrivalRate == 0.0) {  //Closed system   --> no queueing time
                start = startService;
             }
 
@@ -708,7 +748,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                }
             }
 
-            if (measureCommitTime) {
+            if (measureCommitTime) {    //We sample just the last commit time, i.e., the successful one
                if (successful) {
                   this.successful_commitWriteDuration += end - commit_start;
                } else {
@@ -719,6 +759,21 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
             blockIfInactive();
          }
+      }
+
+
+      private boolean isTimeoutException(Throwable e) {
+         return e.getClass().getName().contains("TimeoutException");
+      }
+
+
+      private void backoffIfNecessary(boolean lastXactSuccessful) {
+         if (!lastXactSuccessful && backOffTime != 0)
+            backOffSleeper.sleep();
+      }
+
+      private boolean startNewTransaction(boolean lastXactSuccessul) {
+         return !retryOnAbort || lastXactSuccessul;
       }
 
       public long totalDuration() {
@@ -864,6 +919,14 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    public void setArrivalRate(int arrivalRate) {
       this.arrivalRate = arrivalRate;
+   }
+
+   public void setRetryOnAbort(boolean retryOnAbort) {
+      this.retryOnAbort = retryOnAbort;
+   }
+
+   public void setBackOffTime(long backOffTime) {
+      this.backOffTime = backOffTime;
 
    }
 

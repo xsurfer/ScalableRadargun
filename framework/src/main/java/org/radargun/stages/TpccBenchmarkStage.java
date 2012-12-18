@@ -79,6 +79,16 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     */
    private long statsSamplingInterval = 0;
 
+   /**
+    * Specifies the msec a transaction spends in backoff after aborting
+    */
+   private long backOffTime = 0;
+
+   /**
+    * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
+    */
+   private boolean retryOnAbort = false;
+
    private transient CacheWrapper cacheWrapper;
 
    private transient TpccStressor tpccStressor;
@@ -124,6 +134,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       tpccStressor.setAccessSameWarehouse(accessSameWarehouse);
       tpccStressor.setNumberOfItemsInterval(numberOfItemsInterval);
       tpccStressor.setStatsSamplingInterval(statsSamplingInterval);
+      tpccStressor.setBackOffTime(backOffTime);
+      tpccStressor.setRetryOnAbort(retryOnAbort);
 
       try {
          Map<String, String> results = tpccStressor.stress(cacheWrapper);
@@ -204,6 +216,14 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    public void setStatsSamplingInterval(long statsSamplingInterval) {
       this.statsSamplingInterval = statsSamplingInterval;
+   }
+
+   public void setBackOffTime(long backOffTime) {
+      this.backOffTime = backOffTime;
+   }
+
+   public void setRetryOnAbort(boolean retryOnAbort) {
+      this.retryOnAbort = retryOnAbort;
    }
 
    @Override
