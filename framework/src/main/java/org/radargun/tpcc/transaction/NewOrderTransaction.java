@@ -11,7 +11,7 @@ import java.util.Date;
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Pedro Ruivo
  */
-public class NewOrderTransaction implements TpccTransaction {
+public class NewOrderTransaction extends AbstractTpccTransaction {
 
    private final long warehouseID;
    private final long districtID;
@@ -24,7 +24,7 @@ public class NewOrderTransaction implements TpccTransaction {
    private final long[] orderQuantities;
 
    public NewOrderTransaction(TpccTools tpccTools, int warehouseID) {
-
+      super(tpccTools);
       if (warehouseID <= 0) {
          this.warehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
       } else {

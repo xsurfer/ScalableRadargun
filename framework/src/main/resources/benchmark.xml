@@ -3,8 +3,8 @@
             bindAddress="${127.0.0.1:master.address}"
             port="${21032:master.port}"/>
     <benchmark
-            initSize="${2:Islaves}"
-            maxSize="${2:slaves}"
+            initSize="1"
+            maxSize="1"
             increment="1">
         <DestroyWrapper
                 runOnAllSlaves="true"/>
@@ -29,7 +29,7 @@
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
         <TpccBenchmark
                 statsSamplingInterval="5000"
-                numOfThreads="2"
+                numOfThreads="1"
                 perThreadSimulTime="30"
                 arrivalRate="0"
                 accessSameWarehouse="false"
@@ -41,7 +41,7 @@
     </benchmark>
     <products>
         <infinispan4>
-            <config name="ispn.xml"/>
+            <config name="provaPC.xml"/>
         </infinispan4>
     </products>
     <reports>

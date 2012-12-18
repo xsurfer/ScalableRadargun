@@ -7,6 +7,8 @@ import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.TpccStressor;
+import org.radargun.tpcc.transaction.AbstractTpccTransaction;
+import org.radargun.tpcc.transaction.PaymentTransaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -89,6 +91,11 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     */
    private boolean retryOnAbort = false;
 
+   /*
+   If true, notSuchElement exception is not thrown in  transactions
+    */
+   private boolean avoidMiss = true;
+
    private transient CacheWrapper cacheWrapper;
 
    private transient TpccStressor tpccStressor;
@@ -136,6 +143,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       tpccStressor.setStatsSamplingInterval(statsSamplingInterval);
       tpccStressor.setBackOffTime(backOffTime);
       tpccStressor.setRetryOnAbort(retryOnAbort);
+
+      AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
       try {
          Map<String, String> results = tpccStressor.stress(cacheWrapper);
@@ -224,6 +233,10 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    public void setRetryOnAbort(boolean retryOnAbort) {
       this.retryOnAbort = retryOnAbort;
+   }
+
+   public void setAvoidMiss(boolean avoidMiss) {
+      this.avoidMiss = avoidMiss;
    }
 
    @Override

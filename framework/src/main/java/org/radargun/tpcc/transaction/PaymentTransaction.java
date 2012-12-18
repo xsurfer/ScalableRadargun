@@ -19,7 +19,7 @@ import java.util.List;
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Pedro Ruivo
  */
-public class PaymentTransaction implements TpccTransaction {
+public class PaymentTransaction extends AbstractTpccTransaction {
 
    private final long terminalWarehouseID;
 
@@ -39,8 +39,10 @@ public class PaymentTransaction implements TpccTransaction {
 
    private final int slaveIndex;
 
+
    public PaymentTransaction(TpccTools tpccTools, int slaveIndex, int warehouseID) {
 
+      super(tpccTools);
       this.slaveIndex = slaveIndex;
 
       if (warehouseID <= 0) {
@@ -68,6 +70,7 @@ public class PaymentTransaction implements TpccTransaction {
 
       if (y <= 60) {
          this.customerByName = true;
+
          customerLastName = lastName((int) tpccTools.nonUniformRandom(TpccTools.C_C_LAST, TpccTools.A_C_LAST, 0, TpccTools.MAX_C_LAST));
          this.customerID = -1;
       } else {
@@ -91,9 +94,7 @@ public class PaymentTransaction implements TpccTransaction {
       return false;
    }
 
-   private String lastName(int num) {
-      return TpccTerminal.nameTokens[num / 100] + TpccTerminal.nameTokens[(num / 10) % 10] + TpccTerminal.nameTokens[num % 10];
-   }
+
 
 
    private void paymentTransaction(CacheWrapper cacheWrapper) throws Throwable {
@@ -129,11 +130,10 @@ public class PaymentTransaction implements TpccTransaction {
       Customer c = null;
 
       if (customerByName) {
-         new_c_last = customerLastName;
-         List cList;
-         cList = CustomerDAC.loadByCLast(cacheWrapper, customerWarehouseID, customerDistrictID, new_c_last);
 
-         if (cList == null || cList.isEmpty())
+         List<Customer> cList = customerList(cacheWrapper,customerWarehouseID,customerDistrictID,customerLastName);
+
+         if ((cList == null || cList.isEmpty()))
             throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + customerDistrictID + " C_W_ID=" + customerWarehouseID + " not found!");
 
          Collections.sort(cList);
@@ -196,5 +196,7 @@ public class PaymentTransaction implements TpccTransaction {
 
 
    }
+
+
 
 }

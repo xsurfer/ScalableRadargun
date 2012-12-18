@@ -19,7 +19,7 @@ import java.util.List;
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Pedro Ruivo
  */
-public class OrderStatusTransaction implements TpccTransaction {
+public class OrderStatusTransaction extends AbstractTpccTransaction {
 
    private final long terminalWarehouseID;
 
@@ -31,8 +31,9 @@ public class OrderStatusTransaction implements TpccTransaction {
 
    private final boolean customerByName;
 
-   public OrderStatusTransaction(TpccTools tpccTools, int warehouseID) {
 
+   public OrderStatusTransaction(TpccTools tpccTools, int warehouseID) {
+      super(tpccTools, warehouseID);
       if (warehouseID <= 0) {
          this.terminalWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
       } else {
@@ -69,19 +70,16 @@ public class OrderStatusTransaction implements TpccTransaction {
       return true;
    }
 
-   private String lastName(int num) {
-      return TpccTerminal.nameTokens[num / 100] + TpccTerminal.nameTokens[(num / 10) % 10] + TpccTerminal.nameTokens[num % 10];
-   }
-
    private void orderStatusTransaction(CacheWrapper cacheWrapper) throws Throwable {
       long nameCnt;
-
       boolean found;
       Customer c;
       if (customerByName) {
-         List<Customer> cList = CustomerDAC.loadByCLast(cacheWrapper, terminalWarehouseID, districtID, customerLastName);
+         List cList = customerList(cacheWrapper,terminalWarehouseID,districtID,customerLastName);
+
          if (cList == null || cList.isEmpty())
             throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + districtID + " C_W_ID=" + terminalWarehouseID + " not found!");
+
          Collections.sort(cList);
 
 

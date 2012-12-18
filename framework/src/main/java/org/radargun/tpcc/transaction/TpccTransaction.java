@@ -10,4 +10,6 @@ public interface TpccTransaction {
    void executeTransaction(CacheWrapper cacheWrapper) throws Throwable;
 
    boolean isReadOnly();
+
+
 }

@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.distribution.ch.DefaultConsistentHash;
+import org.infinispan.distribution.ch.TopologyInfo;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.util.Immutables;
 import org.radargun.stressors.ObjectKey;
@@ -40,14 +41,19 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    }
 
 
+
+
    @Override
    public List<Address> locate(Object key, int replCount) {
+      throw new RuntimeException("Distribution not supported yet");
+      /*
       if(! (key instanceof ObjectKey)) {
          if (log.isTraceEnabled()) log.trace("Delegating key " + key + " to default CH");
          return existing.locate(key, replCount);
       }
 
       if (threadCountPerNode <= 0 || keysPerThread <= 0) throw new IllegalStateException("keysPerThread and threadCountPerNode need to be set!");
+
 
       Set<Address> caches = existing.getCaches();
       int clusterSize = caches.size();
@@ -67,6 +73,7 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
          log.trace("Handling key " + key + ", clusterIndex==" + keyIndexInCluster +" and EvenSpreadingConsistentHash --> " + result);
 
       return Collections.unmodifiableList(result);
+      */
    }
 
    private int getSequenceNumber(ObjectKey key) {
@@ -98,13 +105,18 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
       return existing.getBackupsForNode(node, replCount);
    }
 
-   @Override
+   //@Override
    public Address primaryLocation(Object key) {
+      throw new RuntimeException("Distribution not supported yet");
+         /*
       return existing.primaryLocation(key);
+      */
    }
 
-   @Override
+   //@Override
    public void setCaches(Set<Address> caches) {
+      throw new RuntimeException("Distribution not supported yet");
+            /*
       existing.setCaches(caches);
 
       cachesList.addAll(caches);
@@ -114,6 +126,7 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
             return o1.toString().compareTo(o2.toString());
          }
       });
+      */
    }
 
    public Map<Object, List<Address>> locateAll(Collection<Object> keys, int replCount) {
@@ -127,6 +140,7 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
       return locate(key, replCount).contains(a);
    }
 
+   /*
    @Override
    public List<Integer> getHashIds(Address a) {
       return existing.getHashIds(a);
@@ -135,6 +149,37 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    @Override
    public Set<Address> getCaches() {
       return existing.getCaches();
+   }
+   */
+
+   @Override
+   public List<Address> getCaches() {
+      throw new RuntimeException("Distribution not supported yet");
+      //return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public int getHashId(Address a) {
+      throw new RuntimeException("Distribution not supported yet");
+      //return 0;  //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public int getHashSpace() {
+      throw new RuntimeException("Distribution not supported yet");
+      //return 0;  //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public void setCaches(List<Address> caches) {
+      throw new RuntimeException("Distribution not supported yet");
+      //To change body of implemented methods use File | Settings | File Templates.
+   }
+
+   @Override
+   public void setTopologyInfo(TopologyInfo topologyInfo) {
+      throw new RuntimeException("Distribution not supported yet");
+      //To change body of implemented methods use File | Settings | File Templates.
    }
 
    /*@Override
