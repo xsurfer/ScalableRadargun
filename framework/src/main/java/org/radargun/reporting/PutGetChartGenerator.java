@@ -91,8 +91,7 @@ public class PutGetChartGenerator extends AbstractChartGen {
             String retval;
             try {
                retval = fmt.format(categoryDataset.getValue(product, operation)) + " " + MU + "s";
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                e.printStackTrace();
                retval = e.toString();
             }
@@ -186,8 +185,7 @@ public class PutGetChartGenerator extends AbstractChartGen {
          s.avgGet = Double.parseDouble(getStr) / 1000;
          s.numPuts = Integer.parseInt(nPutStr);
          s.numGets = Integer.parseInt(nGetStr);
-      }
-      catch (NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
 //         log.error("Unable to parse file properly!", nfe);
          return null;
       }
@@ -201,11 +199,11 @@ public class PutGetChartGenerator extends AbstractChartGen {
 
       public String toString() {
          return "Stats{" +
-               "avgPut=" + avgPut +
-               ", avgGet=" + avgGet +
-               ", numPuts=" + numPuts +
-               ", numGets=" + numGets +
-               '}';
+                 "avgPut=" + avgPut +
+                 ", avgGet=" + avgGet +
+                 ", numPuts=" + numPuts +
+                 ", numGets=" + numGets +
+                 '}';
       }
    }
 

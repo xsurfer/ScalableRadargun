@@ -8,20 +8,16 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ * <p/>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p/>
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -35,105 +31,95 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "master",
-    "scalingBenchmark",
-    "fixedSizeBenchmark"
+        "master",
+        "scalingBenchmark",
+        "fixedSizeBenchmark"
 })
 @XmlRootElement(name = "bench-config")
 public class BenchConfig {
 
-    @XmlElement(required = true)
-    protected Master master;
-    @XmlElement(name = "scaling-benchmark", required = true)
-    protected List<ScalingBenchmark> scalingBenchmark;
-    @XmlElement(name = "fixed-size-benchmark", required = true)
-    protected List<FixedSizeBenchmark> fixedSizeBenchmark;
+   @XmlElement(required = true)
+   protected Master master;
+   @XmlElement(name = "scaling-benchmark", required = true)
+   protected List<ScalingBenchmark> scalingBenchmark;
+   @XmlElement(name = "fixed-size-benchmark", required = true)
+   protected List<FixedSizeBenchmark> fixedSizeBenchmark;
 
-    /**
-     * Gets the value of the master property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Master }
-     *     
-     */
-    public Master getMaster() {
-        return master;
-    }
+   /**
+    * Gets the value of the master property.
+    *
+    * @return possible object is
+    *         {@link Master }
+    */
+   public Master getMaster() {
+      return master;
+   }
 
-    /**
-     * Sets the value of the master property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Master }
-     *     
-     */
-    public void setMaster(Master value) {
-        this.master = value;
-    }
+   /**
+    * Sets the value of the master property.
+    *
+    * @param value allowed object is
+    *              {@link Master }
+    */
+   public void setMaster(Master value) {
+      this.master = value;
+   }
 
-    /**
-     * Gets the value of the scalingBenchmark property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the scalingBenchmark property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getScalingBenchmark().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link ScalingBenchmark }
-     * 
-     * 
-     */
-    public List<ScalingBenchmark> getScalingBenchmark() {
-        if (scalingBenchmark == null) {
-            scalingBenchmark = new ArrayList<ScalingBenchmark>();
-        }
-        return this.scalingBenchmark;
-    }
+   /**
+    * Gets the value of the scalingBenchmark property.
+    * <p/>
+    * <p/>
+    * This accessor method returns a reference to the live list,
+    * not a snapshot. Therefore any modification you make to the
+    * returned list will be present inside the JAXB object.
+    * This is why there is not a <CODE>set</CODE> method for the scalingBenchmark property.
+    * <p/>
+    * <p/>
+    * For example, to add a new item, do as follows:
+    * <pre>
+    *    getScalingBenchmark().add(newItem);
+    * </pre>
+    * <p/>
+    * <p/>
+    * <p/>
+    * Objects of the following type(s) are allowed in the list
+    * {@link ScalingBenchmark }
+    */
+   public List<ScalingBenchmark> getScalingBenchmark() {
+      if (scalingBenchmark == null) {
+         scalingBenchmark = new ArrayList<ScalingBenchmark>();
+      }
+      return this.scalingBenchmark;
+   }
 
-    /**
-     * Gets the value of the fixedSizeBenchmark property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the fixedSizeBenchmark property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getFixedSizeBenchmark().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link FixedSizeBenchmark }
-     * 
-     * 
-     */
-    public List<FixedSizeBenchmark> getFixedSizeBenchmark() {
-        if (fixedSizeBenchmark == null) {
-            fixedSizeBenchmark = new ArrayList<FixedSizeBenchmark>();
-        }
-        return this.fixedSizeBenchmark;
-    }
+   /**
+    * Gets the value of the fixedSizeBenchmark property.
+    * <p/>
+    * <p/>
+    * This accessor method returns a reference to the live list,
+    * not a snapshot. Therefore any modification you make to the
+    * returned list will be present inside the JAXB object.
+    * This is why there is not a <CODE>set</CODE> method for the fixedSizeBenchmark property.
+    * <p/>
+    * <p/>
+    * For example, to add a new item, do as follows:
+    * <pre>
+    *    getFixedSizeBenchmark().add(newItem);
+    * </pre>
+    * <p/>
+    * <p/>
+    * <p/>
+    * Objects of the following type(s) are allowed in the list
+    * {@link FixedSizeBenchmark }
+    */
+   public List<FixedSizeBenchmark> getFixedSizeBenchmark() {
+      if (fixedSizeBenchmark == null) {
+         fixedSizeBenchmark = new ArrayList<FixedSizeBenchmark>();
+      }
+      return this.fixedSizeBenchmark;
+   }
 
 }

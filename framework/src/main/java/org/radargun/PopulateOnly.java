@@ -19,12 +19,12 @@ import java.util.TimeZone;
 /**
  * This classes is used to perform the population in the cache wrapper. The main idea is to save the data in a persistent
  * storage (possibly local) and during the benchmark, each instance loads the data from there.
- *
+ * <p/>
  * Load the data from a (local) persistent storage will allow speed-up the population phase, when using a large number
  * of instances and warehouses
- *
+ * <p/>
  * This class receives a properties file with the description of the population. The properties allowed are:
- *
+ * <p/>
  * - tpcc.numWarehouses the number of warehouses to be populated.
  * - tpcc.cLastMask     the mask used to generate non-uniformly distributed random customer last names.
  * - tpcc.olIdMask      the mask used to generate non-uniformly distributed random item numbers.
@@ -86,10 +86,10 @@ public class PopulateOnly {
 
       //using transaction is faster than do always a single put... but lets set the number of threads to 1
       TpccPopulation population = new ThreadParallelTpccPopulation(cacheWrapper, numWarehouses, 0, 1,
-                                                                   cLastMask, olIdMask, cIdMask, 1, 10000);
+              cLastMask, olIdMask, cIdMask, 1, 10000);
 
       log.info("Starting the population of " + cacheWrapper + " with " + numWarehouses + " warehouses. C_Last_Mask=" +
-                     cLastMask + ", Ol_ID_Mask=" + olIdMask + ", C_ID_Mask=" + cIdMask);
+              cLastMask + ", Ol_ID_Mask=" + olIdMask + ", C_ID_Mask=" + cIdMask);
 
       long start = System.currentTimeMillis();
       population.performPopulation();

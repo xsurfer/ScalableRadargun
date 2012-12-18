@@ -13,15 +13,15 @@ public class MemoryStat {
 
    private final MemoryMXBean memoryBean;
 
-   public MemoryStat(){
+   public MemoryStat() {
       this.memoryBean = ManagementFactory.getMemoryMXBean();
    }
 
-   public final long getUsedMemory(){
+   public final long getUsedMemory() {
       return this.memoryBean.getHeapMemoryUsage().getUsed();
    }
 
-   public final long getCommittedMemory(){
+   public final long getCommittedMemory() {
       return this.memoryBean.getHeapMemoryUsage().getCommitted();
    }
 

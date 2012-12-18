@@ -12,12 +12,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This is the master that will coordinate the {@link Slave}s in order to run the benchmark.
@@ -192,7 +187,7 @@ public class Master {
             readBufferMap.put(socketChannel, replacer);
             if (log.isTraceEnabled())
                log.trace("Expected size(" + expectedSize + ")" + " is > ByteBuffer's capacity(" +
-                     byteBuffer.capacity() + ")" + ".Replacing " + byteBuffer + " with " + replacer);
+                       byteBuffer.capacity() + ")" + ".Replacing " + byteBuffer + " with " + replacer);
             byteBuffer = replacer;
          }
          if (log.isTraceEnabled())
@@ -250,12 +245,10 @@ public class Master {
       serverSocketChannel.socket().bind(address);
       log.info("Master started and listening for connection on: " + address);
       log.info("Waiting 5 seconds for server socket to open completely");
-      try 
-      {
-      	Thread.sleep(5000);
-      } catch (InterruptedException ex)
-      {
-          // ignore
+      try {
+         Thread.sleep(5000);
+      } catch (InterruptedException ex) {
+         // ignore
       }
    }
 }

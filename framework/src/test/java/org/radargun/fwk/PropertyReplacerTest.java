@@ -9,12 +9,12 @@ import org.testng.annotations.Test;
 @Test
 public class PropertyReplacerTest {
 
-   
+
    public void testWithDefaultNoReplacement() {
       assert "aDefaultVal".equals(ConfigHelper.checkForProps("${aDefaultVal:noSuchProp}"));
    }
 
-   public void testWithDefaultAndReplacement(){
+   public void testWithDefaultAndReplacement() {
       System.setProperty("org.radargun.fwk.PropertyReplacerTest", "nonDefaultValue");
       String received = ConfigHelper.checkForProps("${aDefaultVal:org.radargun.fwk.PropertyReplacerTest}");
       assert "nonDefaultValue".equals(received) : received;

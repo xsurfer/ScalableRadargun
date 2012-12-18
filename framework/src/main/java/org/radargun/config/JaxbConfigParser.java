@@ -3,27 +3,23 @@ package org.radargun.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Master;
-import org.radargun.config.jaxb.BenchConfig;
-import org.radargun.config.jaxb.FixedSizeBenchmark;
-import org.radargun.config.jaxb.Property;
-import org.radargun.config.jaxb.ScalingBenchmark;
-import org.radargun.config.jaxb.Stage;
+import org.radargun.config.jaxb.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 
 /**
- * Helper class for assembling JAXB configs. 
+ * Helper class for assembling JAXB configs.
  *
  * @author Mircea.Markus@jboss.com
- * //TODO - add support for System.getEnv
- * //TODO - make sure that if a benchmark has more nodes than the root an exception is thrown  
+ *         //TODO - add support for System.getEnv
+ *         //TODO - make sure that if a benchmark has more nodes than the root an exception is thrown
  */
 public class JaxbConfigParser extends ConfigParser {
 

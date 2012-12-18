@@ -62,7 +62,7 @@ public final class TpccTools {
 
    public final static String ORIGINAL = "ORIGINAL";
 
-   public final static int [] NUMBER_OF_ITEMS_INTERVAL = {5,15};
+   public final static int[] NUMBER_OF_ITEMS_INTERVAL = {5, 15};
 
    private final static int unicode[][] = {{65, 126}, {192, 259}};
 

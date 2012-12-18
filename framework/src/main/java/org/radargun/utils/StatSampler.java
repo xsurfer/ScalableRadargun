@@ -3,11 +3,7 @@ package org.radargun.utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Author: Diego Didona
@@ -32,7 +28,7 @@ public class StatSampler {
       cpu = new ProcCpuStat();
       memory = new MemoryStat();
       timer = new Timer();
-      this.timer.schedule(new Collector(),interval,interval);
+      this.timer.schedule(new Collector(), interval, interval);
    }
 
    /**
@@ -60,20 +56,21 @@ public class StatSampler {
       usedCpu.clear();
    }
 
-   public final List<Long> getMemoryUsageHistory(){
+   public final List<Long> getMemoryUsageHistory() {
       return Collections.unmodifiableList(usedMemories);
    }
-   public final List<Double> getCpuUsageHistory(){
+
+   public final List<Double> getCpuUsageHistory() {
       return Collections.unmodifiableList(usedCpu);
    }
 
    @Override
    public String toString() {
       return "StatSampler{" +
-            "interval=" + interval +
-            ", usedMemories=" + usedMemories +
-            ", usedCpu=" + usedCpu +
-            '}';
+              "interval=" + interval +
+              ", usedMemories=" + usedMemories +
+              ", usedCpu=" + usedCpu +
+              '}';
    }
 
    private class Collector extends TimerTask {

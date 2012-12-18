@@ -8,19 +8,15 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ * <p/>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p/>
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -32,94 +28,80 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "")
 @XmlRootElement(name = "master")
 public class Master {
 
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String bind;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String slavesCount;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String port;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String bind;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String slavesCount;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String port;
 
-    /**
-     * Gets the value of the bind property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getBind() {
-        return bind;
-    }
+   /**
+    * Gets the value of the bind property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getBind() {
+      return bind;
+   }
 
-    /**
-     * Sets the value of the bind property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setBind(String value) {
-        this.bind = value;
-    }
+   /**
+    * Sets the value of the bind property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setBind(String value) {
+      this.bind = value;
+   }
 
-    /**
-     * Gets the value of the slavesCount property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getSlavesCount() {
-        return slavesCount;
-    }
+   /**
+    * Gets the value of the slavesCount property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getSlavesCount() {
+      return slavesCount;
+   }
 
-    /**
-     * Sets the value of the slavesCount property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setSlavesCount(String value) {
-        this.slavesCount = value;
-    }
+   /**
+    * Sets the value of the slavesCount property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setSlavesCount(String value) {
+      this.slavesCount = value;
+   }
 
-    /**
-     * Gets the value of the port property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getPort() {
-        return port;
-    }
+   /**
+    * Gets the value of the port property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getPort() {
+      return port;
+   }
 
-    /**
-     * Sets the value of the port property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setPort(String value) {
-        this.port = value;
-    }
+   /**
+    * Sets the value of the port property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setPort(String value) {
+      this.port = value;
+   }
 
 }

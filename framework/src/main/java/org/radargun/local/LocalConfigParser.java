@@ -5,19 +5,11 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapperStressor;
 import org.radargun.config.ConfigHelper;
 import org.radargun.config.DomConfigParser;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Mircea.Markus@jboss.com
@@ -34,8 +26,7 @@ public class LocalConfigParser {
       Document document;
       try {
          document = builder.parse(config);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
          throw new IllegalStateException(e);
       }
 

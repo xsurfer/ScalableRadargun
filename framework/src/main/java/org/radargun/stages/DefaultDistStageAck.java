@@ -73,13 +73,13 @@ public class DefaultDistStageAck implements DistStageAck {
    @Override
    public String toString() {
       return "DefaultDistStageAck{" +
-            "slaveIndex=" + slaveIndex +
-            ", slaveAddress=" + slaveAddress +
-            ", isError=" + isError +
-            ", errorMessage='" + errorMessage + '\'' +
-            ", payload=" + payload +
-            ", remoteExceptionString=" + remoteExceptionString +
-            '}';
+              "slaveIndex=" + slaveIndex +
+              ", slaveAddress=" + slaveAddress +
+              ", isError=" + isError +
+              ", errorMessage='" + errorMessage + '\'' +
+              ", payload=" + payload +
+              ", remoteExceptionString=" + remoteExceptionString +
+              '}';
    }
 
    public String getSlaveDescription() {

@@ -15,8 +15,7 @@ public class ProducerRate {
    private final Random random;
 
    /**
-    *
-    * @param producerLambda   the lambda (arrival rate) in transaction per millisecond
+    * @param producerLambda the lambda (arrival rate) in transaction per millisecond
     */
    public ProducerRate(double producerLambda) {
       this.lambda = producerLambda;
@@ -37,9 +36,10 @@ public class ProducerRate {
 
    /**
     * NOTE: the public visibility is only for testing purpose!
-    * @param random  random generator number
-    * @param lambda  the lambda in milliseconds
-    * @return        the sleeping time in milliseconds
+    *
+    * @param random random generator number
+    * @param lambda the lambda in milliseconds
+    * @return the sleeping time in milliseconds
     */
    public final double exp(Random random, double lambda) {
       double ret = -Math.log(1.0D - random.nextDouble()) / lambda;
@@ -49,7 +49,8 @@ public class ProducerRate {
 
    /**
     * returns the lambda of this producer rate
-    * @return  the lambda of this producer rate
+    *
+    * @return the lambda of this producer rate
     */
    public double getLambda() {
       return lambda;

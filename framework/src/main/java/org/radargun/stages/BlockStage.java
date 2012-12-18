@@ -13,17 +13,17 @@ import java.util.concurrent.CountDownLatch;
  */
 @MBean(objectName = "Block", description = "Blocks master execution until the unblock method is invoked")
 public class BlockStage extends AbstractMasterStage {
-   
+
    private final CountDownLatch block = new CountDownLatch(1);
-   
+
    @Override
    public boolean execute() throws Exception {
       block.await();
       return true;
    }
-   
+
    @ManagedOperation(description = "Unblocks master execution")
-   public void unblock(){
+   public void unblock() {
       block.countDown();
    }
 }

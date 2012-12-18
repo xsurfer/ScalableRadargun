@@ -2,12 +2,10 @@ package org.radargun.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-
 import org.radargun.Stage;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A scaling benchmark is one that executes on an increasing number of slaves. E.g. considering the {@link
@@ -61,15 +59,15 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    @Override
    public boolean hasNextStage() {
       initialize();
-      log.trace("fixedBenchmarkIt="+fixedBenchmarkIt);
+      log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
       if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
       return currentFixedBenchmark().hasNextStage();
    }
 
    private void initialize() {
       if (!initialized) {
-         log.info("Initializing.  Starting with " + initSize + " nodes, up to "+ getMaxSize() + " nodes, incrementing by " + increment);
-         for (int i = initSize; i <= getMaxSize(); i+=increment) {
+         log.info("Initializing.  Starting with " + initSize + " nodes, up to " + getMaxSize() + " nodes, incrementing by " + increment);
+         for (int i = initSize; i <= getMaxSize(); i += increment) {
             log.info("Initializing configuration with " + i + " nodes");
             FixedSizeBenchmarkConfig conf = new FixedSizeBenchmarkConfig();
             conf.setMaxSize(getMaxSize());

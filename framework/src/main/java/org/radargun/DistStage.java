@@ -1,7 +1,7 @@
 package org.radargun;
 
-import org.radargun.state.SlaveState;
 import org.radargun.state.MasterState;
+import org.radargun.state.SlaveState;
 
 import java.io.Serializable;
 import java.util.List;
@@ -24,6 +24,7 @@ public interface DistStage extends Stage, Serializable {
 
    /**
     * Do whatever on the slave. This will only be called after {@link #initOnSlave(org.radargun.state.SlaveState)} is called.
+    *
     * @return an response that will be serialized and send back to the master.
     */
    DistStageAck executeOnSlave();
@@ -35,6 +36,7 @@ public interface DistStage extends Stage, Serializable {
 
    /**
     * After all slaves replied through {@link #executeOnSlave()}, this method will be called on the master.
+    *
     * @return returning false will cause the benchmark to stop.
     */
    boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState);

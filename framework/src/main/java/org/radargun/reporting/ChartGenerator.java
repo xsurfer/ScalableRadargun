@@ -2,7 +2,6 @@ package org.radargun.reporting;
 
 import org.radargun.stages.GenerateChartStage;
 
-import java.io.IOException;
 import java.util.StringTokenizer;
 
 /**

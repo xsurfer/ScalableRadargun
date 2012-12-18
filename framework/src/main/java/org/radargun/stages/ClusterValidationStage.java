@@ -129,8 +129,7 @@ public class ClusterValidationStage extends AbstractDistStage {
                wrapper.put(nodeBucket(getSlaveIndex()), key(getSlaveIndex()), "true");
             }
             return;
-         }
-         catch (Throwable e) {
+         } catch (Throwable e) {
             log.warn("Error while trying to put data: ", e);
             tryCount++;
          }
@@ -145,17 +144,17 @@ public class ClusterValidationStage extends AbstractDistStage {
       for (int i = 0; i < replicationTryCount; i++) {
          replCount = replicationCount();
          if ((isPartialReplication && replCount >= 1) ||
-               (!isPartialReplication && !isPassiveReplication && (replCount == getActiveSlaveCount() - 1)) ||
-               (isPassiveReplication && replCount == 1)) {
+                 (!isPartialReplication && !isPassiveReplication && (replCount == getActiveSlaveCount() - 1)) ||
+                 (isPassiveReplication && replCount == 1)) {
             log.info("Replication test successfully passed. isPartialReplication? " + isPartialReplication +
-                           ", isPassiveReplication? " + isPassiveReplication +
-                           ", replicationCount = " + replCount);
+                    ", isPassiveReplication? " + isPassiveReplication +
+                    ", replicationCount = " + replCount);
             return replCount;
          }
          //adding our stuff one more time
          tryToPut();
          log.info("Replication test failed, " + (i + 1) + " tries so far. Sleeping for " + Utils.prettyPrintMillis(replicationTimeSleep)
-               + " and trying again.");
+                 + " and trying again.");
          Thread.sleep(replicationTimeSleep);
       }
       log.info("Replication test failed. Last replication count is " + replCount);
@@ -218,10 +217,10 @@ public class ClusterValidationStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "ClusterValidationStage {" +
-            "isPassiveReplication=" + isPassiveReplication +
-            ", isPartialReplication=" + isPartialReplication +
-            ", replicationTryCount=" + replicationTryCount +
-            ", replicationTimeSleep=" + replicationTimeSleep +
-            ", wrapper=" + wrapper + ", " + super.toString();
+              "isPassiveReplication=" + isPassiveReplication +
+              ", isPartialReplication=" + isPartialReplication +
+              ", replicationTryCount=" + replicationTryCount +
+              ", replicationTimeSleep=" + replicationTimeSleep +
+              ", wrapper=" + wrapper + ", " + super.toString();
    }
 }

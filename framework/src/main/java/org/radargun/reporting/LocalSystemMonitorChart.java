@@ -5,11 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.local.ReportDesc;
 import org.radargun.local.ReportItem;
 import org.radargun.stages.GenerateChartStage;
-import org.radargun.sysmonitor.AbstractActivityMonitor;
-import org.radargun.sysmonitor.CpuUsageMonitor;
-import org.radargun.sysmonitor.GcMonitor;
-import org.radargun.sysmonitor.LocalJmxMonitor;
-import org.radargun.sysmonitor.MemoryUsageMonitor;
+import org.radargun.sysmonitor.*;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -52,7 +48,7 @@ public class LocalSystemMonitorChart {
          sysMonitors.putAll(filter);
          reportPrefix = reportDesc.getReportName();
       } else {
-        reportPrefix = "All";
+         reportPrefix = "All";
       }
       generateCpuAndGc();
       generateMemory();
@@ -85,7 +81,7 @@ public class LocalSystemMonitorChart {
 
    private void populateGraph(LineClusterReport lcr, String s, AbstractActivityMonitor activityMonitor) {
       int measuringFrequencySecs = (int) TimeUnit.MILLISECONDS.toSeconds(LocalJmxMonitor.MEASURING_FREQUENCY);
-      LinkedHashMap<Integer,BigDecimal> graphData = activityMonitor.formatForGraph(measuringFrequencySecs, 25);
+      LinkedHashMap<Integer, BigDecimal> graphData = activityMonitor.formatForGraph(measuringFrequencySecs, 25);
       for (Map.Entry<Integer, BigDecimal> e : graphData.entrySet()) {
          lcr.addCategory(s, e.getKey(), e.getValue());
       }

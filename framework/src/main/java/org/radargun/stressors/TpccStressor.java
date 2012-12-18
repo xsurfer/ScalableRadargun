@@ -18,13 +18,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -134,17 +128,17 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             if (cacheWrapper.isTheMaster()) {
                log.info("Creating producers groups for the master. Write transaction percentage is " + writeWeight);
                producerRates = new GroupProducerRateFactory(arrivalRate * writeWeight, 1, nodeIndex,
-                                                            AVERAGE_PRODUCER_SLEEP_TIME).create();
+                       AVERAGE_PRODUCER_SLEEP_TIME).create();
             } else {
                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + readWeight);
                producerRates = new GroupProducerRateFactory(arrivalRate * readWeight, numSlaves - 1,
-                                                            nodeIndex == 0 ? nodeIndex : nodeIndex - 1 ,
-                                                            AVERAGE_PRODUCER_SLEEP_TIME).create();
+                       nodeIndex == 0 ? nodeIndex : nodeIndex - 1,
+                       AVERAGE_PRODUCER_SLEEP_TIME).create();
             }
          } else {
             log.info("Creating producers groups");
             producerRates = new GroupProducerRateFactory(arrivalRate, numSlaves, nodeIndex,
-                                                         AVERAGE_PRODUCER_SLEEP_TIME).create();
+                    AVERAGE_PRODUCER_SLEEP_TIME).create();
          }
 
          producers = new Producer[producerRates.length];
@@ -199,7 +193,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       int sum = orderStatusWeight + paymentWeight;
       if (sum < 0 || sum > 100) {
          throw new IllegalArgumentException("The sum of the transactions weights must be higher or equals than zero " +
-                                                  "and less or equals than one hundred");
+                 "and less or equals than one hundred");
       }
    }
 
@@ -211,7 +205,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
       if (split.length != 2) {
          log.info("Cannot update the min and max values for the number of items in new order transactions. " +
-                        "Using the default values");
+                 "Using the default values");
          return;
       }
 
@@ -472,7 +466,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       saveSamples();
 
       log.info("Finished generating report. Nr of failed operations on this node is: " + failures +
-                     ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
+              ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
       return results;
    }
 
@@ -601,8 +595,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
                   transaction = terminal.createTransaction(request.transactionType);
                   if (cacheWrapper.isPassiveReplication() &&
-                        ((cacheWrapper.isTheMaster() && transaction.isReadOnly()) ||
-                               (!cacheWrapper.isTheMaster() && !transaction.isReadOnly()))) {
+                          ((cacheWrapper.isTheMaster() && transaction.isReadOnly()) ||
+                                  (!cacheWrapper.isTheMaster() && !transaction.isReadOnly()))) {
                      continue;
                   }
                } catch (InterruptedException ir) {
@@ -809,7 +803,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          while (assertRunning()) {
             try {
                queue.offer(new RequestType(System.nanoTime(), terminal.chooseTransactionType(
-                     cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster()
+                       cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster()
                )));
                countJobs.incrementAndGet();
                rate.sleep();
@@ -896,17 +890,17 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    @Override
    public String toString() {
       return "TpccStressor{" +
-            "perThreadSimulTime=" + perThreadSimulTime +
-            ", arrivalRate=" + arrivalRate +
-            ", paymentWeight=" + paymentWeight +
-            ", orderStatusWeight=" + orderStatusWeight +
-            ", accessSameWarehouse=" + accessSameWarehouse +
-            ", numSlaves=" + numSlaves +
-            ", nodeIndex=" + nodeIndex +
-            ", numOfThreads=" + numOfThreads +
-            ", numberOfItemsInterval=" + numberOfItemsInterval +
-            ", statsSamplingInterval=" + statsSamplingInterval +
-            '}';
+              "perThreadSimulTime=" + perThreadSimulTime +
+              ", arrivalRate=" + arrivalRate +
+              ", paymentWeight=" + paymentWeight +
+              ", orderStatusWeight=" + orderStatusWeight +
+              ", accessSameWarehouse=" + accessSameWarehouse +
+              ", numSlaves=" + numSlaves +
+              ", nodeIndex=" + nodeIndex +
+              ", numOfThreads=" + numOfThreads +
+              ", numberOfItemsInterval=" + numberOfItemsInterval +
+              ", statsSamplingInterval=" + statsSamplingInterval +
+              '}';
    }
 
    private synchronized void finishBenchmark() {
@@ -966,7 +960,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    private Stressor createStressor(int threadIndex) {
       int localWarehouse = getWarehouseForThread(threadIndex);
-      return new Stressor(localWarehouse, threadIndex, nodeIndex, arrivalRate, paymentWeight,orderStatusWeight);
+      return new Stressor(localWarehouse, threadIndex, nodeIndex, arrivalRate, paymentWeight, orderStatusWeight);
    }
 
    private void calculateLocalWarehouses() {
@@ -974,7 +968,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
          if (log.isDebugEnabled()) {
             log.debug("Find the local warehouses. Number of Warehouses=" + TpccTools.NB_WAREHOUSES + ", number of slaves=" +
-                            numSlaves + ", node index=" + nodeIndex + ".Local warehouses are " + listLocalWarehouses);
+                    numSlaves + ", node index=" + nodeIndex + ".Local warehouses are " + listLocalWarehouses);
          }
       } else {
          if (log.isDebugEnabled()) {
@@ -1058,7 +1052,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       return listLocalWarehouses.isEmpty() ? -1 : listLocalWarehouses.get(threadIdx % listLocalWarehouses.size());
    }
 
-   public synchronized final double getExpectedWritePercentage(){
+   public synchronized final double getExpectedWritePercentage() {
       return 1.0 - (orderStatusWeight / 100.0);
    }
 

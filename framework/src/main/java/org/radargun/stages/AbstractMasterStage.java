@@ -1,7 +1,7 @@
 package org.radargun.stages;
 
-import org.radargun.state.MasterState;
 import org.radargun.MasterStage;
+import org.radargun.state.MasterState;
 
 /**
  * Support class for MasterStages.

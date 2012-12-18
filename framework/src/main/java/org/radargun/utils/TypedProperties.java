@@ -13,7 +13,9 @@ import java.util.Properties;
  */
 public class TypedProperties extends Properties {
 
-   /** The serialVersionUID */
+   /**
+    * The serialVersionUID
+    */
    private static final long serialVersionUID = 3799321248100686287L;
 
    private static final Log log = LogFactory.getLog(TypedProperties.class);
@@ -54,8 +56,7 @@ public class TypedProperties extends Properties {
 
       try {
          return Integer.parseInt(value);
-      }
-      catch (NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
          log.warn("Unable to convert string property [" + value + "] to an int!  Using default value of " + defaultValue);
          return defaultValue;
       }
@@ -70,8 +71,7 @@ public class TypedProperties extends Properties {
 
       try {
          return Long.parseLong(value);
-      }
-      catch (NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
          log.warn("Unable to convert string property [" + value + "] to a long!  Using default value of " + defaultValue);
          return defaultValue;
       }
@@ -85,8 +85,7 @@ public class TypedProperties extends Properties {
 
       try {
          return Boolean.parseBoolean(value);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
          log.warn("Unable to convert string property [" + value + "] to a boolean!  Using default value of " + defaultValue);
          return defaultValue;
       }

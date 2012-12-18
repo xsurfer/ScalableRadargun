@@ -119,7 +119,8 @@ public class PaymentTransaction implements TpccTransaction {
       d.setD_id(districtID);
       d.setD_w_id(terminalWarehouseID);
       found = d.load(cacheWrapper);
-      if (!found) throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
+      if (!found)
+         throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
 
       d.setD_ytd(paymentAmount);
       d.store(cacheWrapper);

@@ -14,11 +14,10 @@ public class GroupProducerRateFactory {
    private final int avgSleepTime;
 
    /**
-    *
-    * @param globalLambda     the global system lambda (a.k.a arrival rate) in transactions per seconds
-    * @param numberOfNodes    the number of nodes in the system (>= 1)
-    * @param nodeIndex        the node index [0..numberOfNodes - 1]
-    * @param avgSleepTime     The average sleeping time desire for a producer
+    * @param globalLambda  the global system lambda (a.k.a arrival rate) in transactions per seconds
+    * @param numberOfNodes the number of nodes in the system (>= 1)
+    * @param nodeIndex     the node index [0..numberOfNodes - 1]
+    * @param avgSleepTime  The average sleeping time desire for a producer
     */
    public GroupProducerRateFactory(double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
       if (numberOfNodes < 1) {
@@ -35,7 +34,8 @@ public class GroupProducerRateFactory {
 
    /**
     * it creates an array of producers, each one with the desire rate in order to achieve the global system rate
-    * @return  an array of producers
+    *
+    * @return an array of producers
     */
    public final ProducerRate[] create() {
       double remainder = originalLambda % numberOfNodes;

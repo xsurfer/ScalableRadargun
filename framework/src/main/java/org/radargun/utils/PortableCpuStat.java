@@ -21,19 +21,19 @@ import java.lang.management.OperatingSystemMXBean;
  * @deprecated it is not tested!
  */
 @Deprecated
-public class PortableCpuStat implements CpuStat{
+public class PortableCpuStat implements CpuStat {
 
    private final MBeanServerConnection mBeanServerConnection;
    private final OperatingSystemMXBean osBean;
    private final ObjectName OS_NAME;
    private final ObjectName RUNTIME_NAME;
 
-   private long upTime,cpuTime;
+   private long upTime, cpuTime;
 
    private static final Log log = LogFactory.getLog(PortableCpuStat.class);
 
 
-   public PortableCpuStat() throws Exception{
+   public PortableCpuStat() throws Exception {
       this.mBeanServerConnection = ManagementFactory.getPlatformMBeanServer();
       this.osBean = ManagementFactory.newPlatformMXBeanProxy(mBeanServerConnection, ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
 
@@ -48,7 +48,6 @@ public class PortableCpuStat implements CpuStat{
 
 
    /**
-    *
     * @return cpu usage since last reset
     */
    public final double getCpuUsage() {
@@ -58,14 +57,14 @@ public class PortableCpuStat implements CpuStat{
          long prevUpTime = upTime;
          long procCount = this.getProcCount();
 
-         Long jmxCpuTime = getActualCpuTime()  * this.getCpuMultiplier();
+         Long jmxCpuTime = getActualCpuTime() * this.getCpuMultiplier();
          Long jmxUpTime = getActualUpTime();
 
          long upTimeDiff = (jmxUpTime * 1000000) - (prevUpTime * 1000000);
 
          long procTimeDiff = (jmxCpuTime / procCount) - (prevCpuTime / procCount);
 
-         long usage = upTimeDiff > 0 ? Math.min((long)  (1000 * (float) procTimeDiff / (float) upTimeDiff), 1000) : 0;
+         long usage = upTimeDiff > 0 ? Math.min((long) (1000 * (float) procTimeDiff / (float) upTimeDiff), 1000) : 0;
          return usage / 1000.0; //returns between 0 and 1
       } catch (Exception e) {
          log.warn("Exception caught when obtaining the CPU usage", e);
@@ -75,15 +74,14 @@ public class PortableCpuStat implements CpuStat{
    }
 
    /**
-    *
     * @return cpu usage since last reset; it also performs a reset
     */
    public final double getCpuUsageAndReset() {
       double ret = -1D;
-      try{
+      try {
          ret = getCpuUsage();
          reset();
-      } catch(Exception e){
+      } catch (Exception e) {
          log.warn("Exception caught when resetting the CPU usage", e);
       }
       return ret;
@@ -96,7 +94,7 @@ public class PortableCpuStat implements CpuStat{
 
    }
 
-   private long getProcCount(){
+   private long getProcCount() {
       return osBean.getAvailableProcessors();
    }
 

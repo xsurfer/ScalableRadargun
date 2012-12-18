@@ -1,9 +1,9 @@
 package org.radargun.config;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * Comntains master's configuration elements.
@@ -45,7 +45,7 @@ public class MasterConfig {
 
    public void validate() {
       Set<String> allBenchmarkNames = new HashSet<String>();
-      for (FixedSizeBenchmarkConfig f: benchmarks) {
+      for (FixedSizeBenchmarkConfig f : benchmarks) {
          if (!allBenchmarkNames.add(f.getProductName())) {
             throw new RuntimeException("There are two benchmarks having same name:" + f.getProductName() + ". Benchmark name should be unique!");
          }

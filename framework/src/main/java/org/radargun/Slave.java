@@ -15,13 +15,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Slave being coordinated by a single {@link Master} object in order to run benchmarks.
@@ -108,7 +102,7 @@ public class Slave {
                            stage.initOnSlave(state);
                            jmxRegistration.processStage(stage);
                            log.info("Executing stage: " + stage);
-                           long start =System.currentTimeMillis();
+                           long start = System.currentTimeMillis();
                            DistStageAck ack = stage.executeOnSlave();
                            ack.setDuration(System.currentTimeMillis() - start);
                            byte[] bytes = SerializationHelper.prepareForSerialization(ack);

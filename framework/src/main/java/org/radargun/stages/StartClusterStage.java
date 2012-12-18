@@ -21,7 +21,7 @@ public class StartClusterStage extends AbstractDistStage {
    private boolean staggerSlaveStartup = true;
    private long delayAfterFirstSlaveStarts = 5000;
    private long delayBetweenStartingSlaves = 500;
-   
+
 
    private String config;
    private final int TRY_COUNT = 180;
@@ -127,10 +127,10 @@ public class StartClusterStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "StartClusterStage {" +
-            "productName='" + productName + '\'' +
-            ", useSmartClassLoading=" + useSmartClassLoading +
-            ", config=" + config +
-            ", " + super.toString();
+              "productName='" + productName + '\'' +
+              ", useSmartClassLoading=" + useSmartClassLoading +
+              ", config=" + config +
+              ", " + super.toString();
    }
 
 

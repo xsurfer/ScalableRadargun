@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * Indicates that a public method or a field (any visibility) in an MBean class defines an MBean attribute. This
  * annotation can be applied to either a field or a public setter and/or getter method of a public class that is itself
  * is optionally annotated with an @MBean annotation, or inherits such an annotation from a superclass.
- *
+ * <p/>
  * Note: copy from Infinispan
  *
  * @author (various)
@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface ManagedAttribute {
-   
+
    String description() default "";
 
    boolean writable() default false;

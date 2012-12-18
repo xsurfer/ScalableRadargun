@@ -6,17 +6,8 @@ import org.radargun.reporting.ClusterReport;
 import org.radargun.reporting.LineClusterReport;
 import org.radargun.utils.Utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -115,8 +106,7 @@ public class GenerateChartStage extends AbstractMasterStage {
       try {
          s.putsPerSec = Double.parseDouble(putStr);
          s.getsPerSec = Double.parseDouble(getStr);
-      }
-      catch (NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
          log.error("Unable to parse file properly!", nfe);
          return null;
       }
@@ -182,8 +172,8 @@ public class GenerateChartStage extends AbstractMasterStage {
                if (aFilter.equals("*") || aFilter.equals("?") || aFilter.equals("+")) {
                   String oldPatter = aFilter;
                   aFilter = "[" + aFilter + "]";
-                  log.info("Converting the pattern from '" + oldPatter + "' to '" + aFilter +"'. " +
-                        "See: http://arunma.com/2007/08/23/javautilregexpatternsyntaxexception-dangling-meta-character-near-index-0");
+                  log.info("Converting the pattern from '" + oldPatter + "' to '" + aFilter + "'. " +
+                          "See: http://arunma.com/2007/08/23/javautilregexpatternsyntaxexception-dangling-meta-character-near-index-0");
                }
                try {
                   Pattern pattern = Pattern.compile(aFilter);
@@ -192,7 +182,7 @@ public class GenerateChartStage extends AbstractMasterStage {
                   String message = "Exception while compiling the pattern: '" + aFilter + "'";
                   if (e.getMessage().indexOf("Dangling meta character ") >= 0) {
                      message += "If your regexp is like '*' or '+' (or other methachars), add square brackets to it, " +
-                           "e.g. '[*]'. See: http://arunma.com/2007/08/23/javautilregexpatternsyntaxexception-dangling-meta-character-near-index-0/";
+                             "e.g. '[*]'. See: http://arunma.com/2007/08/23/javautilregexpatternsyntaxexception-dangling-meta-character-near-index-0/";
                   } else {
                   }
                   log.warn(message, e);
@@ -220,9 +210,9 @@ public class GenerateChartStage extends AbstractMasterStage {
 
    public static String getSubtitle() {
       return "Generated on " + new Date() + " by RadarGun\nJDK: " +
-            System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.version") + ", " +
-            System.getProperty("java.vm.vendor") + ") OS: " + System.getProperty("os.name") + " (" +
-            System.getProperty("os.version") + ", " + System.getProperty("os.arch") + ")";
+              System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.version") + ", " +
+              System.getProperty("java.vm.vendor") + ") OS: " + System.getProperty("os.name") + " (" +
+              System.getProperty("os.version") + ", " + System.getProperty("os.arch") + ")";
    }
 
    private static class Stats {
@@ -230,9 +220,9 @@ public class GenerateChartStage extends AbstractMasterStage {
 
       public String toString() {
          return "Stats{" +
-               "avgPut=" + putsPerSec +
-               ", avgGet=" + getsPerSec +
-               '}';
+                 "avgPut=" + putsPerSec +
+                 ", avgGet=" + getsPerSec +
+                 '}';
       }
    }
 }

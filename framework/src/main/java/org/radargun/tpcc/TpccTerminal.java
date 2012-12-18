@@ -75,8 +75,8 @@ public class TpccTerminal {
 
       if (log.isDebugEnabled()) {
          log.debug("Choose transaction " + transactionType +
-                         ". Payment Weight=" + realPaymentWeight + "(" + paymentWeight + ")" +
-                         ", Order Status Weight=" + realOrderStatusWeight + "(" + orderStatusWeight + ")");
+                 ". Payment Weight=" + realPaymentWeight + "(" + paymentWeight + ")" +
+                 ", Order Status Weight=" + realOrderStatusWeight + "(" + orderStatusWeight + ")");
       }
 
       if (transactionType <= realPaymentWeight) {
@@ -105,9 +105,9 @@ public class TpccTerminal {
    @Override
    public String toString() {
       return "TpccTerminal{" +
-            "paymentWeight=" + paymentWeight +
-            ", orderStatusWeight=" + orderStatusWeight +            
-            ", localWarehouseID=" + (localWarehouseID == -1 ? "random" : localWarehouseID) +
-            '}';
+              "paymentWeight=" + paymentWeight +
+              ", orderStatusWeight=" + orderStatusWeight +
+              ", localWarehouseID=" + (localWarehouseID == -1 ? "random" : localWarehouseID) +
+              '}';
    }
 }

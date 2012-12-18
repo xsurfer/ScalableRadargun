@@ -26,7 +26,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- *
  * @author Pedro Ruivo
  * @since 1.1
  */
@@ -89,12 +88,12 @@ public class JmxAttributeMetadata implements Serializable {
    @Override
    public String toString() {
       return "JmxAttributeMetadata{" +
-            "name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            ", writable=" + writable +
-            ", type='" + type + '\'' +
-            ", is=" + is +
-            '}';
+              "name='" + name + '\'' +
+              ", description='" + description + '\'' +
+              ", writable=" + writable +
+              ", type='" + type + '\'' +
+              ", is=" + is +
+              '}';
    }
 
    private String extractFieldName(String setterOrGetter) {

@@ -84,7 +84,7 @@ public class WorkloadJmxRequest {
 
    private final ObjectName benchmarkComponent;
    private final Workload workload;
-   private final MBeanServerConnection mBeanServerConnection;   
+   private final MBeanServerConnection mBeanServerConnection;
    private final int orderPercentage;
    private final int paymentPercentage;
    private final int nrThreads;
@@ -102,7 +102,7 @@ public class WorkloadJmxRequest {
          workload = Workload.HIGH;
       } else if (arguments.hasOption(Option.LOW_CONTENTION)) {
          workload = Workload.LOW;
-      } else if (arguments.hasOption(Option.RANDOM_CONTENTION)){
+      } else if (arguments.hasOption(Option.RANDOM_CONTENTION)) {
          workload = Workload.RANDOM;
       }
 
@@ -113,24 +113,24 @@ public class WorkloadJmxRequest {
 
       if (hasThread && hasWorkload) {
          workloadJmxRequest = new WorkloadJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
-                                                     arguments.getValue(Option.JMX_HOSTNAME),
-                                                     arguments.getValue(Option.JMX_PORT),
-                                                     workload,
-                                                     Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
-                                                     Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)),                                                     
-                                                     Integer.parseInt(arguments.getValue(Option.NUMBER_THREADS)));
+                 arguments.getValue(Option.JMX_HOSTNAME),
+                 arguments.getValue(Option.JMX_PORT),
+                 workload,
+                 Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
+                 Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)),
+                 Integer.parseInt(arguments.getValue(Option.NUMBER_THREADS)));
       } else if (!hasThread && hasWorkload) {
          workloadJmxRequest = new WorkloadJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
-                                                     arguments.getValue(Option.JMX_HOSTNAME),
-                                                     arguments.getValue(Option.JMX_PORT),
-                                                     workload,
-                                                     Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
-                                                     Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)));
+                 arguments.getValue(Option.JMX_HOSTNAME),
+                 arguments.getValue(Option.JMX_PORT),
+                 workload,
+                 Integer.parseInt(arguments.getValue(Option.ORDER_STATUS_PERCENTAGE)),
+                 Integer.parseInt(arguments.getValue(Option.PAYMENT_PERCENTAGE)));
       } else {
          workloadJmxRequest = new WorkloadJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
-                                                     arguments.getValue(Option.JMX_HOSTNAME),
-                                                     arguments.getValue(Option.JMX_PORT),
-                                                     Integer.parseInt(arguments.getValue(Option.NUMBER_THREADS)));
+                 arguments.getValue(Option.JMX_HOSTNAME),
+                 arguments.getValue(Option.JMX_PORT),
+                 Integer.parseInt(arguments.getValue(Option.NUMBER_THREADS)));
       }
 
       workloadJmxRequest.doRequest();
@@ -180,13 +180,13 @@ public class WorkloadJmxRequest {
       }
 
       if (workload != null) {
-         mBeanServerConnection.invoke(benchmarkComponent, workload.getMethodName(), 
-                                      new Object[] {paymentPercentage, orderPercentage},
-                                      new String[] {"int", "int"});
+         mBeanServerConnection.invoke(benchmarkComponent, workload.getMethodName(),
+                 new Object[]{paymentPercentage, orderPercentage},
+                 new String[]{"int", "int"});
       }
       if (nrThreads != -1) {
-         mBeanServerConnection.invoke(benchmarkComponent, "setNumberOfActiveThreads", new Object[] {nrThreads},
-                                      new String[] {"int"});
+         mBeanServerConnection.invoke(benchmarkComponent, "setNumberOfActiveThreads", new Object[]{nrThreads},
+                 new String[]{"int"});
       }
       System.out.println("Workload changed!");
    }
@@ -207,7 +207,7 @@ public class WorkloadJmxRequest {
             Option option = Option.fromString(args[idx]);
             if (option == null) {
                throw new IllegalArgumentException("unkown option: " + args[idx] + ". Possible options are: " +
-                                                        Arrays.asList(Option.values()));
+                       Arrays.asList(Option.values()));
             }
             idx++;
             if (option.isBoolean()) {
@@ -227,7 +227,7 @@ public class WorkloadJmxRequest {
          }
 
          if (hasOption(Option.HIGH_CONTENTION) || hasOption(Option.LOW_CONTENTION) ||
-               hasOption(Option.RANDOM_CONTENTION)) {
+                 hasOption(Option.RANDOM_CONTENTION)) {
             if (!hasOption(Option.ORDER_STATUS_PERCENTAGE)) {
                throw new IllegalArgumentException("Option " + Option.ORDER_STATUS_PERCENTAGE + " is required");
             }
@@ -241,7 +241,7 @@ public class WorkloadJmxRequest {
             int value = Integer.parseInt(writePercentage);
             if (value < 0 || value > 100) {
                throw new IllegalArgumentException("Payment percentage should be between 0 and 100. Value is " +
-                                                        writePercentage);
+                       writePercentage);
             }
          }
 
@@ -250,7 +250,7 @@ public class WorkloadJmxRequest {
             int value = Integer.parseInt(writePercentage);
             if (value < 0 || value > 100) {
                throw new IllegalArgumentException("Order status percentage should be between 0 and 100. Value is " +
-                                                        writePercentage);
+                       writePercentage);
             }
          }
 
@@ -278,8 +278,8 @@ public class WorkloadJmxRequest {
       @Override
       public final String toString() {
          return "Arguments{" +
-               "argsValues=" + argsValues +
-               '}';
+                 "argsValues=" + argsValues +
+                 '}';
       }
    }
 

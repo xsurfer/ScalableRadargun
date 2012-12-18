@@ -1,17 +1,7 @@
 package org.radargun.reporting;
 
-import sun.awt.image.OffScreenImage;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
+import java.io.*;
+import java.util.*;
 
 /**
  * @author Mircea Markus
@@ -56,14 +46,14 @@ public class LineReportGenerator {
 
       lcr.init(xLabels, yLabels, title, subtitle);
 
-      StringTokenizer st = new StringTokenizer(items, ":" );
+      StringTokenizer st = new StringTokenizer(items, ":");
       while (st.hasMoreElements()) {
          String item = st.nextToken().trim();
          int firstRoundBracket = item.indexOf("(");
          String fileNamePrefix = item.substring(0, firstRoundBracket);
          int indexOfComma = item.indexOf(",");
          Integer columnIndex = Integer.parseInt(item.substring(firstRoundBracket + 1, indexOfComma).trim());
-         String itemNameInReport = item.substring(indexOfComma+1, item.indexOf(")"));
+         String itemNameInReport = item.substring(indexOfComma + 1, item.indexOf(")"));
          SortedMap<Integer, Double> values = getValues(dir, columnIndex, fileNamePrefix);
          for (Map.Entry<Integer, Double> me : values.entrySet()) {
             lcr.addCategory(itemNameInReport, me.getKey(), me.getValue());
@@ -82,7 +72,8 @@ public class LineReportGenerator {
          }
       });
       SortedMap<Integer, Double> result = new TreeMap<Integer, Double>();
-      if (files == null) throw new RuntimeException("Could not find any files with prefix:" + fileNamePrefix + " in directory " + f.getAbsolutePath());
+      if (files == null)
+         throw new RuntimeException("Could not find any files with prefix:" + fileNamePrefix + " in directory " + f.getAbsolutePath());
       for (String file : files) {
          FileReader reader = new FileReader(new File(dir, file));
          BufferedReader br = new BufferedReader(reader);
@@ -93,7 +84,8 @@ public class LineReportGenerator {
          while ((line = br.readLine()) != null) {
             StringTokenizer st = new StringTokenizer(line, ",");
             for (int i = 0; i <= columnIndex; i++) {
-               if (!st.hasMoreElements()) throw new RuntimeException("No column with index " + columnIndex + " in file '" + fileNamePrefix + "'");
+               if (!st.hasMoreElements())
+                  throw new RuntimeException("No column with index " + columnIndex + " in file '" + fileNamePrefix + "'");
                String value = st.nextToken();
                if (i == columnIndex) {
                   sum += (Double.valueOf(value));
@@ -103,7 +95,7 @@ public class LineReportGenerator {
             }
          }
          int numNodes = Integer.parseInt(file.substring(fileNamePrefix.length(), file.indexOf(".")));
-         result.put(numNodes, sum/count);
+         result.put(numNodes, sum / count);
       }
       return result;
    }

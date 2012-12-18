@@ -3,12 +3,7 @@ package org.radargun;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 
 /**
  * Helper class holding serialization logic.
@@ -76,8 +71,8 @@ public class SerializationHelper {
    }
 
    public static void main(String[] args) {
-      for (int i=0; i < Integer.MAX_VALUE; i++) {
-         if (i%10000 == 0) {
+      for (int i = 0; i < Integer.MAX_VALUE; i++) {
+         if (i % 10000 == 0) {
             System.out.println("i = " + i);
          }
          byte[] bytes = intToByteArray(i);

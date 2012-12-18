@@ -21,7 +21,7 @@ public class DomConfigAttributesParsingTest {
       DomConfigParser parser = new DomConfigParser();
       MasterConfig masterConfig = parser.parseConfig("config-attributes-benchmark.xml");
       List<FixedSizeBenchmarkConfig> benchmarks = masterConfig.getBenchmarks();
-      assertEquals(benchmarks.size(),2);
+      assertEquals(benchmarks.size(), 2);
 
       ScalingBenchmarkConfig sc = (ScalingBenchmarkConfig) benchmarks.get(0);
       TypedProperties configAttributes = sc.getConfigAttributes();

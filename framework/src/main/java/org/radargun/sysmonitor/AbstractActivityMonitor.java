@@ -8,11 +8,7 @@ import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Mircea Markus <mircea.markus@gmail.com>
@@ -73,17 +69,17 @@ public abstract class AbstractActivityMonitor implements Runnable {
          map.put(x, y);
          x += interval;
       }
-      
+
       //now calibrate...
       x -= interval; //this is max X
       if (x <= xCount || map.isEmpty()) {
-        return map;
+         return map;
       }
 
       int stepSize = x / xCount;
 
       LinkedHashMap<Integer, BigDecimal> calibratedResult = new LinkedHashMap<Integer, BigDecimal>(xCount + 1);
-      Iterator<Map.Entry<Integer,BigDecimal>> it = map.entrySet().iterator();
+      Iterator<Map.Entry<Integer, BigDecimal>> it = map.entrySet().iterator();
       Map.Entry<Integer, BigDecimal> current = it.next();
 
       done:
@@ -91,7 +87,7 @@ public abstract class AbstractActivityMonitor implements Runnable {
          BigDecimal total = new BigDecimal(0);
          int count = 0;
          int thisX = i * stepSize;
-         int thisStepMax = (i+1) * stepSize;
+         int thisStepMax = (i + 1) * stepSize;
          while (current.getKey() < thisStepMax) {
             total = total.add(current.getValue());
             count++;
@@ -101,7 +97,7 @@ public abstract class AbstractActivityMonitor implements Runnable {
                }
                break done;
             } else {
-              current = it.next();
+               current = it.next();
             }
          }
          if (count == 0) throw new IllegalStateException("Cannot happen as xCount < x!");

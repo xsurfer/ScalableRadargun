@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author Mircea.Markus@jboss.com
  */
-public class DummyStage extends AbstractDistStage{
+public class DummyStage extends AbstractDistStage {
 
    private String name;
 
@@ -32,7 +32,7 @@ public class DummyStage extends AbstractDistStage{
    @Override
    public String toString() {
       return "DummyStage {" +
-            "name='" + name + '\'' +
-            ", " + super.toString();
+              "name='" + name + '\'' +
+              ", " + super.toString();
    }
 }

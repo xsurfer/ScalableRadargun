@@ -8,19 +8,15 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ * <p/>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p/>
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -32,94 +28,80 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "")
 @XmlRootElement(name = "property")
 public class Property {
 
-    @XmlAttribute
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String mapAggregator;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String name;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String value;
+   @XmlAttribute
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String mapAggregator;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String name;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String value;
 
-    /**
-     * Gets the value of the mapAggregator property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMapAggregator() {
-        return mapAggregator;
-    }
+   /**
+    * Gets the value of the mapAggregator property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getMapAggregator() {
+      return mapAggregator;
+   }
 
-    /**
-     * Sets the value of the mapAggregator property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMapAggregator(String value) {
-        this.mapAggregator = value;
-    }
+   /**
+    * Sets the value of the mapAggregator property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setMapAggregator(String value) {
+      this.mapAggregator = value;
+   }
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+   /**
+    * Gets the value of the name property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getName() {
+      return name;
+   }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+   /**
+    * Sets the value of the name property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setName(String value) {
+      this.name = value;
+   }
 
-    /**
-     * Gets the value of the value property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getValue() {
-        return value;
-    }
+   /**
+    * Gets the value of the value property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getValue() {
+      return value;
+   }
 
-    /**
-     * Sets the value of the value property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setValue(String value) {
-        this.value = value;
-    }
+   /**
+    * Sets the value of the value property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setValue(String value) {
+      this.value = value;
+   }
 
 }

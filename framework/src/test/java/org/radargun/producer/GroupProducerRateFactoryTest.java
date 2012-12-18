@@ -69,7 +69,7 @@ public class GroupProducerRateFactoryTest {
          BigDecimal bg = new BigDecimal(producerRate.getLambda());
          bg = bg.setScale(3, RoundingMode.HALF_UP);
          assert lambda == bg.doubleValue() : "Different Lambda detected! " + lambda + "!=" +
-               producerRate.getLambda();
+                 producerRate.getLambda();
       }
    }
 

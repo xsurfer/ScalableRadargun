@@ -8,20 +8,15 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ * <p/>
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ * <p/>
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -39,209 +34,179 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "before",
-    "benchmarkStages",
-    "after"
+        "before",
+        "benchmarkStages",
+        "after"
 })
 @XmlRootElement(name = "scaling-benchmark")
 public class ScalingBenchmark {
 
-    @XmlElement(required = true)
-    protected Before before;
-    @XmlElement(name = "benchmark-stages", required = true)
-    protected BenchmarkStages benchmarkStages;
-    @XmlElement(required = true)
-    protected After after;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String increment;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String initSize;
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String maxSize;
+   @XmlElement(required = true)
+   protected Before before;
+   @XmlElement(name = "benchmark-stages", required = true)
+   protected BenchmarkStages benchmarkStages;
+   @XmlElement(required = true)
+   protected After after;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String increment;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String initSize;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String maxSize;
 
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String productName;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String productName;
 
-    @XmlAttribute(required = true)
-    @XmlJavaTypeAdapter(Adapter1 .class)
-    protected String configName;
+   @XmlAttribute(required = true)
+   @XmlJavaTypeAdapter(Adapter1.class)
+   protected String configName;
 
    /**
-     * Gets the value of the before property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Before }
-     *     
-     */
-    public Before getBefore() {
-        return before;
-    }
+    * Gets the value of the before property.
+    *
+    * @return possible object is
+    *         {@link Before }
+    */
+   public Before getBefore() {
+      return before;
+   }
 
-    /**
-     * Sets the value of the before property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Before }
-     *     
-     */
-    public void setBefore(Before value) {
-        this.before = value;
-    }
+   /**
+    * Sets the value of the before property.
+    *
+    * @param value allowed object is
+    *              {@link Before }
+    */
+   public void setBefore(Before value) {
+      this.before = value;
+   }
 
-    /**
-     * Gets the value of the benchmarkStages property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link BenchmarkStages }
-     *     
-     */
-    public BenchmarkStages getBenchmarkStages() {
-        return benchmarkStages;
-    }
+   /**
+    * Gets the value of the benchmarkStages property.
+    *
+    * @return possible object is
+    *         {@link BenchmarkStages }
+    */
+   public BenchmarkStages getBenchmarkStages() {
+      return benchmarkStages;
+   }
 
-    /**
-     * Sets the value of the benchmarkStages property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link BenchmarkStages }
-     *     
-     */
-    public void setBenchmarkStages(BenchmarkStages value) {
-        this.benchmarkStages = value;
-    }
+   /**
+    * Sets the value of the benchmarkStages property.
+    *
+    * @param value allowed object is
+    *              {@link BenchmarkStages }
+    */
+   public void setBenchmarkStages(BenchmarkStages value) {
+      this.benchmarkStages = value;
+   }
 
-    /**
-     * Gets the value of the after property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link After }
-     *     
-     */
-    public After getAfter() {
-        return after;
-    }
+   /**
+    * Gets the value of the after property.
+    *
+    * @return possible object is
+    *         {@link After }
+    */
+   public After getAfter() {
+      return after;
+   }
 
-    /**
-     * Sets the value of the after property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link After }
-     *     
-     */
-    public void setAfter(After value) {
-        this.after = value;
-    }
+   /**
+    * Sets the value of the after property.
+    *
+    * @param value allowed object is
+    *              {@link After }
+    */
+   public void setAfter(After value) {
+      this.after = value;
+   }
 
-    /**
-     * Gets the value of the increment property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getIncrement() {
-        return increment;
-    }
+   /**
+    * Gets the value of the increment property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getIncrement() {
+      return increment;
+   }
 
-    /**
-     * Sets the value of the increment property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setIncrement(String value) {
-        this.increment = value;
-    }
+   /**
+    * Sets the value of the increment property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setIncrement(String value) {
+      this.increment = value;
+   }
 
-    /**
-     * Gets the value of the initSize property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getInitSize() {
-        return initSize;
-    }
+   /**
+    * Gets the value of the initSize property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getInitSize() {
+      return initSize;
+   }
 
-    /**
-     * Sets the value of the initSize property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setInitSize(String value) {
-        this.initSize = value;
-    }
+   /**
+    * Sets the value of the initSize property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setInitSize(String value) {
+      this.initSize = value;
+   }
 
-    /**
-     * Gets the value of the maxSize property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMaxSize() {
-        return maxSize;
-    }
+   /**
+    * Gets the value of the maxSize property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getMaxSize() {
+      return maxSize;
+   }
 
-    /**
-     * Sets the value of the maxSize property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMaxSize(String value) {
-        this.maxSize = value;
-    }
+   /**
+    * Sets the value of the maxSize property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setMaxSize(String value) {
+      this.maxSize = value;
+   }
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getProductName() {
-        return productName;
-    }
+   /**
+    * Gets the value of the name property.
+    *
+    * @return possible object is
+    *         {@link String }
+    */
+   public String getProductName() {
+      return productName;
+   }
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setProductName(String value) {
-        this.productName = value;
-    }
+   /**
+    * Sets the value of the name property.
+    *
+    * @param value allowed object is
+    *              {@link String }
+    */
+   public void setProductName(String value) {
+      this.productName = value;
+   }
 
    public String getConfigName() {
       return configName;

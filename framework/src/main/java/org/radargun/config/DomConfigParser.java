@@ -1,21 +1,16 @@
 package org.radargun.config;
 
-import org.radargun.utils.TypedProperties;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Attr;
-import org.radargun.stages.GenerateChartStage;
-import org.radargun.stages.StartClusterStage;
 import org.radargun.Master;
 import org.radargun.Stage;
+import org.radargun.stages.GenerateChartStage;
+import org.radargun.stages.StartClusterStage;
+import org.radargun.utils.TypedProperties;
+import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -30,8 +25,7 @@ public class DomConfigParser extends ConfigParser {
       Document document;
       try {
          document = builder.parse(config);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
          throw new IllegalStateException(e);
       }
 

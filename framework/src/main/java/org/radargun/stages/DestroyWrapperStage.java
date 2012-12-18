@@ -30,7 +30,7 @@ public class DestroyWrapperStage extends AbstractDistStage {
    @Override
    public void initOnMaster(MasterState masterState, int slaveIndex) {
       super.initOnMaster(masterState, slaveIndex);
-      this.initialFreeMemoryKb = (Long) masterState.get(FREEMEM_KB + "_" +  getSlaveIndex());
+      this.initialFreeMemoryKb = (Long) masterState.get(FREEMEM_KB + "_" + getSlaveIndex());
    }
 
    public DistStageAck executeOnSlave() {
@@ -41,7 +41,8 @@ public class DestroyWrapperStage extends AbstractDistStage {
          if (cacheWrapper != null) {
             cacheWrapper.tearDown();
             for (int i = 0; i < 120; i++) {
-               if (cacheWrapper.getNumMembers() <= 0) break; //negative value might be returned by impl that do not support this method
+               if (cacheWrapper.getNumMembers() <= 0)
+                  break; //negative value might be returned by impl that do not support this method
                log.info("There are still: " + cacheWrapper.getNumMembers() + " members in the cluster. Waiting for them to turn off.");
                Thread.sleep(1000);
             }

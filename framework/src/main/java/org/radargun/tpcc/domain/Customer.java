@@ -269,7 +269,7 @@ public class Customer implements Serializable, Comparable, DomainObject {
    public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {
       String key = getKey();
       if (localOnly) {
-         
+
       } else {
          store(wrapper, nodeIndex);
       }

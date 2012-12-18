@@ -7,8 +7,7 @@ import java.io.IOException;
  *
  * @author Manik Surtani (<a href="mailto:manik@jboss.org">manik@jboss.org</a>)
  */
-public interface ChartGen
-{
+public interface ChartGen {
 
    void setReportDirectory(String reportDirectory);
 

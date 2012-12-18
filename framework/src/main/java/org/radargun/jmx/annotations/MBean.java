@@ -22,17 +22,13 @@
  */
 package org.radargun.jmx.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Classes annotated with this will be exposed as MBeans. If you are looking for more fined grained way of exposing JMX
  * attributes/operations, take a look at {@link org.radargun.jmx.annotations.ManagedAttribute} and {@link
  * org.radargun.jmx.annotations.ManagedOperation}
- *
+ * <p/>
  * Note: copy from Infinispan
  *
  * @author Mircea.Markus@jboss.com

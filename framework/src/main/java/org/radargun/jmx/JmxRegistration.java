@@ -26,17 +26,17 @@ public class JmxRegistration {
 
    private static final Log log = LogFactory.getLog(JmxRegistration.class);
    private final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-   
+
    private static final JmxRegistration _instance = new JmxRegistration();
-   
+
    private JmxRegistration() {
-      
+
    }
-   
+
    public synchronized static JmxRegistration getInstance() {
       return _instance;
    }
-   
+
    public void processStage(Object stage) {
       Class<?> clazz = stage.getClass();
 
@@ -60,7 +60,7 @@ public class JmxRegistration {
       }
    }
 
-   private  <T extends Annotation> T getAnnotation(Class<?> clazz, Class<T> ann) {
+   private <T extends Annotation> T getAnnotation(Class<?> clazz, Class<T> ann) {
       while (true) {
          // first check class
          T a = (T) clazz.getAnnotation(ann);
@@ -108,7 +108,7 @@ public class JmxRegistration {
    private boolean notFound(Method method, Collection<Method> methods) {
       for (Method found : methods) {
          if (method.getName().equals(found.getName()) &&
-               Arrays.equals(method.getParameterTypes(), found.getParameterTypes()))
+                 Arrays.equals(method.getParameterTypes(), found.getParameterTypes()))
             return false;
       }
       return true;

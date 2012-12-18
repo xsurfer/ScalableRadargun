@@ -35,7 +35,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
-   private static final String SCRIPT_PATH = "/home/pruivo/beforeBenchmark.sh";
+   private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
 
    /**
     * the number of threads that will work on this slave
@@ -128,9 +128,9 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       try {
          Map<String, String> results = tpccStressor.stress(cacheWrapper);
          String sizeInfo = "size info: " + cacheWrapper.getInfo() +
-               ", clusterSize:" + super.getActiveSlaveCount() +
-               ", nodeIndex:" + super.getSlaveIndex() +
-               ", cacheSize: " + cacheWrapper.getCacheSize();
+                 ", clusterSize:" + super.getActiveSlaveCount() +
+                 ", nodeIndex:" + super.getSlaveIndex() +
+                 ", cacheSize: " + cacheWrapper.getCacheSize();
 
          log.info(sizeInfo);
          results.put(SIZE_INFO, sizeInfo);
@@ -166,7 +166,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
                throw new IllegalStateException("This should be there!");
             }
             log.info("On slave " + ack.getSlaveIndex() + " we had " + numberFormat(parseDouble(reqPerSes.toString())) + " requests per second");
-            log.info("Received " +  benchResult.remove(SIZE_INFO));
+            log.info("Received " + benchResult.remove(SIZE_INFO));
          } else {
             log.trace("No report received from slave: " + ack.getSlaveIndex());
          }
@@ -209,16 +209,16 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "TpccBenchmarkStage {" +
-            "numOfThreads=" + numOfThreads +
-            ", perThreadSimulTime=" + perThreadSimulTime +
-            ", arrivalRate=" + arrivalRate +
-            ", paymentWeight=" + paymentWeight +
-            ", orderStatusWeight=" + orderStatusWeight +
-            ", accessSameWarehouse=" + accessSameWarehouse +
-            ", numberOfItemsInterval=" + numberOfItemsInterval +
-            ", statsSamplingInterval=" + statsSamplingInterval +
-            ", cacheWrapper=" + cacheWrapper +
-            ", " + super.toString();
+              "numOfThreads=" + numOfThreads +
+              ", perThreadSimulTime=" + perThreadSimulTime +
+              ", arrivalRate=" + arrivalRate +
+              ", paymentWeight=" + paymentWeight +
+              ", orderStatusWeight=" + orderStatusWeight +
+              ", accessSameWarehouse=" + accessSameWarehouse +
+              ", numberOfItemsInterval=" + numberOfItemsInterval +
+              ", statsSamplingInterval=" + statsSamplingInterval +
+              ", cacheWrapper=" + cacheWrapper +
+              ", " + super.toString();
    }
 
    @ManagedOperation(description = "Change the workload to decrease contention between transactions")

@@ -22,7 +22,7 @@ public class CustomerLookup implements Externalizable, DomainObject {
 
    private List<Long> ids;
 
-   public CustomerLookup(){
+   public CustomerLookup() {
 
       this.ids = null;
       this.c_d_id = -1;
@@ -31,7 +31,7 @@ public class CustomerLookup implements Externalizable, DomainObject {
       this.c_last = null;
    }
 
-   public CustomerLookup(String c_last, long c_w_id, long c_d_id){
+   public CustomerLookup(String c_last, long c_w_id, long c_d_id) {
 
       this.ids = null;
       this.c_d_id = c_d_id;
@@ -72,22 +72,22 @@ public class CustomerLookup implements Externalizable, DomainObject {
       this.ids = ids;
    }
 
-   public void addId(long newId){
+   public void addId(long newId) {
 
-      if(this.ids == null){
+      if (this.ids == null) {
          this.ids = new LinkedList<Long>();
       }
 
       this.ids.add(newId);
    }
 
-   private String getKey(){
-      return "CUSTOMER_LOOKUP_"+this.c_last+"_"+this.c_w_id+"_"+this.c_d_id;
+   private String getKey() {
+      return "CUSTOMER_LOOKUP_" + this.c_last + "_" + this.c_w_id + "_" + this.c_d_id;
    }
 
    @Override
-   public void store(CacheWrapper wrapper)throws Throwable{
-      wrapper.put(null,this.getKey(), this);
+   public void store(CacheWrapper wrapper) throws Throwable {
+      wrapper.put(null, this.getKey(), this);
    }
 
    @Override
@@ -96,7 +96,7 @@ public class CustomerLookup implements Externalizable, DomainObject {
    }
 
    @Override
-   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {      
+   public void storeToPopulate(CacheWrapper wrapper, int nodeIndex, boolean localOnly) throws Throwable {
       if (localOnly) {
          wrapper.putIfLocal(null, getKey(), this);
       } else {
@@ -105,11 +105,11 @@ public class CustomerLookup implements Externalizable, DomainObject {
    }
 
    @Override
-   public boolean load(CacheWrapper wrapper)throws Throwable{
+   public boolean load(CacheWrapper wrapper) throws Throwable {
 
-      CustomerLookup loaded=(CustomerLookup)wrapper.get(null,this.getKey());
+      CustomerLookup loaded = (CustomerLookup) wrapper.get(null, this.getKey());
 
-      if(loaded==null) return false;
+      if (loaded == null) return false;
 
       this.c_w_id = loaded.c_w_id;
       this.c_d_id = loaded.c_d_id;
@@ -153,7 +153,7 @@ public class CustomerLookup implements Externalizable, DomainObject {
 
    @Override
    public void readExternal(ObjectInput in) throws IOException,
-                                                   ClassNotFoundException {
+           ClassNotFoundException {
 
       this.c_w_id = in.readLong();
       this.c_d_id = in.readLong();
@@ -161,13 +161,12 @@ public class CustomerLookup implements Externalizable, DomainObject {
 
       int sizeIds = in.readInt();
 
-      if(sizeIds == 0){
+      if (sizeIds == 0) {
          this.ids = null;
-      }
-      else{
-         this.ids = new LinkedList<Long> ();
+      } else {
+         this.ids = new LinkedList<Long>();
 
-         for(int i =0; i<sizeIds; i++){
+         for (int i = 0; i < sizeIds; i++) {
 
             this.ids.add(in.readLong());
          }
@@ -183,14 +182,13 @@ public class CustomerLookup implements Externalizable, DomainObject {
       out.writeLong(this.c_d_id);
       out.writeUTF(this.c_last);
 
-      if(this.ids == null || this.ids.isEmpty()){
+      if (this.ids == null || this.ids.isEmpty()) {
          out.writeInt(0);
-      }
-      else{
+      } else {
          out.writeInt(this.ids.size());
 
          Iterator<Long> itr = this.ids.iterator();
-         while(itr.hasNext()){
+         while (itr.hasNext()) {
             out.writeLong(itr.next());
          }
       }

@@ -78,7 +78,8 @@ public class InfinispanWrapper implements CacheWrapper {
          started = true;
          tm = cache.getAdvancedCache().getTransactionManager();
          log.info("Using transaction manager: " + tm);
-         transport = cacheManager.getTransport();
+         //Changed to comply with 5.0 API
+         transport = cache.getAdvancedCache().getRpcManager().getTransport();
          try {
             isPassiveReplicationMethod = Configuration.class.getMethod("isPassiveReplication");
          } catch (Exception e) {
@@ -110,7 +111,8 @@ public class InfinispanWrapper implements CacheWrapper {
    public void putIfLocal(String bucket, Object key, Object value) throws Exception {
       AdvancedCache<Object, Object> advancedCache = cache.getAdvancedCache();
       DistributionManager distributionManager = advancedCache.getDistributionManager();
-      if (distributionManager == null || distributionManager.getLocality(key).isLocal()) {
+      //Changed to comply with 5.0 API
+      if (distributionManager == null || distributionManager.isLocal(key)) {
          advancedCache.withFlags(Flag.CACHE_MODE_LOCAL).put(key, value);
       }
    }

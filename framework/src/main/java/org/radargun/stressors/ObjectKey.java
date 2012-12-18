@@ -44,10 +44,10 @@ public class ObjectKey implements Externalizable {
    @Override
    public String toString() {
       return "ObjectKey{" +
-            "nodeIndex=" + nodeIndex +
-            ", threadIndex=" + threadIndex +
-            ", keyIndex=" + keyIndex +
-            '}';
+              "nodeIndex=" + nodeIndex +
+              ", threadIndex=" + threadIndex +
+              ", keyIndex=" + keyIndex +
+              '}';
    }
 
    @Override
@@ -89,7 +89,7 @@ public class ObjectKey implements Externalizable {
     */
    public int getKeyIndexInCluster(int threadCountPerNode, int keysPerThread) {
       return nodeIndex * threadCountPerNode * keysPerThread
-            + threadIndex * keysPerThread
-            + keyIndex;
+              + threadIndex * keysPerThread
+              + keyIndex;
    }
 }

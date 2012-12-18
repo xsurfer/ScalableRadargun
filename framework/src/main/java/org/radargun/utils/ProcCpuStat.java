@@ -11,11 +11,11 @@ import java.io.IOException;
  * Email: didona@gsd.inesc-id.pt
  * Websiste: www.cloudtm.eu
  * Date: 21/05/12
- *
+ * <p/>
  * We could use the same approach Galder uses in Radargun, which is much more elegant and, I think, portable
  * This approach involves explicit command-line invocations and relies on the presence of the proc fs
  */
-public class ProcCpuStat implements CpuStat{
+public class ProcCpuStat implements CpuStat {
 
    private static final Log log = LogFactory.getLog(ProcCpuStat.class);
 
@@ -49,7 +49,7 @@ public class ProcCpuStat implements CpuStat{
       return this.getCpuUsage(current);
    }
 
-   public final double getCpuUsageAndReset(){
+   public final double getCpuUsageAndReset() {
       if (!active) {
          return -1D;
       }
@@ -58,9 +58,9 @@ public class ProcCpuStat implements CpuStat{
       return ret;
    }
 
-   public final void reset(){
+   public final void reset() {
       if (!active) {
-         return ;
+         return;
       }
       this.cpuTimes = this.parseCpuTime();
    }

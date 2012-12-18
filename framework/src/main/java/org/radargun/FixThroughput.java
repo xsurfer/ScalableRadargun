@@ -1,17 +1,8 @@
 package org.radargun;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Closeable;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * fixes the throughput for the PB protocol (or other) based on the expected write percentage value
@@ -99,7 +90,7 @@ public class FixThroughput implements Runnable {
       setHeaderPosition(line);
       if (!isAllHeadersPositionValid()) {
          System.err.println("some headers are missing");
-         List<Header> missing = new LinkedList<Header> (Arrays.asList(Header.values()));
+         List<Header> missing = new LinkedList<Header>(Arrays.asList(Header.values()));
          missing.removeAll(headerPosition.keySet());
          System.err.println("missing headers are " + missing);
          System.exit(3);
@@ -120,8 +111,8 @@ public class FixThroughput implements Runnable {
    /**
     * returns the buffered reader for the input file
     *
-    * @return  the buffered reader for the input file or null if the some error occurs (file cannot be open or it is 
-    * not found)
+    * @return the buffered reader for the input file or null if the some error occurs (file cannot be open or it is
+    *         not found)
     */
    private BufferedReader getBufferedReader() {
       try {
@@ -135,7 +126,7 @@ public class FixThroughput implements Runnable {
    /**
     * returns the buffered writer for the output file
     *
-    * @return  the buffered writer for the output file or null if some error occurs (file cannot be written or others)
+    * @return the buffered writer for the output file or null if some error occurs (file cannot be written or others)
     */
    private BufferedWriter getBufferedWriter() {
       try {
@@ -149,7 +140,7 @@ public class FixThroughput implements Runnable {
    /**
     * close a closeable instance
     *
-    * @param closeable  the instance to close
+    * @param closeable the instance to close
     */
    private void close(Closeable closeable) {
       try {
@@ -162,8 +153,8 @@ public class FixThroughput implements Runnable {
    /**
     * reads a line from the csv file and parse it splitting its values for each position in array
     *
-    * @param reader  the buffered reader for the file
-    * @return        the line split
+    * @param reader the buffered reader for the file
+    * @return the line split
     */
    private String[] readLine(BufferedReader reader) {
       String line = null;
@@ -172,14 +163,14 @@ public class FixThroughput implements Runnable {
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return line == null ? null :line.split(",");
+      return line == null ? null : line.split(",");
    }
 
    /**
     * writes a lines in the output file
     *
-    * @param line    the array with each position of the csv values
-    * @param writer  the buffered writer
+    * @param line   the array with each position of the csv values
+    * @param writer the buffered writer
     */
    private void writeLine(String[] line, BufferedWriter writer) {
       try {
@@ -212,7 +203,7 @@ public class FixThroughput implements Runnable {
    /**
     * check if it has all the headers needed to perform the fix
     *
-    * @return  true if the all headers needed are present, false otherwise
+    * @return true if the all headers needed are present, false otherwise
     */
    private boolean isAllHeadersPositionValid() {
       for (Header header : Header.values()) {
@@ -227,7 +218,7 @@ public class FixThroughput implements Runnable {
     * fixes the throughput for this line
     *
     * @param line the csv line
-    * @return     the new throughput value
+    * @return the new throughput value
     */
    private int fixThroughput(String[] line) {
       Number expectedWritePercentage = readNumber(line, Header.EXPECTED_WRITE_PERCENTAGE);
@@ -237,7 +228,7 @@ public class FixThroughput implements Runnable {
          return throughput == null ? 0 : throughput.intValue();
       } else {
 
-         Number writeThroughput = readNumber(line,  Header.WRITE_THROUGHPUT);
+         Number writeThroughput = readNumber(line, Header.WRITE_THROUGHPUT);
          Number readThroughput = readNumber(line, Header.READ_THROUGHPUT);
 
          if (writeThroughput == null || readThroughput == null) {
@@ -246,7 +237,7 @@ public class FixThroughput implements Runnable {
          }
 
          return (int) Math.min(writeThroughput.doubleValue() / expectedWritePercentage.doubleValue(),
-                               readThroughput.doubleValue() / (1 - expectedWritePercentage.doubleValue()));
+                 readThroughput.doubleValue() / (1 - expectedWritePercentage.doubleValue()));
       }
    }
 
@@ -282,7 +273,7 @@ public class FixThroughput implements Runnable {
     * but with the suffix -fix
     *
     * @param inputFilePath the input file path
-    * @return              the output file path
+    * @return the output file path
     */
    private String computeOutputFilePath(String inputFilePath) {
       String[] array = inputFilePath.split("\\.");

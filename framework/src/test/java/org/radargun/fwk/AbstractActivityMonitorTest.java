@@ -11,7 +11,7 @@ import static org.testng.Assert.assertEquals;
 /**
  * @author mmarkus
  */
-@Test (groups = "functional")
+@Test(groups = "functional")
 public class AbstractActivityMonitorTest {
 
    public void testAbstractActivityMonitor() {
@@ -21,7 +21,7 @@ public class AbstractActivityMonitorTest {
       ma.addMeasurement(3); //4
       ma.addMeasurement(4); //6
       ma.addMeasurement(5); //8
-      LinkedHashMap<Integer,BigDecimal> map = ma.formatForGraph(2, 2);
+      LinkedHashMap<Integer, BigDecimal> map = ma.formatForGraph(2, 2);
 
       System.out.println("map = " + map);
 
@@ -31,7 +31,7 @@ public class AbstractActivityMonitorTest {
       assertEquals(map.get(8), new BigDecimal(5));
 
       ma.addMeasurement(6);//10
-      LinkedHashMap<Integer,BigDecimal> map2 = ma.formatForGraph(2, 2);
+      LinkedHashMap<Integer, BigDecimal> map2 = ma.formatForGraph(2, 2);
 
       System.out.println("map2 = " + map2);
       assertEquals(map2.size(), 3);

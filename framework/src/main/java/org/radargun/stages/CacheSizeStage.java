@@ -73,9 +73,9 @@ public class CacheSizeStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "CacheSizeStage{" +
-            "statName='" + statName + '\'' +
-            ", reset=" + reset +
-            '}';
+              "statName='" + statName + '\'' +
+              ", reset=" + reset +
+              '}';
    }
 
    public void setStatName(String statName) {

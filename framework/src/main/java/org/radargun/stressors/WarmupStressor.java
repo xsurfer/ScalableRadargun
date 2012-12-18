@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Mircea.Markus@jboss.com
  * @deprecated this should be replaced with the {@link PutGetWarmupStressor}. This is because that warmup mimics better the
- * access pattern of the the {@link PutGetStressor}, especially in the case of transactions.
+ *             access pattern of the the {@link PutGetStressor}, especially in the case of transactions.
  */
 public class WarmupStressor extends AbstractCacheWrapperStressor {
 
@@ -29,7 +29,7 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
    private CacheWrapper wrapper;
 
    private int numThreads = 5;
-   
+
    private int keysPerThread = 50;
 
    public Map<String, String> stress(CacheWrapper wrapper) {
@@ -77,13 +77,13 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
          warmupThreads[i].start();
       }
       log.info("Joining warmupThreads");
-      for (Thread t: warmupThreads) t.join();
+      for (Thread t : warmupThreads) t.join();
       log.info("Cache warmup ended!");
    }
 
    private void doPut(int operationId, int threadId) {
       String key = new StringBuilder(keyPrefix).append("-").append(operationId % keysPerThread).append("-").
-            append(threadId).append("-").append(bucket).toString();
+              append(threadId).append("-").append(bucket).toString();
       try {
          wrapper.put(bucket, key, key);
       } catch (Exception e) {
@@ -93,7 +93,7 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
 
    private void doGet(int operationId, int threadId) {
       String key = new StringBuilder(keyPrefix).append("-").append(operationId % keysPerThread).append("-").
-            append(threadId).append("-").append(bucket).toString();
+              append(threadId).append("-").append(bucket).toString();
       try {
          wrapper.get(bucket, key);
       } catch (Exception e) {
@@ -114,7 +114,7 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
    }
 
    public void setNumThreads(int numThreads) {
-      if (numThreads <=0) throw new IllegalStateException("Invalid num of threads:" + numThreads);
+      if (numThreads <= 0) throw new IllegalStateException("Invalid num of threads:" + numThreads);
       this.numThreads = numThreads;
    }
 
@@ -125,9 +125,9 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
    @Override
    public String toString() {
       return "WarmupStressor{" +
-            "bucket=" + bucket +
-            "keyPrefix" + keyPrefix +
-            "operationCount=" + operationCount + "}";
+              "bucket=" + bucket +
+              "keyPrefix" + keyPrefix +
+              "operationCount=" + operationCount + "}";
    }
 
 

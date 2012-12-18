@@ -97,7 +97,7 @@ public abstract class AbstractDistStage implements DistStage {
 
       String processingDuration = "Durations [";
       boolean first = true;
-      for (DistStageAck ack: acks) {
+      for (DistStageAck ack : acks) {
          if (first) first = false;
          else processingDuration += ", ";
          processingDuration += ack.getSlaveIndex() + ":" + Utils.prettyPrintMillis(ack.getDuration());
@@ -120,8 +120,8 @@ public abstract class AbstractDistStage implements DistStage {
    @Override
    public String toString() {
       return "slaveIndex=" + slaveIndex +
-            ", activeSlavesCount=" + activeSlavesCount +
-            ", totalSlavesCount=" + totalSlavesCount +
-            "} ";
+              ", activeSlavesCount=" + activeSlavesCount +
+              ", totalSlavesCount=" + totalSlavesCount +
+              "} ";
    }
 }

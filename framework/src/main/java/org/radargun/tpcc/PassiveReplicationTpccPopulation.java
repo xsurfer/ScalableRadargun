@@ -19,8 +19,8 @@ public class PassiveReplicationTpccPopulation extends ThreadParallelTpccPopulati
    public PassiveReplicationTpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves,
                                            long cLastMask, long olIdMask, long cIdMask, int parallelThreads,
                                            int elementsPerBlock) {
-      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads, 
-            elementsPerBlock, false, new ThreadTpccToolsManager(System.nanoTime()));
+      super(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads,
+              elementsPerBlock, false, new ThreadTpccToolsManager(System.nanoTime()));
    }
 
    @Override

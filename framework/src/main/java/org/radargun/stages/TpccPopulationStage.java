@@ -19,15 +19,15 @@ import java.util.List;
  *       - olIdMask : mask used to generate non-uniformly distributed random item numbers.
  *       - cIdMask : mask used to generate non-uniformly distributed random customer numbers.
  *       - threadParallelLoad: enable/disable the parallelLoading
- *       - numLoaderThreads: the number of populating threads per node 
- *       - batchLevel: the size of a transaction in population (i.e., the number of items per transaction) 
+ *       - numLoaderThreads: the number of populating threads per node
+ *       - batchLevel: the size of a transaction in population (i.e., the number of items per transaction)
  * </pre>
  *
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Diego Didona, didona@gsd.inesc-id.pt
  * @author Pedro Ruivo
  */
-public class TpccPopulationStage extends AbstractDistStage{
+public class TpccPopulationStage extends AbstractDistStage {
 
    /**
     * number of Warehouses
@@ -50,17 +50,17 @@ public class TpccPopulationStage extends AbstractDistStage{
    private long cIdMask = 1023;
 
    /**
-    * enable/disable the parallelLoading 
+    * enable/disable the parallelLoading
     */
    private boolean threadParallelLoad = false;
 
    /**
-    * the number of populating threads per node 
+    * the number of populating threads per node
     */
    private int numLoaderThreads = 4;
 
    /**
-    * the size of a transaction in population (i.e., the number of item per transaction) 
+    * the size of a transaction in population (i.e., the number of item per transaction)
     */
    private int batchLevel = 100;
 
@@ -145,14 +145,14 @@ public class TpccPopulationStage extends AbstractDistStage{
    @Override
    public String toString() {
       return "TpccPopulationStage {" +
-            "numWarehouses=" + numWarehouses +
-            ", cLastMask=" + cLastMask +
-            ", olIdMask=" + olIdMask +
-            ", cIdMask=" + cIdMask +
-            ", threadParallelLoad=" + threadParallelLoad +
-            ", numLoaderThreads=" + numLoaderThreads +
-            ", batchLevel=" + batchLevel +
-            ", preloadedFromDB=" + preloadedFromDB +
-            ", " + super.toString();
+              "numWarehouses=" + numWarehouses +
+              ", cLastMask=" + cLastMask +
+              ", olIdMask=" + olIdMask +
+              ", cIdMask=" + cIdMask +
+              ", threadParallelLoad=" + threadParallelLoad +
+              ", numLoaderThreads=" + numLoaderThreads +
+              ", batchLevel=" + batchLevel +
+              ", preloadedFromDB=" + preloadedFromDB +
+              ", " + super.toString();
    }
 }

@@ -1,6 +1,5 @@
 package org.radargun.tpcc;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;

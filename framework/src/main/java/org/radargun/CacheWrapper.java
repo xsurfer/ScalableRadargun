@@ -11,8 +11,7 @@ import java.util.Map;
  *
  * @author Manik Surtani (manik@surtani.org)
  */
-public interface CacheWrapper
-{
+public interface CacheWrapper {
    /**
     * Initialises the cache.  Typically this step will configure the
     * caching product with various params passed in, described in
@@ -38,7 +37,7 @@ public interface CacheWrapper
     * realistic) way possible.
     *
     * @param bucket a bucket is a group of keys. Some implementations might ignore the bucket (e.g. InfinispanWrapper}}
-    * so in order to avoid key collisions, one should make sure that the keys are unique even between different buckets.
+    *               so in order to avoid key collisions, one should make sure that the keys are unique even between different buckets.
     * @param key
     * @param value
     */
@@ -77,13 +76,15 @@ public interface CacheWrapper
    /**
     * Starts a transaction against the cache node. All the put, get, empty invocations after this method returns will
     * take place in the scope of the transaction started. The transaction will be completed by invoking {@link #endTransaction(boolean)}.
+    *
     * @throws RuntimeException if a particular cache implementation does not support transactions it should throw a
-    * RuntimeException to signal that.
+    *                          RuntimeException to signal that.
     */
    void startTransaction();
 
    /**
     * Called in conjunction with {@link #startTransaction()} in order to complete a transaction by either committing or rolling it back.
+    *
     * @param successful commit or rollback?
     */
    void endTransaction(boolean successful);
@@ -91,30 +92,34 @@ public interface CacheWrapper
    /**
     * returns true if the current thread is inside a transaction when the method is invoked
     *
-    * @return  true if the current thread is inside a transaction when the method is invoked
+    * @return true if the current thread is inside a transaction when the method is invoked
     */
    boolean isInTransaction();
 
    /**
-    * returns a map with cache dependent statistics 
+    * returns a map with cache dependent statistics
+    *
     * @return the map with cache dependent statistics or an empty map of no statistics are available
     */
    Map<String, String> getAdditionalStats();
 
    /**
     * returns the number of keys in this cache
+    *
     * @return the number of keys in this cache
     */
    int getCacheSize();
 
    /**
     * return true if the replication protocol is passive replication (single master protocol!)
-    * @return  true if is passive replication, false otherwise
+    *
+    * @return true if is passive replication, false otherwise
     */
    boolean isPassiveReplication();
 
    /**
     * returns true if this cache wrapper is *the* master in passive replication
+    *
     * @return true if this cache wrapper is *the* master, false otherwise
     */
    boolean isTheMaster();

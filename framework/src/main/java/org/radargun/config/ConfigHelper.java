@@ -49,11 +49,9 @@ public class ConfigHelper {
             method = objectClass.getMethod(setter, String.class);
             method.invoke(target, entry.getValue());
             continue;
-         }
-         catch (NoSuchMethodException me) {
+         } catch (NoSuchMethodException me) {
             // try other setters that may fit later on.  Don't throw this exception though.
-         }
-         catch (Exception e) {
+         } catch (Exception e) {
             throw new RuntimeException("Unable to invoke setter " + setter + " on " + objectClass, e);
          }
 
@@ -84,8 +82,7 @@ public class ConfigHelper {
                   m.invoke(target, parameter);
                   setterFound = true;
                   break;
-               }
-               catch (Exception e) {
+               } catch (Exception e) {
                   throw new RuntimeException("Unable to invoke setter " + setter + " on " + objectClass, e);
                }
             }
@@ -121,7 +118,7 @@ public class ConfigHelper {
             String sysProp = System.getProperties().getProperty(val);
             if (sysProp == null) {
                String errorMessage = "For property '" + originalVal + "' there's no System.property with key " + val
-                     + " .Existing properties are: " + System.getProperties();
+                       + " .Existing properties are: " + System.getProperties();
                log.error(errorMessage);
                throw new RuntimeException(errorMessage);
             } else {

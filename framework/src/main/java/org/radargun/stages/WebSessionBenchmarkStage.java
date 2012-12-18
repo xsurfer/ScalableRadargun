@@ -69,7 +69,7 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
    private long durationMillis = -1;
 
    protected Map<String, String> doWork() {
-      log.info("Starting "+getClass().getSimpleName()+": " + this);
+      log.info("Starting " + getClass().getSimpleName() + ": " + this);
       PutGetStressor putGetStressor = new PutGetStressor();
       putGetStressor.setNodeIndex(getSlaveIndex());
       putGetStressor.setNumberOfAttributes(numberOfAttributes);
@@ -114,7 +114,7 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
     */
    private String generateSizeInfo() {
       return "size info: " + cacheWrapper.getInfo() + ", clusterSize:" + super.getActiveSlaveCount() + ", nodeIndex:" +
-            super.getSlaveIndex() + ", cacheSize: " + cacheWrapper.getCacheSize();
+              super.getSlaveIndex() + ", cacheSize: " + cacheWrapper.getCacheSize();
    }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
@@ -152,8 +152,9 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
     * distribution in the cluster.
     */
    private void logForDistributionCounting(Map<String, Object> benchResult) {
-      log.info("Received " +  benchResult.remove(SIZE_INFO));
+      log.info("Received " + benchResult.remove(SIZE_INFO));
    }
+
    public void setNumberOfRequests(int numberOfRequests) {
       this.numberOfRequests = numberOfRequests;
    }
@@ -225,18 +226,18 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "WebSessionBenchmarkStage {" +
-            "opsCountStatusLog=" + opsCountStatusLog +
-            ", numberOfRequests=" + numberOfRequests +
-            ", numberOfAttributes=" + numberOfAttributes +
-            ", sizeOfAnAttribute=" + sizeOfAnAttribute +
-            ", writePercentage=" + writePercentage +
-            ", numOfThreads=" + numOfThreads +
-            ", reportNanos=" + reportNanos +
-            ", cacheWrapper=" + cacheWrapper +
-            ", useTransactions=" + useTransactions +
-            ", commitTransactions=" + commitTransactions +
-            ", transactionSize=" + transactionSize +
-            ", durationMillis=" + durationMillis+
-            ", " + super.toString();
+              "opsCountStatusLog=" + opsCountStatusLog +
+              ", numberOfRequests=" + numberOfRequests +
+              ", numberOfAttributes=" + numberOfAttributes +
+              ", sizeOfAnAttribute=" + sizeOfAnAttribute +
+              ", writePercentage=" + writePercentage +
+              ", numOfThreads=" + numOfThreads +
+              ", reportNanos=" + reportNanos +
+              ", cacheWrapper=" + cacheWrapper +
+              ", useTransactions=" + useTransactions +
+              ", commitTransactions=" + commitTransactions +
+              ", transactionSize=" + transactionSize +
+              ", durationMillis=" + durationMillis +
+              ", " + super.toString();
    }
 }

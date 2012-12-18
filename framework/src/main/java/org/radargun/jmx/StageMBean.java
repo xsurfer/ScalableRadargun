@@ -51,7 +51,7 @@ public class StageMBean implements DynamicMBean {
       }
 
       mBeanInfo = new MBeanInfo(objectClass.getSimpleName(), objectClass.getAnnotation(MBean.class).description(),
-                                attInfos, new MBeanConstructorInfo[0], opInfos, new MBeanNotificationInfo[0]);
+              attInfos, new MBeanConstructorInfo[0], opInfos, new MBeanNotificationInfo[0]);
    }
 
    @Override

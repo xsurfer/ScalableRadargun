@@ -33,8 +33,7 @@ public class Utils {
       long remainingSecs = secs % 60;
       if (mins > 0) {
          return String.format("%d mins %d secs", mins, remainingSecs);
-      }
-      else {
+      } else {
          return String.format("%.3f secs", millis / 1000.0);
       }
    }
@@ -252,7 +251,7 @@ public class Utils {
          throw new IllegalStateException(e);
       }
    }
-   
+
    public static long string2Millis(String duration) {
       long durationMillis = 0;
       try {
@@ -267,8 +266,7 @@ public class Utils {
             if (indexOfS > 0) {
                durationMillis = Long.parseLong(duration.substring(0, indexOfS));
                durationMillis = TimeUnit.SECONDS.toMillis(durationMillis);
-            }
-            else {
+            } else {
                throw new IllegalArgumentException("Cannot parse string: '" + duration + "' Supported formats: '321321' (millis), '3m' (minutes) or '75s' (seconds)");
             }
          }
@@ -276,17 +274,17 @@ public class Utils {
       return durationMillis;
    }
 
-     public static String mBeanAttributes2String(MBeanAttributeInfo[] attributeInfoArray) {
-        StringBuilder sb = new StringBuilder("[");
-        if (attributeInfoArray == null || attributeInfoArray.length == 0) {
-            sb.append("]");
-            return sb.toString();
-        }
-        sb.append(attributeInfoArray[0].getName());
-        for (int i = 1; i < attributeInfoArray.length; ++i) {
-            sb.append(",").append(attributeInfoArray[i].getName());
-        }
-        sb.append("]");
-        return sb.toString();
-    }
+   public static String mBeanAttributes2String(MBeanAttributeInfo[] attributeInfoArray) {
+      StringBuilder sb = new StringBuilder("[");
+      if (attributeInfoArray == null || attributeInfoArray.length == 0) {
+         sb.append("]");
+         return sb.toString();
+      }
+      sb.append(attributeInfoArray[0].getName());
+      for (int i = 1; i < attributeInfoArray.length; ++i) {
+         sb.append(",").append(attributeInfoArray[i].getName());
+      }
+      sb.append("]");
+      return sb.toString();
+   }
 }

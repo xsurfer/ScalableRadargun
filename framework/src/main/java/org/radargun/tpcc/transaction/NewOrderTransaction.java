@@ -3,14 +3,7 @@ package org.radargun.tpcc.transaction;
 import org.radargun.CacheWrapper;
 import org.radargun.tpcc.ElementNotFoundException;
 import org.radargun.tpcc.TpccTools;
-import org.radargun.tpcc.domain.Customer;
-import org.radargun.tpcc.domain.District;
-import org.radargun.tpcc.domain.Item;
-import org.radargun.tpcc.domain.NewOrder;
-import org.radargun.tpcc.domain.Order;
-import org.radargun.tpcc.domain.OrderLine;
-import org.radargun.tpcc.domain.Stock;
-import org.radargun.tpcc.domain.Warehouse;
+import org.radargun.tpcc.domain.*;
 
 import java.util.Date;
 
@@ -42,7 +35,7 @@ public class NewOrderTransaction implements TpccTransaction {
       this.customerID = tpccTools.nonUniformRandom(TpccTools.C_C_ID, TpccTools.A_C_ID, 1, TpccTools.NB_MAX_CUSTOMER);
 
       this.numItems = (int) tpccTools.randomNumber(TpccTools.NUMBER_OF_ITEMS_INTERVAL[0],
-                                                   TpccTools.NUMBER_OF_ITEMS_INTERVAL[1]); // o_ol_cnt
+              TpccTools.NUMBER_OF_ITEMS_INTERVAL[1]); // o_ol_cnt
       this.itemIDs = new long[numItems];
       this.supplierWarehouseIDs = new long[numItems];
       this.orderQuantities = new long[numItems];
@@ -232,7 +225,7 @@ public class NewOrderTransaction implements TpccTransaction {
          // clause 2.4.2.2 (dot 8.5)
 
          OrderLine ol = new OrderLine(o_id, districtID, warehouseID, ol_number, ol_i_id, ol_supply_w_id, null,
-                                      ol_quantity, ol_amount, ol_dist_info);
+                 ol_quantity, ol_amount, ol_dist_info);
          ol.store(cacheWrapper);
 
       }

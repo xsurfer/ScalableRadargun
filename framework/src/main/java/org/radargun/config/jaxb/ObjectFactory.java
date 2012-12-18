@@ -12,100 +12,89 @@ import javax.xml.bind.annotation.XmlRegistry;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
  * generated in the org.radargun.fwk.config.jaxb package.
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
  */
 @XmlRegistry
 public class ObjectFactory {
 
 
-    /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.radargun.fwk.config.jaxb
-     * 
-     */
-    public ObjectFactory() {
-    }
+   /**
+    * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.radargun.fwk.config.jaxb
+    */
+   public ObjectFactory() {
+   }
 
-    /**
-     * Create an instance of {@link FixedSizeBenchmark }
-     * 
-     */
-    public FixedSizeBenchmark createFixedSizeBenchmark() {
-        return new FixedSizeBenchmark();
-    }
+   /**
+    * Create an instance of {@link FixedSizeBenchmark }
+    */
+   public FixedSizeBenchmark createFixedSizeBenchmark() {
+      return new FixedSizeBenchmark();
+   }
 
-    /**
-     * Create an instance of {@link Master }
-     * 
-     */
-    public Master createMaster() {
-        return new Master();
-    }
+   /**
+    * Create an instance of {@link Master }
+    */
+   public Master createMaster() {
+      return new Master();
+   }
 
-    /**
-     * Create an instance of {@link ScalingBenchmark }
-     * 
-     */
-    public ScalingBenchmark createScalingBenchmark() {
-        return new ScalingBenchmark();
-    }
+   /**
+    * Create an instance of {@link ScalingBenchmark }
+    */
+   public ScalingBenchmark createScalingBenchmark() {
+      return new ScalingBenchmark();
+   }
 
-    /**
-     * Create an instance of {@link Before }
-     * 
-     */
-    public Before createBefore() {
-        return new Before();
-    }
+   /**
+    * Create an instance of {@link Before }
+    */
+   public Before createBefore() {
+      return new Before();
+   }
 
-    /**
-     * Create an instance of {@link After }
-     * 
-     */
-    public After createAfter() {
-        return new After();
-    }
+   /**
+    * Create an instance of {@link After }
+    */
+   public After createAfter() {
+      return new After();
+   }
 
-    /**
-     * Create an instance of {@link BenchmarkStages }
-     * 
-     */
-    public BenchmarkStages createBenchmarkStages() {
-        return new BenchmarkStages();
-    }
+   /**
+    * Create an instance of {@link BenchmarkStages }
+    */
+   public BenchmarkStages createBenchmarkStages() {
+      return new BenchmarkStages();
+   }
 
-    /**
-     * Create an instance of {@link Stage }
-     * 
-     */
-    public Stage createStage() {
-        return new Stage();
-    }
+   /**
+    * Create an instance of {@link Stage }
+    */
+   public Stage createStage() {
+      return new Stage();
+   }
 
-    /**
-     * Create an instance of {@link Property }
-     * 
-     */
-    public Property createProperty() {
-        return new Property();
-    }
+   /**
+    * Create an instance of {@link Property }
+    */
+   public Property createProperty() {
+      return new Property();
+   }
 
-    /**
-     * Create an instance of {@link BenchConfig }
-     * 
-     */
-    public BenchConfig createBenchConfig() {
-        return new BenchConfig();
-    }
+   /**
+    * Create an instance of {@link BenchConfig }
+    */
+   public BenchConfig createBenchConfig() {
+      return new BenchConfig();
+   }
 
 }

@@ -62,8 +62,8 @@ public class LocalJmxMonitor {
       // If remote access, start program with:
       // -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
       final MBeanServerConnection con = connect(
-            new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi"), null)
-            .getMBeanServerConnection();
+              new JMXServiceURL("service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi"), null)
+              .getMBeanServerConnection();
 
 //      startMonitoringLocal(con);
       new CpuIntensiveTask().start();
@@ -102,7 +102,7 @@ public class LocalJmxMonitor {
    public void stopMonitoringLocal() {
       exec.shutdownNow();
       log.trace("Cpu measurements = " + cpuMonitor.getMeasurementCount() + ", memory measurements = "
-                      + memoryMonitor.getMeasurementCount() + ", gc measurements = " + gcMonitor.getMeasurementCount());
+              + memoryMonitor.getMeasurementCount() + ", gc measurements = " + gcMonitor.getMeasurementCount());
    }
 
    static class CpuIntensiveTask extends Thread {

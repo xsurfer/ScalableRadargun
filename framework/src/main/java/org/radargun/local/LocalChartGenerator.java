@@ -1,7 +1,5 @@
 package org.radargun.local;
 
-import org.radargun.reporting.AbstractChartGen;
-import org.radargun.utils.Utils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -10,6 +8,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer3D;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.radargun.reporting.AbstractChartGen;
+import org.radargun.utils.Utils;
 
 import java.awt.*;
 import java.io.File;
@@ -21,7 +21,7 @@ import java.text.NumberFormat;
  * @author Mircea.Markus@jboss.com
  */
 public class LocalChartGenerator {
-   
+
    private ReportDesc reportDesc;
    private DefaultCategoryDataset getData = new DefaultCategoryDataset();
    private DefaultCategoryDataset putData = new DefaultCategoryDataset();
@@ -73,8 +73,7 @@ public class LocalChartGenerator {
             String retval;
             try {
                retval = fmt.format(categoryDataset.getValue(product, operation)) + " Ops/sec";
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                e.printStackTrace();
                retval = e.toString();
             }

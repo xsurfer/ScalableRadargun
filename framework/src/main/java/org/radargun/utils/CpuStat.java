@@ -6,9 +6,11 @@ package org.radargun.utils;
  * Websiste: www.cloudtm.eu
  * Date: 22/05/12
  */
-public interface CpuStat  {
+public interface CpuStat {
 
    double getCpuUsage();
+
    double getCpuUsageAndReset();
+
    void reset() throws Exception;
 }

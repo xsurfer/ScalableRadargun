@@ -30,7 +30,7 @@ public class MasterState extends StateBase {
    private FixedSizeBenchmarkConfig currentBenchmark;
    private long startTime = System.currentTimeMillis();
    private DistStage currentDistStage;
-   private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();   
+   private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();
 
    public MasterState(MasterConfig config) {
       this.config = config;
@@ -84,7 +84,7 @@ public class MasterState extends StateBase {
          public int compare(DistStageAck o1, DistStageAck o2) {
             int thisVal = o1.getSlaveIndex();
             int anotherVal = o2.getSlaveIndex();
-            return (thisVal<anotherVal ? -1 : (thisVal==anotherVal ? 0 : 1));
+            return (thisVal < anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
          }
       });
       boolean stageOk = currentDistStage.processAckOnMaster(acks, this);
