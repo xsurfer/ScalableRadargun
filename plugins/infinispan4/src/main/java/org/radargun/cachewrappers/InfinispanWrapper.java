@@ -15,6 +15,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
+import org.infinispan.transaction.xa.TransactionTable;
 import org.infinispan.util.concurrent.ConcurrentHashSet;
 import org.infinispan.util.concurrent.TimeoutException;
 import org.radargun.CacheWrapper;
@@ -34,14 +35,16 @@ import java.io.FileWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.radargun.utils.Utils.mBeanAttributes2String;
 
 public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
-   private final Set<Object> newKeys = new ConcurrentHashSet<Object>();
+   private final Set<Object> newKeys = new ConcurrentSkipListSet<Object>();
    private boolean trackNewKeys = false;
+   private static final int maxSleep = 2000;
 
    static {
       // Set up transactional stores for JBoss TS
@@ -172,8 +175,10 @@ public class InfinispanWrapper implements CacheWrapper {
    public void endTransaction(boolean successful) {
       assertTm();
       try {
-         if (successful)
-            tm.commit();
+         if (successful)  {
+            cache.getAdvancedCache().getComponentRegistry().getComponent(TransactionTable.class).getLocalTransaction(tm.getTransaction());
+            tm.commit();   }
+
          else
             tm.rollback();
       } catch (Exception e) {
@@ -462,18 +467,21 @@ public class InfinispanWrapper implements CacheWrapper {
    @Override
    public void eraseNewKeys(int batchSize) {
       Iterator<Object> it = this.newKeys.iterator();
-      boolean finished;
+      int removedKeys = 0;
+      log.info(this.newKeys.size() + " newKey entries in the toErase list.");
       do {
-         finished = eraseInBatch(batchSize, it);
+         removedKeys+= eraseInBatch(batchSize, it);
       }
-      while (!finished);
-      log.info(this.newKeys.size() + " newKey entries erased.");
+      while (it.hasNext());
+      log.info(this.newKeys.size() + " newKey entries removed from the list (either by me or by anyone else in the system).");
       this.newKeys.clear();
    }
 
-   private boolean eraseInBatch(int batchSize, Iterator<Object> iterator) {
+   private int eraseInBatch(int batchSize, Iterator<Object> iterator) {
       int i = 0;
-      int toSleep = 2;
+      int toSleep = 100;
+      int removed = 0;
+      int reallyRemoved = 0;
       boolean success = false;
       Set<Object> setToErase = new HashSet<Object>();
       //Populate the set of the keys to be erased in this batch
@@ -485,30 +493,45 @@ public class InfinispanWrapper implements CacheWrapper {
          eraseIterator = setToErase.iterator();
          this.startTransaction();
          success = true;
+         reallyRemoved = 0;
+
          try {
             while (eraseIterator.hasNext()) {
                this.cache.remove(eraseIterator.next());
+               reallyRemoved++;
             }
          } catch (Throwable t) {
             success = false;
+            //If I have a local conflict (only LR if I am with 1 thread)
+            //I can assume that the guy who's holding the contended key remotely will remove it
+            //I remove it from the batch erase list and the global one
+            eraseIterator.remove();
+            iterator.remove();
+            removed++;
          }
          try {
             this.endTransaction(success);    //no local aborts
          } catch (Throwable t) {
+            //If I experience a RR conflict, then I have to rely on some sort of backoff to "ensure" the progress
+            log.info("Going to sleep for "+toSleep+" msecs");
             toSleep = sleepForAWhile(toSleep);
             success = false;
          }
       }
       while (!success);
-      return iterator.hasNext();
+      removed+=reallyRemoved;
+      return removed;
    }
 
+   //Sleep for at least one msec
    private int sleepForAWhile(int toSleep) {
+
       try {
          Thread.sleep(toSleep);
       } catch (InterruptedException e) {
          System.exit(-1);
       }
-      return toSleep * 2 < 30000 ? toSleep * 2 : 30000;
+      return (int) (1 + (maxSleep * Math.random()));
    }
+
 }
