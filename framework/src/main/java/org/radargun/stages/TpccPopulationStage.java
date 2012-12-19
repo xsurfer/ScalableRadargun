@@ -117,7 +117,9 @@ public class TpccPopulationStage extends AbstractDistStage {
          return true;
       boolean ret = true;
       try {
-         ret = (cacheWrapper.get("", POPULATION_STRING) == null);
+         Object o;
+         ret = ((o = cacheWrapper.get("", POPULATION_STRING)) == null);
+         log.info("Checking if I have to warmup: returned value is "+o);
       } catch (Exception e) {
          log.error(e.getStackTrace());
       }
@@ -132,6 +134,7 @@ public class TpccPopulationStage extends AbstractDistStage {
          do {
             try {
                cacheWrapper.put("", POPULATION_STRING, true);
+               log.info("Writing "+POPULATION_STRING+" in the cache");
                sux = true;
             } catch (Exception e) {
                log.error(e.getStackTrace());
