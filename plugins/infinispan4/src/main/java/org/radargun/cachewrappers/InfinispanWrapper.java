@@ -15,6 +15,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
+import org.infinispan.util.concurrent.ConcurrentHashSet;
 import org.infinispan.util.concurrent.TimeoutException;
 import org.radargun.CacheWrapper;
 import org.radargun.cachewrappers.parser.StatisticComponent;
@@ -39,7 +40,7 @@ import static org.radargun.utils.Utils.mBeanAttributes2String;
 
 public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
-   private final Set<Object> newKeys = new HashSet<Object>();
+   private final Set<Object> newKeys = new ConcurrentHashSet<Object>();
    private boolean trackNewKeys = false;
 
    static {
@@ -462,11 +463,11 @@ public class InfinispanWrapper implements CacheWrapper {
    public void eraseNewKeys(int batchSize) {
       Iterator<Object> it = this.newKeys.iterator();
       boolean finished;
-      do{
-         finished = eraseInBatch(batchSize,it);
+      do {
+         finished = eraseInBatch(batchSize, it);
       }
       while (!finished);
-      log.info(this.newKeys.size()+" newKey entries erased.");
+      log.info(this.newKeys.size() + " newKey entries erased.");
       this.newKeys.clear();
    }
 
@@ -483,27 +484,31 @@ public class InfinispanWrapper implements CacheWrapper {
       do {
          eraseIterator = setToErase.iterator();
          this.startTransaction();
-         while (eraseIterator.hasNext()) {
-            this.cache.remove(eraseIterator.next());
+         success = true;
+         try {
+            while (eraseIterator.hasNext()) {
+               this.cache.remove(eraseIterator.next());
+            }
+         } catch (Throwable t) {
+            success = false;
          }
          try {
-            this.endTransaction(true);    //no local aborts
-            success = true;
+            this.endTransaction(success);    //no local aborts
          } catch (Throwable t) {
             toSleep = sleepForAWhile(toSleep);
+            success = false;
          }
       }
       while (!success);
       return iterator.hasNext();
    }
 
-   private int sleepForAWhile(int toSleep){
+   private int sleepForAWhile(int toSleep) {
       try {
          Thread.sleep(toSleep);
-      }
-      catch (InterruptedException e){
+      } catch (InterruptedException e) {
          System.exit(-1);
       }
-      return toSleep*2 < 30000 ? toSleep*2 : 30000;
+      return toSleep * 2 < 30000 ? toSleep * 2 : 30000;
    }
 }
