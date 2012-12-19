@@ -466,6 +466,8 @@ public class InfinispanWrapper implements CacheWrapper {
          finished = eraseInBatch(batchSize,it);
       }
       while (!finished);
+      log.info(this.newKeys.size()+" newKey entries erased.");
+      this.newKeys.clear();
    }
 
    private boolean eraseInBatch(int batchSize, Iterator<Object> iterator) {

@@ -3,6 +3,8 @@ package org.radargun.stages;
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
 
+import static org.radargun.utils.Utils.printMemoryFootprint;
+
 /**
  * This stage erases the
  * @author Diego Didona, didona@gsd.inesc-id.pt
@@ -23,10 +25,21 @@ public class EraseNewKeysStage extends AbstractDistStage {
          return defaultDistStageAck;
       }
 
+
+      log.info(printMemoryFootprint(true));
       long start = System.currentTimeMillis();
       cacheWrapper.eraseNewKeys(this.batchSize);
       long duration = System.currentTimeMillis() - start;
+      log.info(printMemoryFootprint(false));
       defaultDistStageAck.setDuration(duration);
+
+      log.info("Performing garbage collection");
+      start = System.currentTimeMillis();
+      System.gc();
+      duration = System.currentTimeMillis() - start;
+      log.info("Garbage collection took "+duration+" msec");
+      log.info(printMemoryFootprint(false));
+
       return defaultDistStageAck;
    }
 
