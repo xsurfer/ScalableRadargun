@@ -16,7 +16,6 @@ import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
 import org.infinispan.transaction.xa.TransactionTable;
-import org.infinispan.util.concurrent.ConcurrentHashSet;
 import org.infinispan.util.concurrent.TimeoutException;
 import org.radargun.CacheWrapper;
 import org.radargun.cachewrappers.parser.StatisticComponent;
@@ -39,6 +38,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.radargun.utils.Utils.mBeanAttributes2String;
+import static org.radargun.utils.Utils.printMemoryFootprint;
 
 public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
@@ -176,7 +176,7 @@ public class InfinispanWrapper implements CacheWrapper {
       assertTm();
       try {
          if (successful)  {
-            cache.getAdvancedCache().getComponentRegistry().getComponent(TransactionTable.class).getLocalTransaction(tm.getTransaction());
+            //cache.getAdvancedCache().getComponentRegistry().getComponent(TransactionTable.class).getLocalTransaction(tm.getTransaction());
             tm.commit();   }
 
          else
@@ -469,10 +469,12 @@ public class InfinispanWrapper implements CacheWrapper {
       Iterator<Object> it = this.newKeys.iterator();
       int removedKeys = 0;
       log.info(this.newKeys.size() + " newKey entries in the toErase list.");
+      printMemoryFootprint(true);
       do {
          removedKeys+= eraseInBatch(batchSize, it);
       }
       while (it.hasNext());
+      printMemoryFootprint(false);
       log.info(removedKeys + " newKey entries removed from the list (either by me or by anyone else in the system).");
       this.newKeys.clear();
    }
