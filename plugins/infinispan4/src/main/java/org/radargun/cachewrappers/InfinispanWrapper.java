@@ -506,7 +506,6 @@ public class InfinispanWrapper implements CacheWrapper {
             //I can assume that the guy who's holding the contended key remotely will remove it
             //I remove it from the batch erase list and the global one
             eraseIterator.remove();
-            iterator.remove();
             removed++;
          }
          try {

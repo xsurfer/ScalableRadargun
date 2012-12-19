@@ -50,8 +50,10 @@
     <MERGE2 max_interval="30000"
             min_interval="10000"/>
     <FD_SOCK/>
+   
+   <!-- We are not dealing with failures
     <FD timeout="3000" max_tries="3"/>
-    <VERIFY_SUSPECT timeout="1500"/>
+    <VERIFY_SUSPECT timeout="1500"/>-->
     <pbcast.NAKACK
             use_mcast_xmit="false"
             retransmit_timeout="300,600,1200,2400,4800"
@@ -60,8 +62,8 @@
     <pbcast.STABLE stability_delay="1000" desired_avg_gossip="50000"
                    max_bytes="400000"/>
     <pbcast.GMS print_local_addr="false" join_timeout="7000" view_bundling="true"/>
-    <UFC max_credits="2000000" min_threshold="0.10"/>
+    <!--<UFC max_credits="2000000" min_threshold="0.10"/>
     <MFC max_credits="2000000" min_threshold="0.10"/>
-    <FRAG2 frag_size="60000"/>
+    <FRAG2 frag_size="60000"/>-->
     <pbcast.STREAMING_STATE_TRANSFER/>
 </config>
