@@ -15,6 +15,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
+import org.infinispan.util.concurrent.TimeoutException;
 import org.radargun.CacheWrapper;
 import org.radargun.cachewrappers.parser.StatisticComponent;
 import org.radargun.cachewrappers.parser.StatsParser;
@@ -31,16 +32,15 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.radargun.utils.Utils.mBeanAttributes2String;
 
 public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
+   private final Set<Object> newKeys = new HashSet<Object>();
+   private boolean trackNewKeys = false;
 
    static {
       // Set up transactional stores for JBoss TS
@@ -104,7 +104,8 @@ public class InfinispanWrapper implements CacheWrapper {
    }
 
    public void put(String bucket, Object key, Object value) throws Exception {
-      cache.put(key, value);
+      if (cache.put(key, value) == null && this.trackNewKeys)
+         this.newKeys.add(key);
    }
 
    @Override
@@ -445,5 +446,62 @@ public class InfinispanWrapper implements CacheWrapper {
          log.debug(e);
       }
       return "Not_Available";
+   }
+
+   @Override
+   public boolean isTimeoutException(Throwable t) {
+      return t instanceof TimeoutException || t.getCause() instanceof TimeoutException;
+   }
+
+   @Override
+   public void setTrackNewKeys(boolean b) {
+      this.trackNewKeys = b;
+   }
+
+   @Override
+   public void eraseNewKeys(int batchSize) {
+      Iterator<Object> it = this.newKeys.iterator();
+      boolean finished;
+      do{
+         finished = eraseInBatch(batchSize,it);
+      }
+      while (!finished);
+   }
+
+   private boolean eraseInBatch(int batchSize, Iterator<Object> iterator) {
+      int i = 0;
+      int toSleep = 2;
+      boolean success = false;
+      Set<Object> setToErase = new HashSet<Object>();
+      //Populate the set of the keys to be erased in this batch
+      while (i++ < batchSize && iterator.hasNext())
+         setToErase.add(iterator.next());
+
+      Iterator<Object> eraseIterator;
+      do {
+         eraseIterator = setToErase.iterator();
+         this.startTransaction();
+         while (eraseIterator.hasNext()) {
+            this.cache.remove(eraseIterator.next());
+         }
+         try {
+            this.endTransaction(true);    //no local aborts
+            success = true;
+         } catch (Throwable t) {
+            toSleep = sleepForAWhile(toSleep);
+         }
+      }
+      while (!success);
+      return iterator.hasNext();
+   }
+
+   private int sleepForAWhile(int toSleep){
+      try {
+         Thread.sleep(toSleep);
+      }
+      catch (InterruptedException e){
+         System.exit(-1);
+      }
+      return toSleep*2 < 30000 ? toSleep*2 : 30000;
    }
 }

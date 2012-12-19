@@ -8,7 +8,6 @@ import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.TpccStressor;
 import org.radargun.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.tpcc.transaction.PaymentTransaction;
 
 import java.util.HashMap;
 import java.util.List;
@@ -87,14 +86,20 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    private long backOffTime = 0;
 
    /**
-    * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
+    * If true, a transaction t is regenerated until it commits, unless it throws a "NotSuchElementException"
+    * In this case, the transaction is aborted for good.
     */
    private boolean retryOnAbort = false;
 
    /*
-   If true, notSuchElement exception is not thrown in  transactions
+   If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
     */
    private boolean avoidMiss = true;
+
+   /*
+   If true, new keys are tracked so that they can be erased in the end of the stage
+    */
+   private boolean trackNewKeys = false;
 
    private transient CacheWrapper cacheWrapper;
 
@@ -130,6 +135,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
+      cacheWrapper.setTrackNewKeys(this.trackNewKeys);
       tpccStressor = new TpccStressor();
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
@@ -237,6 +243,10 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    public void setAvoidMiss(boolean avoidMiss) {
       this.avoidMiss = avoidMiss;
+   }
+
+   public void setTrackNewKeys(boolean trackNewKeys) {
+      this.trackNewKeys = trackNewKeys;
    }
 
    @Override

@@ -128,4 +128,11 @@ public interface CacheWrapper {
     * it resets the additional stats
     */
    void resetAdditionalStats();
+
+   boolean isTimeoutException(Throwable t);
+
+   void setTrackNewKeys(boolean b);
+
+   void eraseNewKeys(int batchSize);
+
 }

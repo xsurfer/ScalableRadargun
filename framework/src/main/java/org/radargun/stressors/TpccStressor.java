@@ -639,7 +639,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             isReadOnly = transaction.isReadOnly();
 
             long startService = System.nanoTime();
-
+            boolean elementNotFoundExceptionThrown = false;
             do {
                backoffIfNecessary(successful);
                cacheWrapper.startTransaction();
@@ -656,7 +656,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                   }
                   if (e instanceof ElementNotFoundException) {
                      this.appFailures++;
-                  } else if (isTimeoutException(e))
+                     elementNotFoundExceptionThrown = true;
+                  } else if (cacheWrapper.isTimeoutException(e))
                      localTimeout++;
 
                }
@@ -690,7 +691,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                   }
                } catch (Throwable rb) {
                   nrFailures++;
-                  if (isTimeoutException(rb))
+                  if (cacheWrapper.isTimeoutException(rb))
                      remoteTimeout++;
 
                   if (!isReadOnly) {
@@ -712,7 +713,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                   }
                }
             }
-            while (retryOnAbort && !successful);
+            //If we experience an elementNotFoundException we do not want to restart the very same xact!!
+            while (retryOnAbort && !successful && ! elementNotFoundExceptionThrown);
 
             end = System.nanoTime();
 
@@ -761,10 +763,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          }
       }
 
-
-      private boolean isTimeoutException(Throwable e) {
-         return e.getClass().getName().contains("TimeoutException");
-      }
 
 
       private void backoffIfNecessary(boolean lastXactSuccessful) {

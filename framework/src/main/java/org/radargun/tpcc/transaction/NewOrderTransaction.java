@@ -56,7 +56,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
          orderQuantities[i] = tpccTools.randomNumber(1, TpccTools.NB_MAX_DISTRICT); //see clause 2.4.1.5 (dot 6)
       }
       // clause 2.4.1.5 (dot 1)
-      if (tpccTools.randomNumber(1, 100) == 1)
+      if (tpccTools.randomNumber(1, 100) == 1 && !isAvoidNotFoundExceptions())
          this.itemIDs[this.numItems - 1] = -12345;
 
    }
