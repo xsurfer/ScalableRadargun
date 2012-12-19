@@ -473,7 +473,7 @@ public class InfinispanWrapper implements CacheWrapper {
          removedKeys+= eraseInBatch(batchSize, it);
       }
       while (it.hasNext());
-      log.info(this.newKeys.size() + " newKey entries removed from the list (either by me or by anyone else in the system).");
+      log.info(removedKeys + " newKey entries removed from the list (either by me or by anyone else in the system).");
       this.newKeys.clear();
    }
 
@@ -481,8 +481,8 @@ public class InfinispanWrapper implements CacheWrapper {
       int i = 0;
       int toSleep = 100;
       int removed = 0;
-      int reallyRemoved = 0;
-      boolean success = false;
+      int reallyRemoved;
+      boolean success;
       Set<Object> setToErase = new HashSet<Object>();
       //Populate the set of the keys to be erased in this batch
       while (i++ < batchSize && iterator.hasNext())

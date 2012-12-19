@@ -88,6 +88,7 @@ public class TpccPopulationStressor extends AbstractCacheWrapperStressor {
       }
 
       log.info("Population ended with " + wrapper.getCacheSize() + " elements!");
+
    }
 
    @Override

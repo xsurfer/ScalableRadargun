@@ -69,6 +69,13 @@ public class TpccPopulationStage extends AbstractDistStage {
     */
    private boolean preloadedFromDB = false;
 
+   /*
+   If true, the cache gets warmed up just the first time
+    */
+   private boolean oneWarmup = false;
+
+   private static final String POPULATION_STRING = "___TPCC___ALREADY___POPULATED___";
+
    public DistStageAck executeOnSlave() {
       DefaultDistStageAck ack = newDefaultStageAck();
       CacheWrapper wrapper = slaveState.getCacheWrapper();
@@ -85,6 +92,10 @@ public class TpccPopulationStage extends AbstractDistStage {
    }
 
    private void populate(CacheWrapper wrapper) {
+      if (!needToWarmup(wrapper)) {
+         log.info("Skipping warmup phase");
+         return;
+      }
       TpccPopulationStressor populationStressor = new TpccPopulationStressor();
       populationStressor.setNumWarehouses(numWarehouses);
       populationStressor.setSlaveIndex(getSlaveIndex());
@@ -97,6 +108,37 @@ public class TpccPopulationStage extends AbstractDistStage {
       populationStressor.setBatchLevel(batchLevel);
       populationStressor.setPreloadedFromDB(preloadedFromDB);
       populationStressor.stress(wrapper);
+      setWarmedUp(wrapper);
+
+   }
+
+   private boolean needToWarmup(CacheWrapper cacheWrapper) {
+      if (!oneWarmup)
+         return true;
+      boolean ret = true;
+      try {
+         ret = (cacheWrapper.get("", POPULATION_STRING) == null);
+      } catch (Exception e) {
+         log.error(e.getStackTrace());
+      }
+      return ret;
+   }
+
+   private void setWarmedUp(CacheWrapper cacheWrapper) {
+      if (cacheWrapper.isPassiveReplication() && cacheWrapper.isTheMaster()
+              || (!cacheWrapper.isPassiveReplication() && slaveIndex == 0)) {
+         boolean sux = false;
+
+         do {
+            try {
+               cacheWrapper.put("", POPULATION_STRING, true);
+               sux = true;
+            } catch (Exception e) {
+               log.error(e.getStackTrace());
+            }
+         }
+         while (!sux);
+      }
    }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
@@ -140,6 +182,10 @@ public class TpccPopulationStage extends AbstractDistStage {
 
    public void setPreloadedFromDB(boolean preloadedFromDB) {
       this.preloadedFromDB = preloadedFromDB;
+   }
+
+   public void setOneWarmup(boolean oneWarmup) {
+      this.oneWarmup = oneWarmup;
    }
 
    @Override

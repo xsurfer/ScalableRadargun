@@ -15,6 +15,8 @@ public class SlaveState extends StateBase {
    private InetAddress localAddress;
    private CacheWrapper cacheWrapper;
 
+
+
    public InetAddress getMasterAddress() {
       return masterAddress;
    }

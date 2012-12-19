@@ -61,7 +61,7 @@
     <UNICAST timeout="300,600,1200"/>
     <pbcast.STABLE stability_delay="1000" desired_avg_gossip="50000"
                    max_bytes="400000"/>
-    <pbcast.GMS print_local_addr="false" join_timeout="7000" view_bundling="true"/>
+    <pbcast.GMS max_bundling_time="30000" print_local_addr="false" join_timeout="7000" view_bundling="true"/>
     <!--<UFC max_credits="2000000" min_threshold="0.10"/>
     <MFC max_credits="2000000" min_threshold="0.10"/>
     <FRAG2 frag_size="60000"/>-->
