@@ -5,8 +5,6 @@ import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
-import org.radargun.stages.AbstractDistStage;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.TpccStressor;
 import org.radargun.tpcc.transaction.AbstractTpccTransaction;
@@ -128,6 +126,16 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       }
    }
 
+   //If in subsequent runs I want to sue different methods, I have to ensure that only one is active
+   private void trackNewKeys() {
+      if (trackNewKeys && perThreadTrackNewKeys)
+         throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
+      this.cacheWrapper.setPerThreadTrackNewKeys(false);
+      this.cacheWrapper.setTrackNewKeys(false);
+      cacheWrapper.setTrackNewKeys(this.trackNewKeys);
+      cacheWrapper.setPerThreadTrackNewKeys(this.perThreadTrackNewKeys);
+   }
+
    public DistStageAck executeOnSlave() {
       DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress());
       this.cacheWrapper = slaveState.getCacheWrapper();
@@ -138,10 +146,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
-      cacheWrapper.setTrackNewKeys(this.trackNewKeys);
-      cacheWrapper.setPerThreadTrackNewKeys(this.perThreadTrackNewKeys);
-      if(trackNewKeys && perThreadTrackNewKeys)
-         throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
+      trackNewKeys();
       tpccStressor = new TpccStressor();
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
@@ -255,7 +260,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       this.trackNewKeys = trackNewKeys;
    }
 
-   public void setPerThreadTrackNewKeys(boolean trackNewKeys){
+   public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
       this.perThreadTrackNewKeys = trackNewKeys;
    }
 
