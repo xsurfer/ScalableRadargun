@@ -1,8 +1,7 @@
-package org.radargun.stages.csv;
+package org.radargun.stages;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stages.AbstractMasterStage;
 import org.radargun.state.MasterState;
 import org.radargun.utils.CacheSizeValues;
 import org.radargun.utils.Utils;

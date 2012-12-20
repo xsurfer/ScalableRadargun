@@ -1,4 +1,4 @@
-package org.radargun.stages.benchmark;
+package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
@@ -254,6 +254,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public void setTrackNewKeys(boolean trackNewKeys) {
       this.trackNewKeys = trackNewKeys;
    }
+
    public void setPerThreadTrackNewKeys(boolean trackNewKeys){
       this.perThreadTrackNewKeys = trackNewKeys;
    }

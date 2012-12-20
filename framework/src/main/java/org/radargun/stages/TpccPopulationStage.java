@@ -1,5 +1,5 @@
 
-package org.radargun.stages.warmup;
+package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;

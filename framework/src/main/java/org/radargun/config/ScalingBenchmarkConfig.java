@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * A scaling benchmark is one that executes on an increasing number of slaves. E.g. considering the {@link
- * org.radargun.stages.benchmark.WebSessionBenchmarkStage}, one might want to execute it over multiple clusters of
+ * org.radargun.stages.WebSessionBenchmarkStage}, one might want to execute it over multiple clusters of
  * different sizes: e.g 2,3,4,5..10 etc in order to check how a product scales etc.
  *
  * @author Mircea.Markus@jboss.com

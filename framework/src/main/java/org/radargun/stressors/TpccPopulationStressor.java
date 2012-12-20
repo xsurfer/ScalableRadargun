@@ -3,7 +3,7 @@ package org.radargun.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.stages.warmup.TpccPopulationStage;
+import org.radargun.stages.TpccPopulationStage;
 import org.radargun.tpcc.PassiveReplicationTpccPopulation;
 import org.radargun.tpcc.ThreadParallelTpccPopulation;
 import org.radargun.tpcc.TpccPopulation;
