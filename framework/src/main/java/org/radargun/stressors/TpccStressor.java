@@ -196,6 +196,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    public void destroy() throws Exception {
+      log.warn("Attention: going to destroy the wrapper");
       cacheWrapper.empty();
       cacheWrapper = null;
    }

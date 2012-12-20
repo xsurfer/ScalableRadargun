@@ -135,7 +135,7 @@ public class TpccPopulationStage extends AbstractDistStage {
 
          do {
             try {
-               cacheWrapper.put("", POPULATION_STRING, true);
+               cacheWrapper.put("", POPULATION_STRING, "ALREADY_POPULATED");
                log.info("Writing "+POPULATION_STRING+" in the cache");
                sux = true;
             } catch (Exception e) {

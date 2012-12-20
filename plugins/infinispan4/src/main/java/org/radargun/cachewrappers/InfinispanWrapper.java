@@ -509,7 +509,7 @@ public class InfinispanWrapper implements CacheWrapper {
             this.endTransaction(success);    //no local aborts
          } catch (Throwable t) {
             //If I experience a RR conflict, then I have to rely on some sort of backoff to "ensure" the progress
-            log.info("Going to sleep for " + toSleep + " msecs");
+            log.info("Could not commit my eraseKey batch. Backing off for " + toSleep + " msecs");
             toSleep = sleepForAWhile(toSleep);
             success = false;
          }
