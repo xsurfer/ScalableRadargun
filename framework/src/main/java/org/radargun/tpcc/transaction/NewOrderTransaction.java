@@ -23,8 +23,8 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
    private final long[] supplierWarehouseIDs;
    private final long[] orderQuantities;
 
-   public NewOrderTransaction(TpccTools tpccTools, int warehouseID) {
-      super(tpccTools);
+   public NewOrderTransaction(TpccTools tpccTools, int threadId, int warehouseID) {
+      super(tpccTools, threadId);
       if (warehouseID <= 0) {
          this.warehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
       } else {
@@ -119,16 +119,16 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
       NewOrder no = new NewOrder(o_id, districtID, warehouseID);
 
-      no.store(cacheWrapper);
+      no.threadAwareStore(cacheWrapper,threadId);
 
       d.setD_next_o_id(d.getD_next_o_id() + 1);
 
-      d.store(cacheWrapper);
+      d.threadAwareStore(cacheWrapper,threadId);
 
 
       Order o = new Order(o_id, districtID, warehouseID, customerID, new Date(), -1, numItems, allLocal);
 
-      o.store(cacheWrapper);
+      o.threadAwareStore(cacheWrapper,threadId);
 
 
       // see clause 2.4.2.2 (dot 8)
@@ -174,7 +174,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
          s.setS_ytd(s.getS_ytd() + ol_quantity);
          s.setS_remote_cnt(s.getS_remote_cnt() + s_remote_cnt_increment);
          s.setS_order_cnt(s.getS_order_cnt() + 1);
-         s.store(cacheWrapper);
+         s.threadAwareStore(cacheWrapper,threadId);
 
 
          // clause 2.4.2.2 (dot 8.3)
@@ -226,8 +226,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
          OrderLine ol = new OrderLine(o_id, districtID, warehouseID, ol_number, ol_i_id, ol_supply_w_id, null,
                  ol_quantity, ol_amount, ol_dist_info);
-         ol.store(cacheWrapper);
-
+         ol.threadAwareStore(cacheWrapper,threadId);
       }
 
    }

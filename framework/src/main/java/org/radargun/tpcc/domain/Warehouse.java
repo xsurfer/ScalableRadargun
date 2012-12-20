@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class Warehouse implements Serializable, DomainObject {
+public class Warehouse extends AbstractDomainObject implements Serializable {
 
    private long w_id;
 
@@ -118,7 +118,7 @@ public class Warehouse implements Serializable, DomainObject {
       return w_ytd;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "WAREHOUSE_" + this.w_id;
    }
 
@@ -198,4 +198,8 @@ public class Warehouse implements Serializable, DomainObject {
       return result;
    }
 
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
 }

@@ -626,7 +626,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                      readInQueueTime += endInQueueTime - request.timestamp;
                   }
 
-                  transaction = terminal.createTransaction(request.transactionType);
+                  transaction = terminal.createTransaction(request.transactionType, threadIndex);
                   if (cacheWrapper.isPassiveReplication() &&
                           ((cacheWrapper.isTheMaster() && transaction.isReadOnly()) ||
                                   (!cacheWrapper.isTheMaster() && !transaction.isReadOnly()))) {
@@ -637,7 +637,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                   log.error("»»»»»»»THREAD INTERRUPTED WHILE TRYING GETTING AN OBJECT FROM THE QUEUE«««««««");
                }
             } else {
-               transaction = terminal.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster());
+               transaction = terminal.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
             }
             isReadOnly = transaction.isReadOnly();
 
@@ -675,7 +675,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                      measureCommitTime = true;
                   }
 
-                  cacheWrapper.endTransaction(successful);
+                  cacheWrapper.endTransaction(successful,threadIndex);
 
                   if (!successful) {
                      nrFailures++;

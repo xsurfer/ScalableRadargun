@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class Item implements Serializable, DomainObject {
+public class Item extends AbstractDomainObject implements Serializable {
 
    private long i_id;
 
@@ -72,7 +72,7 @@ public class Item implements Serializable, DomainObject {
       this.i_data = i_data;
    }
 
-   private String getKey() {
+   protected String getKey() {
 
       return "ITEM_" + this.i_id;
    }
@@ -141,4 +141,8 @@ public class Item implements Serializable, DomainObject {
       return result;
    }
 
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
 }

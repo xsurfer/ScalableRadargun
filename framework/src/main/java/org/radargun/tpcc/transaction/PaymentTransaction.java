@@ -40,9 +40,9 @@ public class PaymentTransaction extends AbstractTpccTransaction {
    private final int slaveIndex;
 
 
-   public PaymentTransaction(TpccTools tpccTools, int slaveIndex, int warehouseID) {
+   public PaymentTransaction(TpccTools tpccTools, int threadId, int slaveIndex, int warehouseID) {
 
-      super(tpccTools);
+      super(tpccTools,threadId);
       this.slaveIndex = slaveIndex;
 
       if (warehouseID <= 0) {
@@ -113,7 +113,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
       boolean found = w.load(cacheWrapper);
       if (!found) throw new ElementNotFoundException("W_ID=" + terminalWarehouseID + " not found!");
       w.setW_ytd(paymentAmount);
-      w.store(cacheWrapper);
+      w.threadAwareStore(cacheWrapper,threadId);
 
 
       District d = new District();
@@ -124,7 +124,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
          throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
 
       d.setD_ytd(paymentAmount);
-      d.store(cacheWrapper);
+      d.threadAwareStore(cacheWrapper,threadId);
 
 
       Customer c = null;
@@ -176,11 +176,11 @@ public class PaymentTransaction extends AbstractTpccTransaction {
 
          c.setC_data(c_new_data);
 
-         c.store(cacheWrapper);
+         c.threadAwareStore(cacheWrapper,threadId);
 
 
       } else {
-         c.store(cacheWrapper);
+         c.threadAwareStore(cacheWrapper,threadId);
 
       }
 
@@ -192,7 +192,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
       h_data = w_name + "    " + d_name;
 
       History h = new History(c.getC_id(), customerDistrictID, customerWarehouseID, districtID, terminalWarehouseID, new Date(), paymentAmount, h_data);
-      h.store(cacheWrapper, this.slaveIndex);
+      h.threadAwareStore(cacheWrapper, this.slaveIndex,threadId);
 
 
    }

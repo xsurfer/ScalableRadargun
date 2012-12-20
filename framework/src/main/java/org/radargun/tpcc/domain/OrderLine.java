@@ -9,7 +9,7 @@ import java.util.Date;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class OrderLine implements Serializable, DomainObject {
+public class OrderLine extends AbstractDomainObject implements Serializable {
 
    private long ol_o_id;
 
@@ -128,7 +128,7 @@ public class OrderLine implements Serializable, DomainObject {
       this.ol_dist_info = ol_dist_info;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "ORDERLINE_" + this.ol_w_id + "_" + this.ol_d_id + "_" + this.ol_o_id + "_" + this.ol_number;
    }
 
@@ -209,5 +209,8 @@ public class OrderLine implements Serializable, DomainObject {
       return result;
    }
 
-
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
 }

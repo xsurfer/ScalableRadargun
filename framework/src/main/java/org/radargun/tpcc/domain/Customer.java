@@ -1,7 +1,6 @@
 package org.radargun.tpcc.domain;
 
 import org.radargun.CacheWrapper;
-import org.radargun.tpcc.DomainObject;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -9,7 +8,7 @@ import java.util.Date;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class Customer implements Serializable, Comparable, DomainObject {
+public class Customer extends AbstractDomainObject implements Serializable,Comparable {
 
    /* district id */
    private long c_d_id;
@@ -251,8 +250,13 @@ public class Customer implements Serializable, Comparable, DomainObject {
       this.c_data = c_data;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "CUSTOMER_" + this.c_w_id + "_" + this.c_d_id + "_" + this.c_id;
+   }
+
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
    }
 
    @Override
@@ -381,5 +385,7 @@ public class Customer implements Serializable, Comparable, DomainObject {
       return result;
 
    }
+
+
 
 }

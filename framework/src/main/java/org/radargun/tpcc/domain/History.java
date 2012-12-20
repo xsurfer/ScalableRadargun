@@ -1,7 +1,6 @@
 package org.radargun.tpcc.domain;
 
 import org.radargun.CacheWrapper;
-import org.radargun.tpcc.DomainObject;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -10,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class History implements Serializable, DomainObject {
+public class History extends AbstractDomainObject implements Serializable{
 
    private static final AtomicLong idGenerator = new AtomicLong(0L);
 
@@ -113,13 +112,18 @@ public class History implements Serializable, DomainObject {
       this.h_data = h_data;
    }
 
-   private static String generateId(int slaveIndex) {
+   private static String _generateId(int slaveIndex) {
       return String.valueOf(slaveIndex) + String.valueOf(History.idGenerator.incrementAndGet());
    }
 
    @Override
+      protected Object generateId(int slaveIndex) {
+         return _generateId(slaveIndex);  //To change body of implemented methods use File | Settings | File Templates.
+      }
+
+   @Override
    public void store(CacheWrapper wrapper, int slaveIndex) throws Throwable {
-      String id = generateId(slaveIndex);
+      String id = _generateId(slaveIndex);
       wrapper.put(null, id, this);
    }
 
@@ -172,6 +176,10 @@ public class History implements Serializable, DomainObject {
    public void store(CacheWrapper wrapper) throws Throwable {
       store(wrapper, -1);
    }
+
+  protected Object getKey(){
+     throw new RuntimeException("History has no key");
+  }
 
    @Override
    public boolean load(CacheWrapper wrapper) throws Throwable {

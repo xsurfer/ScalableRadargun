@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class Stock implements Serializable, DomainObject {
+public class Stock extends AbstractDomainObject implements Serializable {
 
    private long s_i_id;
 
@@ -205,7 +205,7 @@ public class Stock implements Serializable, DomainObject {
       this.s_data = s_data;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "STOCK_" + this.s_w_id + "_" + this.s_i_id;
    }
 
@@ -305,5 +305,8 @@ public class Stock implements Serializable, DomainObject {
       return result;
    }
 
-
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
 }

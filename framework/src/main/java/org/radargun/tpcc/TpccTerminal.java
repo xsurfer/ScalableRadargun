@@ -39,14 +39,14 @@ public class TpccTerminal {
       tpccTools = TpccTools.newInstance();
    }
 
-   public synchronized final TpccTransaction createTransaction(int type) {
+   public synchronized final TpccTransaction createTransaction(int type, int threadId) {
       switch (type) {
          case PAYMENT:
-            return new PaymentTransaction(tpccTools, indexNode, localWarehouseID);
+            return new PaymentTransaction(tpccTools, threadId, indexNode, localWarehouseID);
          case ORDER_STATUS:
-            return new OrderStatusTransaction(tpccTools, localWarehouseID);
+            return new OrderStatusTransaction(tpccTools, threadId, localWarehouseID);
          case NEW_ORDER:
-            return new NewOrderTransaction(tpccTools, localWarehouseID);
+            return new NewOrderTransaction(tpccTools, threadId, localWarehouseID);
          case DELIVERY:
          case STOCK_LEVEL:
          default:
@@ -54,8 +54,8 @@ public class TpccTerminal {
       }
    }
 
-   public synchronized final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster) {
-      return createTransaction(chooseTransactionType(isPassiveReplication, isTheMaster));
+   public synchronized final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+      return createTransaction(chooseTransactionType(isPassiveReplication, isTheMaster), threadId);
    }
 
    public synchronized final int chooseTransactionType(boolean isPassiveReplication, boolean isTheMaster) {

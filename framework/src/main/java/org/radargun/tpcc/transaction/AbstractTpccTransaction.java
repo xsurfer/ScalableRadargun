@@ -17,6 +17,7 @@ public abstract class AbstractTpccTransaction implements TpccTransaction {
 
    private static boolean avoidNotFoundExceptions = true;
    protected TpccTools tpccTools;
+   protected int threadId;
 
    public static void setAvoidNotFoundExceptions(boolean b) {
       avoidNotFoundExceptions = b;
@@ -26,8 +27,9 @@ public abstract class AbstractTpccTransaction implements TpccTransaction {
       return avoidNotFoundExceptions;
    }
 
-   public AbstractTpccTransaction(TpccTools tools, int... ints) {
+   public AbstractTpccTransaction(TpccTools tools, int threadId) {
       this.tpccTools = tools;
+      this.threadId = threadId;
    }
 
    protected List<Customer> customerList(CacheWrapper cacheWrapper, long warehouseID, long districtID, String customerLastName) throws Throwable {

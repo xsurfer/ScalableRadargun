@@ -1,14 +1,13 @@
 package org.radargun.tpcc.domain;
 
 import org.radargun.CacheWrapper;
-import org.radargun.tpcc.DomainObject;
 
 import java.io.Serializable;
 
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class District implements Serializable, DomainObject {
+public class District extends AbstractDomainObject implements Serializable {
 
    private long d_id;
 
@@ -146,7 +145,7 @@ public class District implements Serializable, DomainObject {
       this.d_next_o_id = d_next_o_id;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "DISTRICT_" + this.d_w_id + "_" + this.d_id;
    }
 
@@ -232,5 +231,9 @@ public class District implements Serializable, DomainObject {
       return result;
    }
 
+   @Override
+      protected Object generateId(int slaveIndex) {
+         return null;  //To change body of implemented methods use File | Settings | File Templates.
+      }
 
 }

@@ -9,7 +9,7 @@ import java.util.Date;
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class Order implements Serializable, Comparable, DomainObject {
+public class Order extends AbstractDomainObject implements Serializable, Comparable{
 
    private long o_id;
 
@@ -107,7 +107,7 @@ public class Order implements Serializable, Comparable, DomainObject {
       this.o_all_local = o_all_local;
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "ORDER_" + this.o_w_id + "_" + this.o_d_id + "_" + this.o_id;
    }
 
@@ -193,5 +193,8 @@ public class Order implements Serializable, Comparable, DomainObject {
       return result;
    }
 
-
+   @Override
+   protected Object generateId(int slaveIndex) {
+      return null;  //To change body of implemented methods use File | Settings | File Templates.
+   }
 }

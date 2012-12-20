@@ -1,7 +1,6 @@
 package org.radargun.tpcc.domain;
 
 import org.radargun.CacheWrapper;
-import org.radargun.tpcc.DomainObject;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -12,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class CustomerLookup implements Externalizable, DomainObject {
+public class CustomerLookup extends AbstractDomainObject implements Externalizable {
 
    private long c_w_id;
 
@@ -81,7 +80,7 @@ public class CustomerLookup implements Externalizable, DomainObject {
       this.ids.add(newId);
    }
 
-   private String getKey() {
+   protected String getKey() {
       return "CUSTOMER_LOOKUP_" + this.c_last + "_" + this.c_w_id + "_" + this.c_d_id;
    }
 
@@ -206,5 +205,9 @@ public class CustomerLookup implements Externalizable, DomainObject {
       CustomerLookup customerLookup = map.get(getKey());
       return customerLookup != null ? customerLookup : this;
    }
+   @Override
+      protected Object generateId(int slaveIndex) {
+         return null;  //To change body of implemented methods use File | Settings | File Templates.
+      }
 }
 

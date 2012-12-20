@@ -32,8 +32,8 @@ public class OrderStatusTransaction extends AbstractTpccTransaction {
    private final boolean customerByName;
 
 
-   public OrderStatusTransaction(TpccTools tpccTools, int warehouseID) {
-      super(tpccTools, warehouseID);
+   public OrderStatusTransaction(TpccTools tpccTools, int threadId, int warehouseID) {
+      super(tpccTools,threadId);
       if (warehouseID <= 0) {
          this.terminalWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
       } else {

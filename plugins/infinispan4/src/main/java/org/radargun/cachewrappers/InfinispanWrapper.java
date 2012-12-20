@@ -42,7 +42,10 @@ import static org.radargun.utils.Utils.printMemoryFootprint;
 public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
    private final Set<Object> newKeys = new ConcurrentSkipListSet<Object>();
+   private static final int MAX_THREADS = 100;
+   private final List[] perThreadNewKeys = new List[MAX_THREADS];
    private boolean trackNewKeys = false;
+   private boolean perThreadTrackNewKeys = false;
    private static final int maxSleep = 2000;
 
    static {
@@ -95,6 +98,10 @@ public class InfinispanWrapper implements CacheWrapper {
       log.info("Using config attributes: " + confAttributes);
       blockForRehashing();
       injectEvenConsistentHash(confAttributes);
+
+      for (int i = 0; i < MAX_THREADS; i++) {
+         this.perThreadNewKeys[i] = new LinkedList<Object>();
+      }
    }
 
    public void tearDown() throws Exception {
@@ -462,6 +469,10 @@ public class InfinispanWrapper implements CacheWrapper {
       this.trackNewKeys = b;
    }
 
+   public void setPerThreadTrackNewKeys(boolean  b){
+      this.perThreadTrackNewKeys  = b;
+   }
+
    @Override
    public void eraseNewKeys(int batchSize) {
       Iterator<Object> it = this.newKeys.iterator();
@@ -528,6 +539,32 @@ public class InfinispanWrapper implements CacheWrapper {
          System.exit(-1);
       }
       return (int) (1 + (maxSleep * Math.random()));
+   }
+
+
+   @Override
+   public Object put(String bucket, Object key, Object value, int threadId) throws Exception {
+      Object ret = cache.put(key, value);
+      if (trackNewKeys && ret == null)
+         this.perThreadNewKeys[threadId].add(key);
+      return ret;
+   }
+
+   @Override
+   public void endTransaction(boolean successful, int threadId) throws Exception {
+      boolean innerSux = successful;
+      try {
+         this.endTransaction(successful);
+      } catch (Exception e) {
+         innerSux = false;
+         throw e;
+      } finally {
+         if (trackNewKeys) {
+            if (innerSux)
+               this.newKeys.addAll(this.perThreadNewKeys[threadId]);
+            this.perThreadNewKeys[threadId].clear();
+         }
+      }
    }
 
 }

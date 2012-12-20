@@ -10,6 +10,8 @@ import java.util.Map;
  * accessing and manipulating a cache.
  *
  * @author Manik Surtani (manik@surtani.org)
+ * @author Pedro Ruivo
+ * @author Diego Didona (didona@gsd.inesc-id.pt)
  */
 public interface CacheWrapper {
    /**
@@ -133,6 +135,13 @@ public interface CacheWrapper {
 
    void setTrackNewKeys(boolean b);
 
+   void setPerThreadTrackNewKeys(boolean b);
+
    void eraseNewKeys(int batchSize);
+
+
+   Object put(String bucket, Object key, Object value, int threadId) throws Exception;
+
+   void endTransaction(boolean successful, int threadId) throws Exception;
 
 }
