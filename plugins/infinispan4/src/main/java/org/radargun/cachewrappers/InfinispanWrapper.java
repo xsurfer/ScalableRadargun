@@ -545,7 +545,7 @@ public class InfinispanWrapper implements CacheWrapper {
    @Override
    public Object put(String bucket, Object key, Object value, int threadId) throws Exception {
       Object ret = cache.put(key, value);
-      if (trackNewKeys && ret == null)
+      if (perThreadTrackNewKeys && ret == null)
          this.perThreadNewKeys[threadId].add(key);
       return ret;
    }
@@ -559,7 +559,7 @@ public class InfinispanWrapper implements CacheWrapper {
          innerSux = false;
          throw e;
       } finally {
-         if (trackNewKeys) {
+         if (perThreadTrackNewKeys) {
             if (innerSux)
                this.newKeys.addAll(this.perThreadNewKeys[threadId]);
             this.perThreadNewKeys[threadId].clear();

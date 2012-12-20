@@ -11,17 +11,18 @@ public abstract class AbstractDomainObject implements DomainObject {
 
 
    protected abstract Object getKey();
+
    protected abstract Object generateId(int slaveIndex);
 
-   public final void threadAwareStore(CacheWrapper wrapper, int threadId) throws Throwable{
-      wrapper.put(null, this.getKey(), this,threadId);
-   }
-   //This will be called only by History
-   public final void threadAwareStore(CacheWrapper wrapper, int slaveId, int threadId) throws Throwable{
-      String id = (String)generateId(slaveId);
-      wrapper.put(null,id,this,threadId);
+   public final void threadAwareStore(CacheWrapper wrapper, int threadId) throws Throwable {
+      wrapper.put(null, this.getKey(), this, threadId);
    }
 
+   //This will be called only by History
+   public final void threadAwareStore(CacheWrapper wrapper, int slaveId, int threadId) throws Throwable {
+      String id = (String) generateId(slaveId);
+      wrapper.put(null, id, this, threadId);
+   }
 
 
 }

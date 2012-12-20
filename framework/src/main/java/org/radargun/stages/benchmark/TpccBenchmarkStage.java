@@ -102,7 +102,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    If true, new keys are tracked so that they can be erased in the end of the stage
     */
    private boolean trackNewKeys = false;
-   private boolean setPerThreadTrackNewKeys = false;
+   private boolean perThreadTrackNewKeys = false;
 
    private transient CacheWrapper cacheWrapper;
 
@@ -139,8 +139,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
       cacheWrapper.setTrackNewKeys(this.trackNewKeys);
-      cacheWrapper.setPerThreadTrackNewKeys(this.setPerThreadTrackNewKeys);
-      if(trackNewKeys && setPerThreadTrackNewKeys)
+      cacheWrapper.setPerThreadTrackNewKeys(this.perThreadTrackNewKeys);
+      if(trackNewKeys && perThreadTrackNewKeys)
          throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
       tpccStressor = new TpccStressor();
       tpccStressor.setNodeIndex(getSlaveIndex());
@@ -254,9 +254,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public void setTrackNewKeys(boolean trackNewKeys) {
       this.trackNewKeys = trackNewKeys;
    }
-
    public void setPerThreadTrackNewKeys(boolean trackNewKeys){
-      this.setPerThreadTrackNewKeys = trackNewKeys;
+      this.perThreadTrackNewKeys = trackNewKeys;
    }
 
    @Override
