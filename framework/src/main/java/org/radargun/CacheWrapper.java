@@ -139,7 +139,7 @@ public interface CacheWrapper {
 
    void eraseNewKeys(int batchSize);
 
-   Object put(String bucket, Object key, Object value, int threadId) throws Exception;
+   void put(String bucket, Object key, Object value, int threadId) throws Exception;
 
    void endTransaction(boolean successful, int threadId) throws Exception;
 

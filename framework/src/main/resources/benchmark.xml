@@ -32,12 +32,15 @@
                 numOfThreads="1"
                 perThreadSimulTime="30"
                 arrivalRate="0"
+		perThreadTrackNewKeys="true"
                 accessSameWarehouse="false"
                 paymentWeight="45"
                 orderStatusWeight="5"/>
         <CacheSize
                 statName="CACHE_SIZE_AFTER_BENCH"/>
-        <CsvReportGeneration/>
+	<EraseNewKeys batchSize="50"/>
+	<CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>        
+<CsvReportGeneration/>
     </benchmark>
     <products>
         <infinispan4>
