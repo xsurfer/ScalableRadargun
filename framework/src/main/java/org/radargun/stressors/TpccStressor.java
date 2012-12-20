@@ -488,6 +488,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       results.putAll(cacheWrapper.getAdditionalStats());
       saveSamples();
 
+      log.info("Sending map to master " + results.toString());
+
       log.info("Finished generating report. Nr of failed operations on this node is: " + failures +
               ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
       return results;

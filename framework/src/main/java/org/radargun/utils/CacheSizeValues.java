@@ -1,5 +1,6 @@
 package org.radargun.utils;
 
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
@@ -37,5 +38,13 @@ public class CacheSizeValues {
          throw new NoSuchElementException("Slave index not found [" + idx + "]. Possible indexes are [" + 0 + "," +
                  cacheSizesPerSlave.length + "]");
       }
+   }
+
+   @Override
+   public String toString() {
+      return "CacheSizeValues{" +
+              "statName='" + statName + '\'' +
+              ", cacheSizesPerSlave=" + Arrays.toString(cacheSizesPerSlave) +
+              '}';
    }
 }

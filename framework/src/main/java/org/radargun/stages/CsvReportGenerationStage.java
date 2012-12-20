@@ -2,6 +2,7 @@ package org.radargun.stages;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.state.MasterState;
 import org.radargun.utils.CacheSizeValues;
 import org.radargun.utils.Utils;
 
@@ -34,13 +35,26 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
          log.error("Could not find reports('results') on the master. Master's state is  " + masterState);
          return false;
       }
+
+
       try {
-         if (results.size() == 0) {
+         int size = results.size();
+         if (size == 0) {
             log.warn("Nothing to report!");
             return false;
          }
 
+         for (int i = 0; i < size; i++) {
+            log.info("Result for slave " + i + " is\n" + results.get(i).toString());
+         }
+         log.info("Going to join the cacheSizeValues with the final report");
          joinCacheSizes(results, (List<CacheSizeValues>) masterState.get("CacheSizeResults"));
+         masterState.remove("CacheSizeResults");
+         /*
+         DIEGO
+         After having produced the csv with the cache sizes, we have to clear the relevant map entry
+         in the master state!
+          */
          prepareOutputFile(results.size());
          writeData(results);
       } catch (Exception e) {
@@ -138,12 +152,18 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
       assert parentDir.exists() && parentDir.isDirectory();
 
       // file name is in the format data_<cache-product>_<cache-cfg.xml>_<cluster-size>.csv
-      String actualFileName = masterState.nameOfTheCurrentBenchmark() + "_" + masterState.configNameOfTheCurrentBenchmark() + "_" + clusterSize + ".csv";
+      //TODO DIE: produce a filename which is compliant with the info contained in the benchmark.xml or passed via the results map
+      String actualFileName = this.reportFileName(masterState);//masterState.nameOfTheCurrentBenchmark() + "_" + masterState.configNameOfTheCurrentBenchmark() + "_" + clusterSize + ".csv";
 
       outputFile = Utils.createOrReplaceFile(parentDir, actualFileName);
    }
 
    public void setTargetDir(String targetDir) {
       this.targetDir = targetDir;
+   }
+
+
+   protected String reportFileName(MasterState masterState){
+      return masterState.nameOfTheCurrentBenchmark() + "_" + masterState.configNameOfTheCurrentBenchmark() + "_" + masterState.getSlavesCountForCurrentStage() + ".csv";
    }
 }
