@@ -2,6 +2,22 @@
 <component name="LockManager">
                 <stat displayName="FlushCpuTime" attributeName="FlushCpuTime"/>
                 <stat displayName="FlushWCTime" attributeName="FlushWCTime"/>
+                <stat displayName="CONTESE_LOCALvsLOCAL" attributeName="LocalLocalContentions"/>
+                <stat displayName="CONTESE_LOCALvsREMOTE" attributeName="LocalRemoteContentions"/>
+                <stat displayName="CONTESE_REMOTEvsLOCAL" attributeName="RemoteLocalContentions"/>
+                <stat displayName="CONTESE_REMOTEvsREMOTE" attributeName="RemoteRemoteContentions"/>
+                <stat displayName="PAOLO_REQUESTED_LOCKS" attributeName="PaoloRequestedLocks"/>
+                <stat displayName="PAOLO_TAKEN_LOCKS" attributeName="PaoloTakenLocks"/>
+                <stat displayName="PAOLO_REQUESTED_HOLD_TIME" attributeName="PaoloRequestedHoldTime"/>
+                <stat displayName="PAOLO_TAKEN_HOLD_TIME" attributeName="PaoloTakenHoldTime"/>
+                <stat displayName="PAOLO_LOCAL_HOLD_TIME" attributeName="PaoloLocalTakenHoldTime"/>
+                <stat displayName="PAOLO_REMOTE_HOLD_TIME" attributeName="PaoloRemoteTakenHoldTime"/>
+                <stat displayName="PAOLO_LOCAL_TAKEN_LOCKS" attributeName="PaoloLocalTakenLocks"/>
+                <stat displayName="PAOLO_REMOTE_TAKEN_LOCKS" attributeName="PaoloRemoteTakenLocks"/>
+                <stat displayName="LOCAL_HOLD_TIME" attributeName="LocalHoldTime"/>
+                <stat displayName="REMOTE_HOLD_TIME" attributeName="RemoteHoldTime"/>
+                <stat displayName="SUX_LOCAL_HOLD_TIME" attributeName="SuxLocalHoldTime"/>
+                <stat displayName="SUX_REMOTE_HOLD_TIME" attributeName="SuxRemoteHoldTime"/>
         </component>
         <component name="RpcManager">
                 <stat displayName="ReplayCpuTime" attributeName="ReplayCpuTime"/>
@@ -13,11 +29,25 @@
                 <stat displayName="OOBRollbackCpuTime" attributeName="OOBRollbackCpuTime"/>
                 <stat displayName="RttCpuTime" attributeName="PrepareBroadcastCpuTime"/>
                 <stat displayName="CommitCommandBroadcastCpuTime" attributeName="CommitBroadcastCpuTime"/>
-               <stat displayName="CommitCommandBroadcastWallClockTime" attributeName="CommitBroadcastWallClockTime"/>
+                <stat displayName="CommitCommandBroadcastWallClockTime" attributeName="CommitBroadcastWallClockTime"/>
+                <stat displayName="COMMIT_COMMAND_BYTES" attributeName="CommitCommandBytes"/>
+                <stat displayName="PREPARE_COMMAND_BYTES" attributeName="PrepareCommandBytes"/>
+                <stat displayName="ECCEZIONI_REMOTE" attributeName="RemoteExceptions"/>
+                <stat displayName="AVG_PREPARE" attributeName="AvgPrepareTime"/>
         </component>
         <component name="Transactions">
                 <stat displayName="CommitTimeRo" attributeName="CommitTimeRo"/>
                 <stat displayName="ReadOnlyCommitCpuTime" attributeName="ReadOnlyCommitCpuTime"/>
+                <stat displayName="avgLocalWrite" attributeName="AvgLocalWriteTxExecutionTime"/>
+                <stat displayName="suxLocalWrite" attributeName="AvgLocalSuxWriteTxExecutionTime"/>
+                <stat displayName="NUM_PUT" attributeName="NumPuts"/>
+                <stat displayName="COMMIT_TIME" attributeName="CommitTime"/>
+                <stat displayName="SUX_TX_PUTS" attributeName="SuxNumPuts"/>
+                <stat displayName="CPU_EXEC_NO_CONT" attributeName="CpuRoExec"/>
+                <stat displayName="CPU_RO" attributeName="CpuExecNoCont"/>
+                <stat displayName="CPU_COMMIT" attributeName="CommitCpuTime"/>
+                <stat displayName="AVG_LOCAL_EXEC_NO_CONFLICT" attributeName="NewLocalExecNoCont"/>
+                
         </component>
 	<component name="TopStats">
             <stat displayName="LocalReadOnlyTxTotalWCTime" attributeName="LocalReadOnlyTxTotalWCTime"/>
