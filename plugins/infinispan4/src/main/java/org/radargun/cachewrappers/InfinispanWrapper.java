@@ -15,7 +15,6 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
-import org.infinispan.transaction.xa.TransactionTable;
 import org.infinispan.util.concurrent.TimeoutException;
 import org.radargun.CacheWrapper;
 import org.radargun.cachewrappers.parser.StatisticComponent;
@@ -175,11 +174,10 @@ public class InfinispanWrapper implements CacheWrapper {
    public void endTransaction(boolean successful) {
       assertTm();
       try {
-         if (successful)  {
+         if (successful) {
             //cache.getAdvancedCache().getComponentRegistry().getComponent(TransactionTable.class).getLocalTransaction(tm.getTransaction());
-            tm.commit();   }
-
-         else
+            tm.commit();
+         } else
             tm.rollback();
       } catch (Exception e) {
          throw new RuntimeException(e);
@@ -471,7 +469,7 @@ public class InfinispanWrapper implements CacheWrapper {
       log.info(this.newKeys.size() + " newKey entries in the toErase list.");
       printMemoryFootprint(true);
       do {
-         removedKeys+= eraseInBatch(batchSize, it);
+         removedKeys += eraseInBatch(batchSize, it);
       }
       while (it.hasNext());
       printMemoryFootprint(false);
@@ -480,10 +478,7 @@ public class InfinispanWrapper implements CacheWrapper {
    }
 
    private int eraseInBatch(int batchSize, Iterator<Object> iterator) {
-      int i = 0;
-      int toSleep = 100;
-      int removed = 0;
-      int reallyRemoved;
+      int i = 0, toSleep = 100, reallyRemoved = 0, removed = 0;
       boolean success;
       Set<Object> setToErase = new HashSet<Object>();
       //Populate the set of the keys to be erased in this batch
@@ -504,9 +499,9 @@ public class InfinispanWrapper implements CacheWrapper {
             }
          } catch (Throwable t) {
             success = false;
-            //If I have a local conflict (only LR if I am with 1 thread)
-            //I can assume that the guy who's holding the contended key remotely will remove it
-            //I remove it from the batch erase list and the global one
+            //If I have a local conflict (only LR since I am with 1 thread)
+            //I can assume that the guy who's holding the contended key remotely will remove it from the cache
+            //I remove it from the batch erase list
             eraseIterator.remove();
             removed++;
          }
@@ -514,13 +509,13 @@ public class InfinispanWrapper implements CacheWrapper {
             this.endTransaction(success);    //no local aborts
          } catch (Throwable t) {
             //If I experience a RR conflict, then I have to rely on some sort of backoff to "ensure" the progress
-            log.info("Going to sleep for "+toSleep+" msecs");
+            log.info("Going to sleep for " + toSleep + " msecs");
             toSleep = sleepForAWhile(toSleep);
             success = false;
          }
       }
       while (!success);
-      removed+=reallyRemoved;
+      removed += reallyRemoved;
       return removed;
    }
 

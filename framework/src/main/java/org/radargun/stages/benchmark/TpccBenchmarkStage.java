@@ -1,10 +1,12 @@
-package org.radargun.stages;
+package org.radargun.stages.benchmark;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
+import org.radargun.stages.AbstractDistStage;
+import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.TpccStressor;
 import org.radargun.tpcc.transaction.AbstractTpccTransaction;
