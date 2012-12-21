@@ -97,8 +97,10 @@ public class StatSampler {
          double cpuValue = cpu.getCpuUsageAndReset();
          long memValue = memory.getUsedMemory();
          log.trace("Collecting memory and cpu usage. Memory usage is " + memValue + " and CPU usage is " + cpuValue);
+         if(cpuValue !=Double.NaN)
+            usedCpu.addLast(cpuValue);
          usedMemories.addLast(memValue);
-         usedCpu.addLast(cpuValue);
+
       }
    }
 }
