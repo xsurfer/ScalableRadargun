@@ -324,18 +324,21 @@ public class InfinispanWrapper implements CacheWrapper {
       try {
          log.trace("Try to reset stats in " + component);
          mBeanServer.invoke(component, "resetStatistics", emptyArgs, emptySig);
+         log.warn("resetStatistics invoked on "+component);
          return;
       } catch (Exception e) {
          log.debug("resetStatistics not found in " + component);
       }
       try {
          mBeanServer.invoke(component, "resetStats", emptyArgs, emptySig);
+         log.warn("resetStats invoked on "+component);
          return;
       } catch (Exception e) {
          log.debug("resetStats not found in " + component);
       }
       try {
          mBeanServer.invoke(component, "reset", emptyArgs, emptySig);
+         log.warn("reset invoked on "+component);
          return;
       } catch (Exception e) {
          log.debug("reset not found in " + component);

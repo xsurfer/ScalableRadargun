@@ -108,7 +108,6 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private BlockingQueue<RequestType> queue;
    private AtomicLong countJobs;
    private Producer[] producers;
-   private ProducerRate backOffSleeper;
    private StatSampler statSampler;
    private boolean running = true;
 
@@ -290,6 +289,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       long numLocalTimeout = 0L;
       long numRemoteTimeout = 0L;
 
+      double backOffTime = 0D;
+      double backOffs = 0D;
+
       for (Stressor stressor : stressors) {
          //duration += stressor.totalDuration(); //in nanosec
          //readsDurations += stressor.readDuration; //in nanosec
@@ -331,6 +333,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          numPaymentDequeued += stressor.numPaymentDequeued;
          numLocalTimeout += stressor.localTimeout;
          numRemoteTimeout += stressor.remoteTimeout;
+         backOffs += stressor.numBackOffs;
+         backOffTime += stressor.backedOffTime;
       }
 
       //duration = duration / 1000000; // nanosec to millisec
@@ -485,7 +489,12 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          results.put("REMOTE_TIMEOUT", str(numLocalTimeout));
       else
          results.put("REMOTE_TIMEOUT", str(0));
+      if (backOffs != 0)
+         results.put("AVG_BACKOFF", str(backOffTime / backOffs));
+      else
+         results.put("AVG_BACKOFF", str(0));
 
+      results.put("NumThreads", str(numOfThreads));
       results.putAll(cacheWrapper.getAdditionalStats());
       saveSamples();
 
@@ -567,6 +576,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       private ProducerRate backOffSleeper;
       private long localTimeout = 0L;
       private long remoteTimeout = 0L;
+      private long numBackOffs = 0L;
+      private long backedOffTime = 0L;
 
       public Stressor(int localWarehouseID, int threadIndex, int nodeIndex, double arrivalRate,
                       double paymentWeight, double orderStatusWeight) {
@@ -578,6 +589,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             this.backOffSleeper = new ProducerRate(Math.pow((double) backOffTime, -1D));
       }
 
+      private TpccTransaction regenerate(TpccTransaction oldTransaction, int threadIndex){
+         //return oldTransaction; -->this is not going well
+         return terminal.createTransaction(oldTransaction.getType(),threadIndex);
+      }
       @Override
       public void run() {
 
@@ -599,6 +614,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          boolean isReadOnly;
          boolean successful = true;
          boolean measureCommitTime = false;
+         long boffTime = 0L;
          while (assertRunning()) {
 
 
@@ -644,7 +660,12 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             long startService = System.nanoTime();
             boolean elementNotFoundExceptionThrown = false;
             do {
-               backoffIfNecessary(successful);
+               if ((boffTime = backoffIfNecessary(successful)) > 0) {
+                  //If we are in an open system, we retry e
+                  transaction = regenerate(transaction, threadIndex);
+                  backedOffTime += boffTime;
+                  numBackOffs++;
+               }
                cacheWrapper.startTransaction();
 
                try {
@@ -675,7 +696,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                      measureCommitTime = true;
                   }
 
-                  cacheWrapper.endTransaction(successful,threadIndex);
+                  cacheWrapper.endTransaction(successful, threadIndex);
 
                   if (!successful) {
                      nrFailures++;
@@ -717,7 +738,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                }
             }
             //If we experience an elementNotFoundException we do not want to restart the very same xact!!
-            while (retryOnAbort && !successful && ! elementNotFoundExceptionThrown);
+            while (retryOnAbort && !successful && !elementNotFoundExceptionThrown);
 
             end = System.nanoTime();
 
@@ -767,10 +788,11 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
 
 
-
-      private void backoffIfNecessary(boolean lastXactSuccessful) {
-         if (!lastXactSuccessful && backOffTime != 0)
-            backOffSleeper.sleep();
+      private long backoffIfNecessary(boolean lastXactSuccessful) {
+         if (!lastXactSuccessful && backOffTime != 0) {
+            return backOffSleeper.sleep();
+         }
+         return 0;
       }
 
       private boolean startNewTransaction(boolean lastXactSuccessul) {
@@ -1021,6 +1043,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
       return count;
    }
+
+
 
    private Stressor createStressor(int threadIndex) {
       int localWarehouse = getWarehouseForThread(threadIndex);

@@ -197,6 +197,8 @@ public class PaymentTransaction extends AbstractTpccTransaction {
 
    }
 
-
-
+   @Override
+   public int getType() {
+      return TpccTerminal.PAYMENT;
+   }
 }

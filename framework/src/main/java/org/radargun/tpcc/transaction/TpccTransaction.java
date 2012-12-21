@@ -11,5 +11,7 @@ public interface TpccTransaction {
 
    boolean isReadOnly();
 
+   int getType();
+
 
 }

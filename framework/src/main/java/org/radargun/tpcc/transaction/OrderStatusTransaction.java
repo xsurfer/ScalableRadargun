@@ -113,4 +113,8 @@ public class OrderStatusTransaction extends AbstractTpccTransaction {
    }
 
 
+   @Override
+   public int getType() {
+      return TpccTerminal.ORDER_STATUS;
+   }
 }

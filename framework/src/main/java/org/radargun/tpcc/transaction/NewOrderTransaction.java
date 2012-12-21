@@ -2,6 +2,7 @@ package org.radargun.tpcc.transaction;
 
 import org.radargun.CacheWrapper;
 import org.radargun.tpcc.ElementNotFoundException;
+import org.radargun.tpcc.TpccTerminal;
 import org.radargun.tpcc.TpccTools;
 import org.radargun.tpcc.domain.*;
 
@@ -231,5 +232,8 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
    }
 
-
+   @Override
+   public int getType() {
+      return TpccTerminal.NEW_ORDER;
+   }
 }

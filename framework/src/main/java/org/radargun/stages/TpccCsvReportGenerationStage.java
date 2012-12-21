@@ -16,7 +16,7 @@ public class TpccCsvReportGenerationStage extends CsvReportGenerationStage {
       Map<String, Object> results = (Map<String, Object>) o;
       int slaves = masterState.getSlavesCountForCurrentStage();
       StringBuilder sb = new StringBuilder();
-      int numThreads = toInt(results, "numThreads");
+      int numThreads = toInt(results, "NumThreads");
       int lambda = toInt(results, "Lambda");
       int thinkTime = toInt(results, "ThinkTime");
 

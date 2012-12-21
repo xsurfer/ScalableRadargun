@@ -34,8 +34,18 @@ public class GenerateChartStage extends AbstractMasterStage {
    protected Map<String, List<Pattern>> compiledFilters = null;
    ClusterReport putReport = new LineClusterReport();
    ClusterReport getReport = new LineClusterReport();
+   private boolean enabled;
+
+   public void setEnabled(boolean b){
+      log.warn("Enabling");
+      this.enabled = b;
+   }
 
    public boolean execute() throws Exception {
+      if(!enabled)  {
+         log.info("Skipping ChartGenerationStage execution");
+         return true;
+      }
       putReport.setReportFile(reportDirectory, fnPrefix + "_PUT");
       putReport.init(X_LABEL, "PUT ops/sec on each cache instance", "Average PUT per cache instance", getSubtitle());
       getReport.setReportFile(reportDirectory, fnPrefix + "_GET");

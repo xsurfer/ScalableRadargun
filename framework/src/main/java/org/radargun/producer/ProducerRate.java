@@ -25,13 +25,14 @@ public class ProducerRate {
    /**
     * it sleeps to a determined rate, in order to achieve the lambda (arrival rate) desired
     */
-   public final void sleep() {
+   public final long sleep() {
       long sleepTime = (long) exp(random, lambda);
       try {
          Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
          //interrupted
       }
+      return sleepTime;
    }
 
    /**
