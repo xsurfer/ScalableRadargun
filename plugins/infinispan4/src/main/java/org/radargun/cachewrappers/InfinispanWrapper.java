@@ -43,7 +43,7 @@ public class InfinispanWrapper implements CacheWrapper {
    private static final String GET_ATTRIBUTE_ERROR = "Exception while obtaining the attribute [%s] from [%s]";
    private final Set<Object> newKeys = new ConcurrentSkipListSet<Object>();
    private static final int MAX_THREADS = 100;
-   private final List[] perThreadNewKeys = new List[MAX_THREADS];
+   private final List<Object>[] perThreadNewKeys = (LinkedList<Object>[]) new LinkedList[MAX_THREADS];
    private boolean trackNewKeys = false;
    private boolean perThreadTrackNewKeys = false;
    private static final int maxSleep = 2000;
@@ -469,10 +469,12 @@ public class InfinispanWrapper implements CacheWrapper {
 
    @Override
    public void setTrackNewKeys(boolean b) {
+      log.info("Setting trackNewKeys to "+b);
       this.trackNewKeys = b;
    }
 
    public void setPerThreadTrackNewKeys(boolean b) {
+      log.info("Setting perThreadTrackNewKeys to "+b);
       this.perThreadTrackNewKeys = b;
    }
 
@@ -548,9 +550,13 @@ public class InfinispanWrapper implements CacheWrapper {
    @Override
    public void put(String bucket, Object key, Object value, int threadId) throws Exception {
       if (perThreadTrackNewKeys) {
+         log.info("NewPut with perThreadTrackNewKeys");
          if (cache.put(key, value) == null) {
+            log.info("NewPut with perThreadTrackNewKeysAdding");
             this.perThreadNewKeys[threadId].add(key);
+           log.info("NewPut with perThreadTrackNewKeysAdded");
          }
+         log.info("I Sux newput something with ThreadTrackNewKeys");
       } else
          put(bucket, key, value);
    }

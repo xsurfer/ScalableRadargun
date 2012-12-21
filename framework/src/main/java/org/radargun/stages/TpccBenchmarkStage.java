@@ -132,8 +132,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
          throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
       this.cacheWrapper.setPerThreadTrackNewKeys(false);
       this.cacheWrapper.setTrackNewKeys(false);
-      cacheWrapper.setTrackNewKeys(this.trackNewKeys);
-      cacheWrapper.setPerThreadTrackNewKeys(this.perThreadTrackNewKeys);
+      cacheWrapper.setTrackNewKeys(trackNewKeys);
+      cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
    }
 
    public DistStageAck executeOnSlave() {

@@ -11,14 +11,15 @@ import java.util.Map;
 public class TpccCsvReportGenerationStage extends CsvReportGenerationStage {
 
    protected final String reportFileName(MasterState masterState) {
-      Object o = masterState.get("results");
+
+      Map<Integer, Map<String, Object>> results = (Map<Integer, Map<String, Object>>) masterState.get("results");
+      Map<String, Object> firstResult = results.get(0);
       @SuppressWarnings("unchecked")
-      Map<String, Object> results = (Map<String, Object>) o;
       int slaves = masterState.getSlavesCountForCurrentStage();
       StringBuilder sb = new StringBuilder();
-      int numThreads = toInt(results, "NumThreads");
-      int lambda = toInt(results, "Lambda");
-      int thinkTime = toInt(results, "ThinkTime");
+      int numThreads = toInt(firstResult, "NumThreads");
+      int lambda = toInt(firstResult, "Lambda");
+      int thinkTime = toInt(firstResult, "ThinkTime");
 
       sb.append(masterState.nameOfTheCurrentBenchmark());
       sb.append("_");
