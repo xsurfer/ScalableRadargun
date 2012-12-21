@@ -44,11 +44,10 @@
                 <stat displayName="NUM_PUT" attributeName="NumPuts"/>
                 <stat displayName="COMMIT_TIME" attributeName="CommitTime"/>
                 <stat displayName="SUX_TX_PUTS" attributeName="SuxNumPuts"/>
-                <stat displayName="CPU_EXEC_NO_CONT" attributeName="CpuRoExec"/>
-                <stat displayName="CPU_RO" attributeName="CpuExecNoCont"/>
+                <stat displayName="CPU_EXEC_NO_CONT" attributeName="CpuExecNoCont"/>
+                <stat displayName="CPU_RO" attributeName="CpuRoExec"/>
                 <stat displayName="CPU_COMMIT" attributeName="CommitCpuTime"/>
-                <stat displayName="AVG_LOCAL_EXEC_NO_CONFLICT" attributeName="NewLocalExecNoCont"/>
-                
+                <stat displayName="AVG_LOCAL_EXEC_NO_CONFLICT" attributeName="NewLocalExecNoCont"/>                
         </component>
 	<component name="TopStats">
             <stat displayName="LocalReadOnlyTxTotalWCTime" attributeName="LocalReadOnlyTxTotalWCTime"/>
