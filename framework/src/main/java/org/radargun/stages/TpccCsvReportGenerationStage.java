@@ -33,7 +33,7 @@ public class TpccCsvReportGenerationStage extends CsvReportGenerationStage {
    }
 
    private int toInt(Map<String, Object> results, String stat) {
-      Object o = results.get(stat);
-      return o == null ? 0 : (Integer)o;
+      String o = (String)results.get(stat);
+      return o == null ? 0 : Integer.parseInt(o);
    }
 }

@@ -20,6 +20,7 @@
          <sync replTimeout="60000"/>
         <replicasPolicy mode ="PC"/>
 <stateRetrieval
+	alwaysProvideInMemoryState="true"
                     fetchInMemoryState="true"
                     timeout="240000"/>
 </clustering>  

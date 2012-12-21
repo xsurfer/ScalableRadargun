@@ -45,7 +45,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
          }
 
          for (int i = 0; i < size; i++) {
-            log.info("Result for slave " + i + " is\n" + results.get(i).toString());
+            log.trace("Result for slave " + i + " is\n" + results.get(i).toString());
          }
          log.info("Going to join the cacheSizeValues with the final report");
          joinCacheSizes(results, (List<CacheSizeValues>) masterState.get("CacheSizeResults"));

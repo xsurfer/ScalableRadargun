@@ -18,15 +18,9 @@ public abstract class AbstractDomainObject implements DomainObject {
    protected abstract Object generateId(int slaveIndex);
 
    public final void threadAwareStore(CacheWrapper wrapper, int threadId) throws Throwable {
-      try{
-         log.info("ThreadAwareStore is going to put key = "+this.getKey()+" value = " +this+" threadId "+threadId);
+
       wrapper.put(null, this.getKey(), this, threadId);
-      }
-      catch (Exception e){
-         log.warn(e.getStackTrace());
-         e.printStackTrace();
-         throw e;
-      }
+
    }
 
    //This will be called only by History
