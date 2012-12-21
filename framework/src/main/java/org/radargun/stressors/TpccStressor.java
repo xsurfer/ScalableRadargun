@@ -100,6 +100,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
     * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
     */
    private boolean retryOnAbort = false;
+   private boolean retrySameXact = false;
 
    private CacheWrapper cacheWrapper;
    private long startTime;
@@ -590,13 +591,14 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
 
       private TpccTransaction regenerate(TpccTransaction oldTransaction, int threadIndex, boolean lastSuccessful) {
-         //return oldTransaction; -->this is not going well
-         if(!lastSuccessful){
+
+         if(!lastSuccessful && !retrySameXact){
             this.backoffIfNecessary();
             TpccTransaction newTransaction = terminal.createTransaction(oldTransaction.getType(), threadIndex);
             log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +" into a transaction of type "+newTransaction.getType());
             return newTransaction;
          }
+         //If this is the first time xact runs or exact retry on abort is enabled...
          return oldTransaction;
       }
 
@@ -945,6 +947,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
    public void setRetryOnAbort(boolean retryOnAbort) {
       this.retryOnAbort = retryOnAbort;
+   }
+
+   public void setRetrySameXact(boolean b){
+      this.retrySameXact = b;
    }
 
    public void setBackOffTime(long backOffTime) {

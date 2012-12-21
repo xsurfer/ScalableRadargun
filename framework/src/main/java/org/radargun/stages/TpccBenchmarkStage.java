@@ -91,6 +91,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     */
    private boolean retryOnAbort = false;
 
+   private boolean retrySameXact = false;
+
    /*
    If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
     */
@@ -160,6 +162,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       tpccStressor.setStatsSamplingInterval(statsSamplingInterval);
       tpccStressor.setBackOffTime(backOffTime);
       tpccStressor.setRetryOnAbort(retryOnAbort);
+      tpccStressor.setRetrySameXact(retrySameXact);
 
       AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
@@ -262,6 +265,10 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
       this.perThreadTrackNewKeys = trackNewKeys;
+   }
+
+   public void setRetrySameXact(boolean b){
+      this.retrySameXact = b;
    }
 
    @Override

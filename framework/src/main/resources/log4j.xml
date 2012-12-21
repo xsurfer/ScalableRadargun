@@ -58,12 +58,8 @@
     <category name="org.apache">
         <priority value="WARN"/>
     </category>
-
+	
     <category name="org.radargun">
-        <priority value="INFO"/>
-    </category>
-
-    <category name="org.radargun.sysmonitor">
         <priority value="INFO"/>
     </category>
 
@@ -71,22 +67,12 @@
         <priority value="WARN"/>
     </category>
 
-    <category name="net.sf.ehcache">
-        <priority value="WARN"/>
-    </category>
-
-    <category name="com.tc">
-        <priority value="WARN"/>
-    </category>
-
-    <category name="org.tc">
-        <priority value="WARN"/>
-    </category>
-
-    <category name="org.jboss.cache">
-        <priority value="WARN"/>
-    </category>
-
+   <category name="org.radargun.stressors">
+	<priority value="OFF"/>
+   </category>
+  <category name="org.radargun.tpcc.TpccPopulation">
+	<priority value="INFO"/>
+  </category>
     <category name="org.jgroups">
         <priority value="WARN"/>
     </category>
@@ -96,22 +82,15 @@
     </category>
 
     <category name="org.infinispan">
-        <priority value="INFO"/>
+        <priority value="OFF"/>
     </category>
-
-    <category name="org.infinispan.marshall">
-        <priority value="INFO"/>
-    </category>
-
-    <category name="com.arjuna.ats.arjuna">
-        <priority value="WARN"/>
-    </category>
-
-    <category name="org.radargun.cachewrappers.EHCacheWrapper">
-        <priority value="TRACE"/>
-    </category>
-
-    <!-- Here goes the root -->
+  <category name="org.radargun.cachewrappers.InfinispanWrapper">
+	<priority value="WARN"/>
+   </category>
+<category name="org.radargun.tpcc.domain">
+	<priority value="OFF"/>
+</category> 
+   <!-- Here goes the root -->
     <root>
         <priority value="INFO"/>
         <appender-ref ref="CONSOLE"/>
