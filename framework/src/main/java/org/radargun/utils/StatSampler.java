@@ -31,6 +31,24 @@ public class StatSampler {
       this.timer.schedule(new Collector(), interval, interval);
    }
 
+   public double getAvgCpuUsage() {
+      double cpu = 0D, samples = usedCpu.size();
+      for (Double d : usedCpu)
+         cpu += d;
+      if (samples > 0)
+         return cpu / samples;
+      return 0;
+   }
+
+   public double getAvgMemUsage() {
+      double mem = 0D, samples = usedMemories.size();
+      for (Long l : usedMemories)
+         mem += l;
+      if (samples > 0)
+         return mem / samples;
+      return 0;
+   }
+
    /**
     * cancels the current timer task
     */

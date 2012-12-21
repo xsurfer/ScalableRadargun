@@ -34,7 +34,8 @@
                 <stat displayName="PREPARE_COMMAND_BYTES" attributeName="PrepareCommandBytes"/>
                 <stat displayName="ECCEZIONI_REMOTE" attributeName="RemoteExceptions"/>
                 <stat displayName="AVG_PREPARE" attributeName="AvgPrepareTime"/>
-        </component>
+		<stat displayName="RTT" attributeName="RTT"/>       
+ </component>
         <component name="Transactions">
                 <stat displayName="CommitTimeRo" attributeName="CommitTimeRo"/>
                 <stat displayName="ReadOnlyCommitCpuTime" attributeName="ReadOnlyCommitCpuTime"/>

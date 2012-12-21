@@ -370,7 +370,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       double rdPerSec = 0;
       double newOrderPerSec = 0;
       double paymentPerSec = 0;
-
+      double cpu = 0, mem = 0;
       if (duration == 0)
          results.put("READS_PER_SEC", str(0));
       else {
@@ -496,6 +496,13 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          results.put("AVG_BACKOFF", str(0));
 
       results.put("NumThreads", str(numOfThreads));
+
+      if (statSampler != null) {
+         cpu = statSampler.getAvgCpuUsage();
+         mem = statSampler.getAvgMemUsage();
+      }
+      results.put("CPU_USAGE", str(cpu));
+      results.put("MEMORY_USAGE", str(mem));
       results.putAll(cacheWrapper.getAdditionalStats());
       saveSamples();
 
@@ -592,10 +599,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
       private TpccTransaction regenerate(TpccTransaction oldTransaction, int threadIndex, boolean lastSuccessful) {
 
-         if(!lastSuccessful && !retrySameXact){
+         if (!lastSuccessful && !retrySameXact) {
             this.backoffIfNecessary();
             TpccTransaction newTransaction = terminal.createTransaction(oldTransaction.getType(), threadIndex);
-            log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +" into a transaction of type "+newTransaction.getType());
+            log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() + " into a transaction of type " + newTransaction.getType());
             return newTransaction;
          }
          //If this is the first time xact runs or exact retry on abort is enabled...
@@ -612,10 +619,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             log.warn("Interrupted while waiting for starting in " + getName());
          }
 
-         long end, endInQueueTime, boffTime,commit_start = 0L;
+         long end, endInQueueTime, boffTime, commit_start = 0L;
          boolean isReadOnly, successful, measureCommitTime = false;
          TpccTransaction transaction;
-
 
 
          while (assertRunning()) {
@@ -657,7 +663,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                }
             } else {
                transaction = terminal.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
-               log.info("Closed system: starting a brand new transaction of type "+transaction.getType());
+               log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
             }
             isReadOnly = transaction.isReadOnly();
 
@@ -665,12 +671,12 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             boolean elementNotFoundExceptionThrown = false;
             successful = true; //so that backOffIfNecessary returns false the first time we run an xact
             do {
-               transaction = regenerate(transaction,threadIndex,successful);
+               transaction = regenerate(transaction, threadIndex, successful);
                successful = true;
                cacheWrapper.startTransaction();
                try {
                   transaction.executeTransaction(cacheWrapper);
-                  log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " + transaction.getType()+" btw, successful is "+successful);
+                  log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " + transaction.getType() + " btw, successful is " + successful);
                } catch (Throwable e) {
                   successful = false;
                   if (log.isDebugEnabled()) {
@@ -696,8 +702,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                      measureCommitTime = true;
                   }
                   cacheWrapper.endTransaction(successful, threadIndex);
-                  if(successful)
-                     log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " + transaction.getType()+" Btw, successful is "+successful);
+                  if (successful)
+                     log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " + transaction.getType() + " Btw, successful is " + successful);
                   if (!successful) {
                      nrFailures++;
                      if (!isReadOnly) {
@@ -791,8 +797,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          if (backOffTime != 0) {
             this.numBackOffs++;
             long backedOff = backOffSleeper.sleep();
-            log.info("Thread "+this.threadIndex+" backed off for "+backedOff+" msec");
-            this.backedOffTime+=backOffSleeper.sleep();
+            log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
+            this.backedOffTime += backOffSleeper.sleep();
          }
       }
 
@@ -949,7 +955,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       this.retryOnAbort = retryOnAbort;
    }
 
-   public void setRetrySameXact(boolean b){
+   public void setRetrySameXact(boolean b) {
       this.retrySameXact = b;
    }
 
