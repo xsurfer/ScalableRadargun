@@ -32,18 +32,27 @@ public class StatSampler {
    }
 
    public double getAvgCpuUsage() {
-      double cpu = 0D, samples = usedCpu.size();
-      for (Double d : usedCpu)
-         cpu += d;
+      double cpu = 0D, samples = 0;
+      for (Double d : usedCpu) {
+         if (!Double.isNaN(d)) {
+            cpu += d;
+            samples++;
+         }
+      }
       if (samples > 0)
          return cpu / samples;
       return 0;
    }
 
    public double getAvgMemUsage() {
-      double mem = 0D, samples = usedMemories.size();
-      for (Long l : usedMemories)
-         mem += l;
+      double mem = 0D, samples = 0, temp;
+      for (Long l : usedMemories) {
+         temp = (double) l;
+         if (!Double.isNaN(temp)) {
+            mem += l;
+            samples++;
+         }
+      }
       if (samples > 0)
          return mem / samples;
       return 0;
@@ -97,7 +106,7 @@ public class StatSampler {
          double cpuValue = cpu.getCpuUsageAndReset();
          long memValue = memory.getUsedMemory();
          log.trace("Collecting memory and cpu usage. Memory usage is " + memValue + " and CPU usage is " + cpuValue);
-         if(cpuValue !=Double.NaN)
+         if (!Double.isNaN(cpuValue))
             usedCpu.addLast(cpuValue);
          usedMemories.addLast(memValue);
 
