@@ -17,7 +17,7 @@ public class TpccCsvReportGenerationStage extends CsvReportGenerationStage {
 
       Map<Integer, Map<String, Object>> results = (Map<Integer, Map<String, Object>>) masterState.get("results");
       Map<String, Object> firstResult = results.get(0);
-      return firstResult.get("TEST_ID")+".csv";
+      return masterState.nameOfTheCurrentBenchmark() + "_" + masterState.configNameOfTheCurrentBenchmark() + "_" + masterState.getSlavesCountForCurrentStage() +"_"+firstResult.get("TEST_ID")+".csv";
    }
 
 }
