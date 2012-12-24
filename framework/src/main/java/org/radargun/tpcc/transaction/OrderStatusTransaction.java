@@ -75,7 +75,7 @@ public class OrderStatusTransaction extends AbstractTpccTransaction {
       boolean found;
       Customer c;
       if (customerByName) {
-         List cList = customerList(cacheWrapper,terminalWarehouseID,districtID,customerLastName);
+         List<Customer> cList = customerList(cacheWrapper,terminalWarehouseID,districtID,customerLastName);
 
          if (cList == null || cList.isEmpty())
             throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + districtID + " C_W_ID=" + terminalWarehouseID + " not found!");
