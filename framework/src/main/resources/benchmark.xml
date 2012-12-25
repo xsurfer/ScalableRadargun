@@ -26,7 +26,8 @@
                 batchLevel="50"
                 numLoaderThreads="3"
                 oneWarmup="true"/>        
-        
+       <GarbageCollection/>
+        <!--GC only here because eraseNewKeys already includes a gc phase--> 
         <ResetStats/>
         <CacheSize
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
