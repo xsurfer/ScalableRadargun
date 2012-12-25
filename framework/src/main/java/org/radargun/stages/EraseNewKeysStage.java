@@ -33,13 +33,14 @@ public class EraseNewKeysStage extends AbstractDistStage {
       log.info(printMemoryFootprint(false));
       defaultDistStageAck.setDuration(duration);
 
-      log.info("Performing garbage collection");
+      log.info("Skipping garbage collection");
+      /*
       start = System.currentTimeMillis();
       System.gc();
       duration = System.currentTimeMillis() - start;
       log.info("Garbage collection took "+duration+" msec");
       log.info(printMemoryFootprint(false));
-
+      */
       return defaultDistStageAck;
    }
 

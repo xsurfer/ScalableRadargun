@@ -482,14 +482,14 @@ public class InfinispanWrapper implements CacheWrapper {
    public void eraseNewKeys(int batchSize) {
       Iterator<Object> it = this.newKeys.iterator();
       int removedKeys = 0;
-      log.info(this.newKeys.size() + " newKey entries in the toErase list.");
+      log.warn(this.newKeys.size() + " newKey entries in the toErase list.");
       printMemoryFootprint(true);
       do {
          removedKeys += eraseInBatch(batchSize, it);
       }
       while (it.hasNext());
       printMemoryFootprint(false);
-      log.info(removedKeys + " newKey entries removed from the list (either by me or by anyone else in the system).");
+      log.warn(removedKeys + " newKey entries removed from the list (either by me or by anyone else in the system).");
       this.newKeys.clear();
    }
 
@@ -514,6 +514,7 @@ public class InfinispanWrapper implements CacheWrapper {
                reallyRemoved++;
             }
          } catch (Throwable t) {
+            log.warn(t.getMessage());
             success = false;
             //If I have a local conflict (only LR since I am with 1 thread)
             //I can assume that the guy who's holding the contended key remotely will remove it from the cache
@@ -525,7 +526,7 @@ public class InfinispanWrapper implements CacheWrapper {
             this.endTransaction(success);    //no local aborts
          } catch (Throwable t) {
             //If I experience a RR conflict, then I have to rely on some sort of backoff to "ensure" the progress
-            log.info("Could not commit my eraseKey batch. Backing off for " + toSleep + " msecs");
+            log.warn("Could not commit my eraseKey batch. Backing off for " + toSleep + " msecs. Cause was "+t.getMessage());
             toSleep = sleepForAWhile(toSleep);
             success = false;
          }
