@@ -20,10 +20,10 @@ public class GarbageCollectionStage extends AbstractDistStage {
       DefaultDistStageAck defaultDistStageAck = newDefaultStageAck();
       long start = System.currentTimeMillis();
       log.info("Going to invoke the garbage collection");
-      Utils.printMemoryFootprint(true);
+      log.info(Utils.printMemoryFootprint(true));
       System.gc();
       log.info("Garbage collection ended");
-      Utils.printMemoryFootprint(false);
+      log.info(Utils.printMemoryFootprint(false));
       long duration = System.currentTimeMillis() - start;
       defaultDistStageAck.setDuration(duration);
       return defaultDistStageAck;
