@@ -76,7 +76,7 @@ public class TpccPopulationStage extends AbstractDistStage {
     */
    private boolean oneWarmup = false;
 
-   private static final String POPULATION_STRING = "___TPCC___ALREADY___POPULATED___";
+
 
    public DistStageAck executeOnSlave() {
       DefaultDistStageAck ack = newDefaultStageAck();
@@ -94,10 +94,7 @@ public class TpccPopulationStage extends AbstractDistStage {
    }
 
    private void populate(CacheWrapper wrapper) {
-      if (!needToWarmup(wrapper)) {
-         log.info("Skipping warmup phase");
-         return;
-      }
+
       TpccPopulationStressor populationStressor = new TpccPopulationStressor();
       populationStressor.setNumWarehouses(numWarehouses);
       populationStressor.setSlaveIndex(getSlaveIndex());
@@ -109,42 +106,12 @@ public class TpccPopulationStage extends AbstractDistStage {
       populationStressor.setNumLoadersThread(numLoaderThreads);
       populationStressor.setBatchLevel(batchLevel);
       populationStressor.setPreloadedFromDB(preloadedFromDB);
+      populationStressor.setOneWarmup(oneWarmup);
       populationStressor.stress(wrapper);
-      setWarmedUp(wrapper);
+
 
    }
 
-   private boolean needToWarmup(CacheWrapper cacheWrapper) {
-      if (!oneWarmup)
-         return true;
-      boolean ret = true;
-      try {
-         Object o;
-         ret = ((o = cacheWrapper.get("", POPULATION_STRING)) == null);
-         log.info("Checking if I have to warmup: returned value is "+o);
-      } catch (Exception e) {
-         log.error(e.getStackTrace());
-      }
-      return ret;
-   }
-
-   private void setWarmedUp(CacheWrapper cacheWrapper) {
-      if (cacheWrapper.isPassiveReplication() && cacheWrapper.isTheMaster()
-              || (!cacheWrapper.isPassiveReplication() && slaveIndex == 0)) {
-         boolean sux = false;
-
-         do {
-            try {
-               cacheWrapper.put("", POPULATION_STRING, "ALREADY_POPULATED");
-               log.info("Writing "+POPULATION_STRING+" in the cache");
-               sux = true;
-            } catch (Exception e) {
-               log.error(e.getStackTrace());
-            }
-         }
-         while (!sux);
-      }
-   }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
       logDurationInfo(acks);
