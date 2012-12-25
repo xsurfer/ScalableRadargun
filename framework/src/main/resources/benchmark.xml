@@ -3,8 +3,8 @@
             bindAddress="${127.0.0.1:master.address}"
             port="${2103:master.port}"/>
     <benchmark
-            initSize="2"
-            maxSize="10"
+            initSize="4"
+            maxSize="4"
             increment="2">
             
         <!--DestroyWrapper
@@ -23,10 +23,9 @@
                 olIdMask="0"
                 cIdMask="0"
                 threadParallelLoad="true"
-                batchLevel="100"
-                numLoaderThreads="2"
-                oneWarmup="true"/>
-        
+                batchLevel="50"
+                numLoaderThreads="3"
+                oneWarmup="true"/>        
         
         <ResetStats/>
         <CacheSize
@@ -42,11 +41,8 @@
 		retryOnAbort="true"
 		backOffTime="0"
 		perThreadTrackNewKeys="true"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>    
-        <ResetStats/>   
- <TpccCsvReportGeneration/>
+	<TpccCsvReportGeneration/>  
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -63,12 +59,8 @@
                 retryOnAbort="true"
 		backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/> 
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -85,12 +77,8 @@
                 retryOnAbort="true"
 		backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/>
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -107,13 +95,9 @@
                 backOffTime="0"
 		retryOnAbort="true"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/>
-         <ResetStats/>
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>         
+<ResetStats/>
          
          
         <CacheSize
@@ -129,11 +113,8 @@
 		retryOnAbort="true"
 		backOffTime="0"
 		perThreadTrackNewKeys="true"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>    
-        <ResetStats/>   
- <TpccCsvReportGeneration/>
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -150,12 +131,8 @@
                 retryOnAbort="true"
 		backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/>
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -172,12 +149,8 @@
                 retryOnAbort="true"
 		backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/>
+<TpccCsvReportGeneration/>
+      <EraseNewKeys batchSize="50"/>
 <ResetStats/>
 
 
@@ -194,13 +167,8 @@
                 backOffTime="0"
 		retryOnAbort="true"
                 perThreadTrackNewKeys="true"/>
-        <CacheSize
-                statName="CACHE_SIZE_AFTER_BENCH"/>
-        <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-        <ResetStats/>
- <TpccCsvReportGeneration/>
-  
+ 
+<TpccCsvReportGeneration/>
  </benchmark>
     <products>
         <infinispan4>
