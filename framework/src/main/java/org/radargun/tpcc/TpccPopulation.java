@@ -83,11 +83,13 @@ public class TpccPopulation {
       populateItem();
 
       populateWarehouses();
-      log.info("Performing gc after population");
+      log.info("Here avoiding gc after population");
+      /*
       printMemoryFootprint(true);
       System.gc();
       printMemoryFootprint(false);
       log.info("Gc performed");
+      */
    }
 
 
