@@ -11,6 +11,7 @@ import java.lang.management.MemoryUsage;
 import java.util.Date;
 
 import static org.radargun.utils.Utils.memString;
+import static org.radargun.utils.Utils.printMemoryFootprint;
 
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
@@ -82,8 +83,11 @@ public class TpccPopulation {
       populateItem();
 
       populateWarehouses();
-
+      log.info("Performing gc after population");
+      printMemoryFootprint(true);
       System.gc();
+      printMemoryFootprint(false);
+      log.info("Gc performed");
    }
 
 
