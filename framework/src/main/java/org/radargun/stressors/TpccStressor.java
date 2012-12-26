@@ -799,7 +799,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             this.numBackOffs++;
             long backedOff = backOffSleeper.sleep();
             log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
-            this.backedOffTime += backOffSleeper.sleep();
+            this.backedOffTime += backedOff;
          }
       }
 
