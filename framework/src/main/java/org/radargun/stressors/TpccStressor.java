@@ -487,7 +487,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       else
          results.put("LOCAL_TIMEOUT", str(0));
       if (numRemoteTimeout != 0)
-         results.put("REMOTE_TIMEOUT", str(numLocalTimeout));
+         results.put("REMOTE_TIMEOUT", str(numRemoteTimeout));
       else
          results.put("REMOTE_TIMEOUT", str(0));
       if (backOffs != 0)
