@@ -620,8 +620,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             log.warn("Interrupted while waiting for starting in " + getName());
          }
 
-         long end, endInQueueTime, boffTime, commit_start = 0L;
-         boolean isReadOnly, successful, measureCommitTime = false;
+         long end, endInQueueTime, commit_start = 0L;
+         boolean isReadOnly, successful, measureCommitTime = false, takeStats;
          TpccTransaction transaction;
 
 
@@ -744,7 +744,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
                log.info("Successful = " + successful + " elementNotFoundException " + elementNotFoundExceptionThrown);
             }
             //If we experience an elementNotFoundException we do not want to restart the very same xact!!
-            while (retryOnAbort && !successful && !elementNotFoundExceptionThrown);
+            //If a xact is not progressing at the end of the test, we kill it. Some stats will be slightly affected by this
+            while ( assertRunning() && retryOnAbort && !successful && !elementNotFoundExceptionThrown);
 
             end = System.nanoTime();
 
