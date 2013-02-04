@@ -20,7 +20,7 @@ public class DummyStage extends AbstractDistStage {
 
    public DistStageAck executeOnSlave() {
       log.trace("Stage: " + name);
-      return newDefaultStageAck();
+      return newDefaultStageAck(this.getClass().getName());
    }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {

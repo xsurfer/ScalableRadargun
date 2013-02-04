@@ -27,10 +27,10 @@ public class GenerateChartStage extends AbstractMasterStage {
    public static final String X_LABEL = "Cluster size (number of cache instances)";
    public static final String REPORTS = "reports";
 
-   private String reportDirectory = REPORTS;
-   private String csvFilesDirectory = "reports";
-   private String fnPrefix;
-   private Map<String, List<String>> filter = new HashMap<String, List<String>>();
+   protected String reportDirectory = REPORTS;
+   protected String csvFilesDirectory = "reports";
+   protected String fnPrefix;
+   protected Map<String, List<String>> filter = new HashMap<String, List<String>>();
    protected Map<String, List<Pattern>> compiledFilters = null;
    ClusterReport putReport = new LineClusterReport();
    ClusterReport getReport = new LineClusterReport();

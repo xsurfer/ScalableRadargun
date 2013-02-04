@@ -9,9 +9,15 @@ import java.io.Serializable;
  */
 public interface DistStageAck extends Serializable {
 
-   public int getSlaveIndex();
+    public int getSlaveIndex();
 
-   public long getDuration();
+    public long getDuration();
 
-   public void setDuration(long duration);
+    public void setDuration(long duration);
+
+    public void setInitialTs(long ts);
+
+    public long getInitialTs();
+
+    public String getStageName();
 }

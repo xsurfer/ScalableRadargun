@@ -37,7 +37,7 @@ public class StartClusterStage extends AbstractDistStage {
    }
 
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck ack = newDefaultStageAck();
+      DefaultDistStageAck ack = newDefaultStageAck(this.getClass().getName());
       if (slaveState.getCacheWrapper() != null) {
          log.info("Wrapper already set on this slave, not starting it again.");
          return ack;
@@ -52,7 +52,7 @@ public class StartClusterStage extends AbstractDistStage {
          slaveState.setCacheWrapper(wrapper);
          if (performClusterSizeValidation) {
             for (int i = 0; i < TRY_COUNT; i++) {
-               int numMembers = wrapper.getNumMembers();
+               int numMembers = wrapper.getNumMembers();   // numero di nodi NELLA CACHE
                if (numMembers != getActiveSlaveCount()) {
                   String msg = "Number of members=" + numMembers + " is not the one expected: " + getActiveSlaveCount();
                   log.info(msg);

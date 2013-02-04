@@ -39,7 +39,7 @@ public class ClusterValidationStage extends AbstractDistStage {
    private static final String BUCKET = "clusterValidation";
 
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck response = newDefaultStageAck();
+      DefaultDistStageAck response = newDefaultStageAck(this.getClass().getName());
       try {
          wrapper = slaveState.getCacheWrapper();
          int replResult = checkReplicationSeveralTimes();

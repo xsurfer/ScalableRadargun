@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * On multiple threads executes put and get operations against the CacheWrapper, and returns the result as an Map.
  *
+ * TODO: ACCERTARSI CHE ALL'INIZIO DELLO STAGE E DOPO IL JOIN LE STATISTICHE VENGANO RESETTATE
+ *
  * @author Mircea.Markus@jboss.com
  */
 public class PutGetStressor extends AbstractCacheWrapperStressor {

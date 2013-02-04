@@ -17,7 +17,7 @@ public class GarbageCollectionStage extends AbstractDistStage {
 
    @Override
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck();
+      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck(this.getClass().getName());
       long start = System.currentTimeMillis();
       log.info("Going to invoke the garbage collection");
       log.info(Utils.printMemoryFootprint(true));

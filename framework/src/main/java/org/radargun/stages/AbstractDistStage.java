@@ -28,6 +28,13 @@ public abstract class AbstractDistStage implements DistStage {
 
    protected int slaveIndex;
    private int activeSlavesCount;
+
+    /** how many slaves **/
+    private int activeScalingSlavesCount;
+
+    /** added by Fabio **/
+    private long initTs;
+
    private int totalSlavesCount;
    private boolean runOnAllSlaves;
 
@@ -41,9 +48,11 @@ public abstract class AbstractDistStage implements DistStage {
       assert masterConfig != null;
       this.totalSlavesCount = masterState.getConfig().getSlaveCount();
       if (isRunOnAllSlaves()) {
+         log.debug("from initOnMaster: setActiveSlavesCount");
          setActiveSlavesCount(totalSlavesCount);
       }
-
+      // time elapsed from the init
+      initTs = System.currentTimeMillis()-masterState.getStartTime();
    }
 
    public void setRunOnAllSlaves(boolean runOnAllSlaves) {
@@ -63,8 +72,8 @@ public abstract class AbstractDistStage implements DistStage {
       this.exitBenchmarkOnSlaveFailure = exitOnFailure;
    }
 
-   protected DefaultDistStageAck newDefaultStageAck() {
-      return new DefaultDistStageAck(getSlaveIndex(), slaveState.getLocalAddress());
+   protected DefaultDistStageAck newDefaultStageAck(String className) {
+      return new DefaultDistStageAck(getSlaveIndex(), slaveState.getLocalAddress(), className);
    }
 
    public DistStage clone() {
@@ -105,13 +114,44 @@ public abstract class AbstractDistStage implements DistStage {
       log.info("Received responses from all " + acks.size() + " slaves. " + processingDuration + "]");
    }
 
+/**
+Just in case of error, pasted during merging by Fabio
++    protected void logDurationInfo(List<DistStageAck> acks) {
++        if (!log.isInfoEnabled()) return;
++
++        Map<Integer, String> data = new TreeMap<Integer, String>();  // make sure this is sorted
++        for (DistStageAck dsa : acks){
++            data.put(dsa.getSlaveIndex(), Utils.prettyPrintTime(dsa.getDuration()));
++        }
++
++        String processingDuration = "Durations [";
++        boolean first = true;
++        for (Map.Entry<Integer, String> e : data.entrySet()) {
++            if (first) first = false;
++            else processingDuration += ", ";
++            processingDuration += e.getKey() + ":" + e.getValue();
++        }
++        log.info(getClass().getSimpleName() + " received ack from all (" + acks.size() + ") slaves. " + processingDuration + "]");
++    }
+**/
+
    public int getActiveSlaveCount() {
       return activeSlavesCount;
    }
 
    public void setActiveSlavesCount(int activeSlaves) {
+      log.debug("AbstractDistStage.setActiveSlavesCount - da " + this.activeSlavesCount + " a " + activeSlaves);
       this.activeSlavesCount = activeSlaves;
    }
+
+   public int getActiveScalingSlavesCount() {
+      return activeScalingSlavesCount;
+   }
+
+    public void setActiveScalingSlavesCount(int activeSlaves) {
+        log.debug("AbstractDistStage.setActiveScalingSlavesCount - da " + this.activeScalingSlavesCount + " a " + activeSlaves);
+        this.activeScalingSlavesCount = activeSlaves;
+    }
 
    public int getSlaveIndex() {
       return slaveIndex;
@@ -124,4 +164,10 @@ public abstract class AbstractDistStage implements DistStage {
               ", totalSlavesCount=" + totalSlavesCount +
               "} ";
    }
+
+    /** added by Fabio **/
+    public long getInitTs(){
+        return initTs;
+    }
+
 }

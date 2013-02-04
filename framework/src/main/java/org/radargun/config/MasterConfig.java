@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.radargun.ScalingMaster;
 
 /**
  * Comntains master's configuration elements.
@@ -11,9 +14,13 @@ import java.util.Set;
  * @author Mircea.Markus@jboss.com
  */
 public class MasterConfig {
+
+   private static Log log = LogFactory.getLog(MasterConfig.class);
+
    private int port;
    private String host;
    private int slavesCount;
+   private boolean cloudTm = false;
 
    List<FixedSizeBenchmarkConfig> benchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
 
@@ -22,6 +29,14 @@ public class MasterConfig {
       this.host = host;
       this.slavesCount = slavesCount;
    }
+
+    public boolean isCloudTm() {
+        return cloudTm;
+    }
+
+    public void setCloudTm(boolean _cloudTm) {
+        this.cloudTm = _cloudTm;
+    }
 
    public int getPort() {
       return port;
@@ -34,6 +49,19 @@ public class MasterConfig {
    public int getSlaveCount() {
       return slavesCount;
    }
+
+    /** questo metodo viene chiamato quando si aggiungono/rimuovono nuovi thread a runtime
+     *  ed è incaricato di aggiornare anche il numero di slaves nello stage attualmente in esecuzione
+     *  che DEVE essere OBLiGATORIAMENTE il WebSessionBenchmarkStage!!!
+     **/
+    public void setSlavesCount(int slavesCount){
+        this.slavesCount = slavesCount;
+        log.debug("Modifico numero di slaves in CurrentDistStage:" + ScalingMaster.getMaster(null).state.getCurrentDistStage().getClass().getName() + "(deve essere WebSessionBenchmark!!)" );
+        for (FixedSizeBenchmarkConfig f : benchmarks) {
+            f.setSize(slavesCount);
+        }
+
+    }
 
    public List<FixedSizeBenchmarkConfig> getBenchmarks() {
       return benchmarks;

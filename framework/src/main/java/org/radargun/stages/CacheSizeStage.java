@@ -23,7 +23,7 @@ public class CacheSizeStage extends AbstractDistStage {
 
    @Override
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck ack = newDefaultStageAck();
+      DefaultDistStageAck ack = newDefaultStageAck(this.getClass().getName());
       CacheWrapper wrapper = slaveState.getCacheWrapper();
       if (wrapper == null) {
          log.info("Not executing any test as the wrapper is not set up on this slave ");

@@ -6,6 +6,7 @@ import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.MasterStage;
 import org.radargun.Stage;
+import org.radargun.config.DynamicBenchmarkConfig;
 import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
 import org.radargun.jmx.JmxRegistration;
@@ -30,6 +31,9 @@ public class MasterState extends StateBase {
    private FixedSizeBenchmarkConfig currentBenchmark;
    private long startTime = System.currentTimeMillis();
    private DistStage currentDistStage;
+
+   protected ThreadLocal<DistStage> currentDistScalingStageRef = new ThreadLocal<DistStage>();
+
    private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();
 
    public MasterState(MasterConfig config) {
@@ -44,6 +48,10 @@ public class MasterState extends StateBase {
    public MasterConfig getConfig() {
       return config;
    }
+
+    public long getStartTime(){
+        return this.startTime;
+    }
 
    public DistStage getNextDistStageToProcess() {
       while (currentBenchmark.hasNextStage()) {
@@ -69,13 +77,51 @@ public class MasterState extends StateBase {
    }
 
 
+    public DistStage getNextDistScalingStageToProcess(int slaves) {
+        while (((DynamicBenchmarkConfig) currentBenchmark).hasNextScalingStage(slaves)) {
+            Stage stage = ((DynamicBenchmarkConfig) currentBenchmark).nextScalingStage();
+            if (stage instanceof DistStage) {
+                currentDistScalingStageRef.set((DistStage) stage);
+                return currentDistScalingStageRef.get();
+                //Questo è commentato poichè non ho nessuno scaling stage da eseguire solo sul master
+//            } else {
+//                jmxRegistration.processStage(stage);
+//                executeServerStage((MasterStage) stage);
+//            }
+            }
+        }
+
+        // TODO: penso che per il momento è meglio commentare, in questo caso non ci dovrei arrivare poichè muore prima
+        //if we are here it means we finished executed the current benchmark and we should move to next one
+//        if (benchmarks.size() == 0) {
+//            long duration = System.currentTimeMillis() - startTime;
+//            String duartionStr = Utils.getDurationString(duration);
+//            log.info("Sono in master state getNextDistScalingStageToProcess, controlla che sta a succede!" +
+//                    " Successfully executed all benchmarks in " + duartionStr + ", exiting.");
+//            return null;
+//        }
+//        currentBenchmark = benchmarks.remove(0);
+//        logBenchmarkStarted();
+        return getNextDistStageToProcess();
+    }
+
+
    public DistStage getCurrentDistStage() {
       return currentDistStage;
    }
 
+    public DistStage getCurrentDistScalingStage() {
+        return this.currentDistScalingStageRef.get();
+    }
+
    public int getSlavesCountForCurrentStage() {
       return currentDistStage.getActiveSlaveCount();
    }
+
+    public int getSlavesCountForCurrentScalingStage() {
+        log.debug("[[[ MasterState: per questo stage scaling sono attivi " + getCurrentDistScalingStage().getActiveScalingSlavesCount() + "slaves");
+        return getCurrentDistScalingStage().getActiveScalingSlavesCount();
+    }
 
    public boolean distStageFinished(List<DistStageAck> acks) {
       // Sort acks so that logs are more readable.
@@ -98,6 +144,19 @@ public class MasterState extends StateBase {
          return false;
       }
    }
+
+    public boolean distScalingStageFinished(List<DistStageAck> acks) {
+        boolean stageOk = getCurrentDistScalingStage().processAckOnMaster(acks, this);
+        if (stageOk) return true;
+        if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
+            log.warn("Execution error for current benchmark, skipping rest of the stages");
+            currentBenchmark.errorOnCurrentBenchmark();
+            return true;
+        } else {
+            log.info("Exception error on current stage, and exiting (stage's exitBenchmarkOnSlaveFailure is set to true).");
+            return false;
+        }
+    }
 
    private void executeServerStage(MasterStage servStage) {
       if (log.isDebugEnabled())
@@ -123,6 +182,10 @@ public class MasterState extends StateBase {
       }
       return prodName;
    }
+
+    public FixedSizeBenchmarkConfig getCurrentBenchmark() {
+        return currentBenchmark;
+    }
 
    public String configNameOfTheCurrentBenchmark() {
       return currentBenchmark.getConfigName();

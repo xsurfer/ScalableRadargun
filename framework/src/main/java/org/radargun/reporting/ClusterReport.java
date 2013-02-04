@@ -13,5 +13,7 @@ public interface ClusterReport {
 
    public void addCategory(String productName, int clusterSize, Number value);
 
+   public void addCategory(String productName, double time, Number value);
+
    public void generate() throws Exception;
 }

@@ -22,6 +22,10 @@ public interface DistStage extends Stage, Serializable {
 
    public void setActiveSlavesCount(int activeSlaves);
 
+    public int getActiveScalingSlavesCount();
+
+    public void setActiveScalingSlavesCount(int activeSlaves);
+
    /**
     * Do whatever on the slave. This will only be called after {@link #initOnSlave(org.radargun.state.SlaveState)} is called.
     *
@@ -50,4 +54,6 @@ public interface DistStage extends Stage, Serializable {
    public boolean isExitBenchmarkOnSlaveFailure();
 
    public void setExitBenchmarkOnSlaveFailure(boolean exitOnFailure);
+
+    public long getInitTs();
 }

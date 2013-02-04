@@ -17,7 +17,7 @@ public class EraseNewKeysStage extends AbstractDistStage {
 
    @Override
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck();
+      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck(this.getClass().getName());
       CacheWrapper cacheWrapper = slaveState.getCacheWrapper();
 
       if (cacheWrapper == null) {
