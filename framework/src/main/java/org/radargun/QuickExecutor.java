@@ -31,7 +31,15 @@ public class QuickExecutor implements Runnable {
     /**
      * TODO: Questa variabile deve essere locale al thread *
      */
-    private List<DistStageAck> responses = new ArrayList<DistStageAck>();
+    //private List<DistStageAck> responses = new ArrayList<DistStageAck>();
+
+    protected ThreadLocal<List<DistStageAck>> responsesRef = new ThreadLocal<List<DistStageAck>>() {
+        protected List<DistStageAck> initialValue() {
+            return new ArrayList<DistStageAck>();
+        }
+    };
+
+
 
     int processedSlaves = 0;
 
@@ -204,7 +212,7 @@ public class QuickExecutor implements Runnable {
                 log.debug(ack.getStageName());
                 log.debug(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName());
                 if (ack.getStageName().compareTo(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName()) == 0) {
-                    responses.add(ack);
+                    responsesRef.get().add(ack);
                     log.info("ACK added: same stage");
                 } else {
                     log.info("ACK dropped: different stage");
@@ -212,15 +220,15 @@ public class QuickExecutor implements Runnable {
             }
         }
 
-        if (responses.size() == this.newSlavesRef.get().size()) {
-            if (!ScalingMaster.getMaster(null).state.distScalingStageFinished(responses)) {
+        if (responsesRef.get().size() == this.newSlavesRef.get().size()) {
+            if (!ScalingMaster.getMaster(null).state.distScalingStageFinished(responsesRef.get())) {
                 log.error("Exiting because issues processing current stage: " + ScalingMaster.getMaster(null).state.getCurrentDistStage());
                 ScalingMaster.getMaster(null).releaseResourcesAndExit();
             }
 
             prepareNextStage();
         } else {
-            int ackLeft = ScalingMaster.getMaster(null).state.getSlavesCountForCurrentScalingStage() - responses.size();
+            int ackLeft = ScalingMaster.getMaster(null).state.getSlavesCountForCurrentScalingStage() - responsesRef.get().size();
             log.info("Mancano " + ackLeft + "ACKs per questo Scaling Thread: " + Thread.currentThread().toString());
         }
     }
@@ -252,7 +260,7 @@ public class QuickExecutor implements Runnable {
             log.trace("Successfully completed broadcasting stage " + ScalingMaster.getMaster(null).state.getCurrentDistScalingStage());
             processedSlaves = 0;
             ScalingMaster.getMaster(null).writeBufferMap.clear();
-            responses.clear();
+            responsesRef.get().clear();
         }
     }
 }

@@ -47,9 +47,13 @@ public class StartClusterStage extends AbstractDistStage {
       CacheWrapper wrapper = null;
       try {
          String plugin = Utils.getCacheWrapperFqnClass(productName);
+          log.info("plugin: " + plugin );
          wrapper = (CacheWrapper) createInstance(plugin);
+          log.info("b");
          wrapper.setUp(config, false, slaveIndex, confAttributes);
+          log.info("c");
          slaveState.setCacheWrapper(wrapper);
+          log.info("d");
          if (performClusterSizeValidation) {
             for (int i = 0; i < TRY_COUNT; i++) {
                int numMembers = wrapper.getNumMembers();   // numero di nodi NELLA CACHE
@@ -99,6 +103,7 @@ public class StartClusterStage extends AbstractDistStage {
       }
       log.info("Creating newInstance " + classFqn + " with classloader " + classLoader);
       Thread.currentThread().setContextClassLoader(classLoader);
+       log.info("a, " + classFqn);
       return classLoader.loadClass(classFqn).newInstance();
    }
 

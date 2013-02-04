@@ -438,6 +438,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       this.durationMillis = durationMillis;
    }
 
+   @Deprecated
    public void setDuration(String duration) {
       this.durationMillis = Utils.string2Millis(duration);
    }
