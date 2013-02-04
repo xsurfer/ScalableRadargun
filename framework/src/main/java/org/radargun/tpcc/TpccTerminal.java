@@ -37,11 +37,9 @@ public class TpccTerminal {
       this.indexNode = indexNode;
       this.localWarehouseID = localWarehouseID;
       tpccTools = TpccTools.newInstance();
-      log.warn("!!!!! Attention !!!!!\n This TpccTerminal cannot support dynamic switch of workload" +
-              "Please enable the synchronized methods to have it");
    }
 
-   public /*synchronized*/ final TpccTransaction createTransaction(int type, int threadId) {
+   public final TpccTransaction createTransaction(int type, int threadId) {
       switch (type) {
          case PAYMENT:
             return new PaymentTransaction(tpccTools, threadId, indexNode, localWarehouseID);
@@ -56,11 +54,11 @@ public class TpccTerminal {
       }
    }
 
-   public /*synchronized*/ final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+   public final TpccTransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
       return createTransaction(chooseTransactionType(isPassiveReplication, isTheMaster), threadId);
    }
 
-   public /*synchronized*/ final int chooseTransactionType(boolean isPassiveReplication, boolean isTheMaster) {
+   public final int chooseTransactionType(boolean isPassiveReplication, boolean isTheMaster) {
       double transactionType = Math.min(tpccTools.doubleRandomNumber(1, 100), 100.0);
 
       double realPaymentWeight = paymentWeight, realOrderStatusWeight = orderStatusWeight;
