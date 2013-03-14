@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * @author Mircea.Markus@jboss.com
  */
-public class EvenSpreadingConsistentHash implements ConsistentHash {
+public class EvenSpreadingConsistentHash /* implements ConsistentHash*/ {
 
    private static Log log = LogFactory.getLog(EvenSpreadingConsistentHash.class);
 
@@ -39,12 +39,12 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
       existing = new DefaultConsistentHash();
    }
 
-    @Override
+
     public List<Integer> getHashIds(Address a) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
+
    public List<Address> locate(Object key, int replCount) {
       throw new RuntimeException("Distribution not supported yet");
       /*
@@ -90,22 +90,21 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    //following methods should only be used during rehashing, so no point in implementing them
 
 
-    @Override
+
     public Set<Address> getCaches() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
+
    public List<Address> getStateProvidersOnLeave(Address leaver, int replCount) {
       return existing.getStateProvidersOnLeave(leaver, replCount);
    }
 
-   @Override
+
    public List<Address> getStateProvidersOnJoin(Address joiner, int replCount) {
       return existing.getStateProvidersOnJoin(joiner, replCount);
    }
 
-   @Override
    public List<Address> getBackupsForNode(Address node, int replCount) {
       if (log.isTraceEnabled()) log.trace("getBackupsForNode (" + node +")");
       return existing.getBackupsForNode(node, replCount);

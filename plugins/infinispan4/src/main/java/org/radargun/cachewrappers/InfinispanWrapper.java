@@ -214,7 +214,7 @@ public class InfinispanWrapper implements CacheWrapper {
       if (cache.getConfiguration().getCacheMode().isDistributed() && !cache.getAdvancedCache().getDistributionManager().isJoinComplete())
          throw new RuntimeException("Caches haven't discovered and joined the cluster even after " + Utils.prettyPrintMillis(gracePeriod));
    }
-
+   /*
    private void injectEvenConsistentHash(TypedProperties confAttributes) {
 
       if (cache.getConfiguration().getCacheMode().isDistributed()) {
@@ -232,7 +232,7 @@ public class InfinispanWrapper implements CacheWrapper {
 
       }
    }
-
+  */
    private void assertTm() {
       if (tm == null) throw new RuntimeException("No configured TM!");
    }
