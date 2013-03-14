@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.distribution.ch.DefaultConsistentHash;
-import org.infinispan.distribution.ch.TopologyInfo;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.util.Immutables;
 import org.radargun.stressors.ObjectKey;
@@ -40,10 +39,12 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
       existing = new DefaultConsistentHash();
    }
 
+    @Override
+    public List<Integer> getHashIds(Address a) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 
-
-
-   @Override
+    @Override
    public List<Address> locate(Object key, int replCount) {
       throw new RuntimeException("Distribution not supported yet");
       /*
@@ -89,7 +90,12 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    //following methods should only be used during rehashing, so no point in implementing them
 
 
-   @Override
+    @Override
+    public Set<Address> getCaches() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
    public List<Address> getStateProvidersOnLeave(Address leaver, int replCount) {
       return existing.getStateProvidersOnLeave(leaver, replCount);
    }
@@ -152,35 +158,26 @@ public class EvenSpreadingConsistentHash implements ConsistentHash {
    }
    */
 
-   @Override
-   public List<Address> getCaches() {
-      throw new RuntimeException("Distribution not supported yet");
-      //return null;  //To change body of implemented methods use File | Settings | File Templates.
-   }
 
-   @Override
+
+
    public int getHashId(Address a) {
       throw new RuntimeException("Distribution not supported yet");
       //return 0;  //To change body of implemented methods use File | Settings | File Templates.
    }
 
-   @Override
+
    public int getHashSpace() {
       throw new RuntimeException("Distribution not supported yet");
       //return 0;  //To change body of implemented methods use File | Settings | File Templates.
    }
 
-   @Override
+
    public void setCaches(List<Address> caches) {
       throw new RuntimeException("Distribution not supported yet");
       //To change body of implemented methods use File | Settings | File Templates.
    }
 
-   @Override
-   public void setTopologyInfo(TopologyInfo topologyInfo) {
-      throw new RuntimeException("Distribution not supported yet");
-      //To change body of implemented methods use File | Settings | File Templates.
-   }
 
    /*@Override
    public ReplicationGroup getGroupFor(Object key, int replicationCount) {
