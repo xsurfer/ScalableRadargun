@@ -50,7 +50,7 @@
  </benchmark>
     <products>
         <infinispan4>
-            <config name="provaPC.xml"/>
+            <config name="cloudtm.xml"/>
         </infinispan4>
     </products>
     <reports>
