@@ -128,6 +128,7 @@ public class ClusterValidationStage extends AbstractDistStage {
             if (!wrapper.isPassiveReplication() || wrapper.isTheMaster()) {
                wrapper.put(nodeBucket(getSlaveIndex()), key(getSlaveIndex()), "true");
             }
+             log.info("Successfully put "+key(getSlaveIndex()));
             return;
          } catch (Throwable e) {
             log.warn("Error while trying to put data: ", e);
@@ -186,6 +187,7 @@ public class ClusterValidationStage extends AbstractDistStage {
       int tryCont = 0;
       while (tryCont < 5) {
          try {
+             log.info("Going to ask for "+key(i));
             return wrapper.getReplicatedData(nodeBucket(i), key(i));
          } catch (Throwable e) {
             tryCont++;

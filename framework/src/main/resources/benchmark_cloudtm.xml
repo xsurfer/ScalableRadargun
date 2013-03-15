@@ -15,7 +15,7 @@
                 delayBetweenStartingSlaves="1000"/>
         <ClusterValidation
                 passiveReplication="false"
-                partialReplication="true"/>
+                partialReplication="false"/>
         <TpccPopulation
                 preloadedFromDB="false"
                 numWarehouses="1"
@@ -33,7 +33,7 @@
         <TpccBenchmark
                 statsSamplingInterval="30000"
                 numOfThreads="1"
-                perThreadSimulTime="180"
+                perThreadSimulTime="10"
                 arrivalRate="0"
                 accessSameWarehouse="false"
                 paymentWeight="43"
