@@ -71,5 +71,7 @@
         <stat displayName="AvgNumPutsBySuccessfulLocalTx" attributeName="AvgNumPutsBySuccessfulLocalTx"/>
         <stat displayName="NumKilledTxDueToValidation" attributeName="NumKilledTxDueToValidation"/>
         <stat displayName="NumAbortedTxDueToValidation" attributeName="NumAbortedTxDueToValidation"/>
+       <stat displayName="NumAbortedTxDueToWriteLock" attributeName="NumAbortedTxDueToWriteLock"/>
+        <stat displayName="NumAbortedTxDueToReadLock" attributeName="NumAbortedTxDueToReadLock"/>
     </component>
 </stats-collector>

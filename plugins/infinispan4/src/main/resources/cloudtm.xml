@@ -73,5 +73,61 @@
         keepAliveTime="60"/>
     </default>
     <namedCache
-    name="x" />
+    name="x">
+        <locking
+        isolationLevel="SERIALIZABLE"
+        concurrencyLevel="32"
+        writeSkewCheck="false"
+        useLockStriping="false"
+        lockAcquisitionTimeout="0"/>
+        <transaction
+        transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+        useEagerLocking="false"
+        transactionMode="TRANSACTIONAL"
+        syncRollbackPhase="false"
+        cacheStopTimeout="30000"
+        useSynchronization="false"
+        syncCommitPhase="false"
+        lockingMode="OPTIMISTIC"
+        eagerLockSingleNode="false"
+        use1PcForAutoCommitTransactions="false"
+        transactionProtocol="TWO_PHASE_COMMIT"
+        autoCommit="true"
+        />
+        <customStats sampleServiceTimes="true"/>
+        <dataPlacement enabled="false"/>
+        <jmxStatistics
+        enabled="true"/>
+        <deadlockDetection
+        enabled="false"/>
+        <clustering mode="d">
+            <sync
+            replTimeout="15000"/>
+            <hash
+            numVirtualNodes="100"
+            numOwners="1"
+            />
+        </clustering>
+        <customInterceptors>
+            <interceptor
+            after="org.infinispan.interceptors.InvocationContextInterceptor"
+            class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
+            <interceptor
+            before="org.infinispan.interceptors.NotificationInterceptor"
+            class="org.infinispan.stats.topK.DistributedStreamLibInterceptor"/>
+        </customInterceptors>
+        <versioning
+        enabled="true"
+        versioningScheme="GMU"/>
+        <garbageCollector
+        enabled="true"
+        transactionThreshold="1000"
+        versionGCMaxIdle="60"
+        viewGCBackOff="120"
+        l1GCInterval="60"/>
+        <conditionalExecutorService
+        corePoolSize="2"
+        maxPoolSize="16"
+        keepAliveTime="60"/>
+    </namedCache>
 </infinispan>
