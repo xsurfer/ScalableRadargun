@@ -168,6 +168,7 @@ public class InfinispanWrapper implements CacheWrapper {
 
     public void startTransaction() {
         assertTm();
+
         try {
             tm.begin();
             Transaction transaction = tm.getTransaction();
@@ -178,6 +179,12 @@ public class InfinispanWrapper implements CacheWrapper {
             throw new RuntimeException(e);
         }
     }
+
+    public void startTransaction(boolean isReadOnly){
+        this.startTransaction();
+    }
+
+
 
     public void endTransaction(boolean successful) {
         assertTm();
@@ -637,4 +644,8 @@ public class InfinispanWrapper implements CacheWrapper {
         }
     }
 
+    @Override
+    public boolean isCoordinator() {
+        return transport.isCoordinator();
+    }
 }

@@ -84,6 +84,8 @@ public interface CacheWrapper {
     */
    void startTransaction();
 
+    void startTransaction(boolean isReadOnly);
+
    /**
     * Called in conjunction with {@link #startTransaction()} in order to complete a transaction by either committing or rolling it back.
     *
@@ -125,6 +127,8 @@ public interface CacheWrapper {
     * @return true if this cache wrapper is *the* master, false otherwise
     */
    boolean isTheMaster();
+
+    boolean isCoordinator();
 
    /**
     * it resets the additional stats
