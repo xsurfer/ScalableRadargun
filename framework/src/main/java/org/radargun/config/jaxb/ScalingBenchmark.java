@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element ref="{}before"/>
- *         &lt;element ref="{}benchmark-stages"/>
+ *         &lt;element ref="{}benchmark-mandatoryStages"/>
  *         &lt;element ref="{}after"/>
  *       &lt;/sequence>
  *       &lt;attribute name="increment" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -46,7 +46,7 @@ public class ScalingBenchmark {
 
    @XmlElement(required = true)
    protected Before before;
-   @XmlElement(name = "benchmark-stages", required = true)
+   @XmlElement(name = "benchmark-mandatoryStages", required = true)
    protected BenchmarkStages benchmarkStages;
    @XmlElement(required = true)
    protected After after;

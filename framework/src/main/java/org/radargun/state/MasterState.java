@@ -9,6 +9,7 @@ import org.radargun.Stage;
 import org.radargun.config.DynamicBenchmarkConfig;
 import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
+import org.radargun.config.ScalingBenchmarkConfig;
 import org.radargun.jmx.JmxRegistration;
 import org.radargun.utils.Utils;
 
@@ -30,7 +31,7 @@ public class MasterState extends StateBase {
    private List<FixedSizeBenchmarkConfig> benchmarks;
    private FixedSizeBenchmarkConfig currentBenchmark;
    private long startTime = System.currentTimeMillis();
-   private DistStage currentDistStage;
+   protected DistStage currentDistStage;
 
    protected ThreadLocal<DistStage> currentDistScalingStageRef = new ThreadLocal<DistStage>();
 
@@ -76,39 +77,73 @@ public class MasterState extends StateBase {
       return getNextDistStageToProcess();
    }
 
+    /**
+     * This method is useful when you are processing a new slave.<br/>
+     * It allows you to execute only the mandatory stages till reaching the currentDistStage, skippable test will be skipped
+     * @return
+     */
+    public DistStage getNextDistScalingStageToProcess() {
+        log.trace("getNextDistScalingStageToProcess");
+        while (currentBenchmark.hasNextStage()) {
+            Stage stage = currentBenchmark.nextStage();
+            // finchè non raggiungo il current stage principale
+            // seleziono il primo stage da eseguire:
+            // se skippable, lo salto
+            // altrimenti lo eseguo
 
-    public DistStage getNextDistScalingStageToProcess(int slaves) {
-        while (((DynamicBenchmarkConfig) currentBenchmark).hasNextScalingStage(slaves)) {
-            Stage stage = ((DynamicBenchmarkConfig) currentBenchmark).nextScalingStage();
             if (stage instanceof DistStage) {
+                // se non è uguale allo stato corrente
+                if (!(((DistStage) stage).getId().equals(currentDistStage.getId()))) {
+                    // allora se è skippabile lo skippo
+                    if (((DistStage) stage).isSkippable()) {
+                        log.trace("Skipping the stage [id=" + ((DistStage) stage).getId() + "; type=" + stage.getClass().toString() + "]");
+                        continue;
+                    }
+                }
                 currentDistScalingStageRef.set((DistStage) stage);
                 return currentDistScalingStageRef.get();
-                //Questo è commentato poichè non ho nessuno scaling stage da eseguire solo sul master
-//            } else {
-//                jmxRegistration.processStage(stage);
-//                executeServerStage((MasterStage) stage);
-//            }
+            }
+            else{
+                log.warn("Stage is not an instance of DistStage. Check it. Skipping...");
             }
         }
-
-        // TODO: penso che per il momento è meglio commentare, in questo caso non ci dovrei arrivare poichè muore prima
-        //if we are here it means we finished executed the current benchmark and we should move to next one
-//        if (benchmarks.size() == 0) {
-//            long duration = System.currentTimeMillis() - startTime;
-//            String duartionStr = Utils.getDurationString(duration);
-//            log.info("Sono in master state getNextDistScalingStageToProcess, controlla che sta a succede!" +
-//                    " Successfully executed all benchmarks in " + duartionStr + ", exiting.");
-//            return null;
-//        }
-//        currentBenchmark = benchmarks.remove(0);
-//        logBenchmarkStarted();
-        return getNextDistStageToProcess();
+        return null;
     }
+
+//    @Deprecated
+//    public DistStage getNextDistScalingStageToProcess(int slaves) {
+//        while (((DynamicBenchmarkConfig) currentBenchmark).hasNextScalingStage(slaves)) {
+//            Stage stage = ((DynamicBenchmarkConfig) currentBenchmark).nextScalingStage();
+//            if (stage instanceof DistStage) {
+//                currentDistScalingStageRef.set((DistStage) stage);
+//                return currentDistScalingStageRef.get();
+//                //Questo è commentato poichè non ho nessuno scaling stage da eseguire solo sul master
+////            } else {
+////                jmxRegistration.processStage(stage);
+////                executeServerStage((MasterStage) stage);
+////            }
+//            }
+//        }
+//
+//        // TODO: penso che per il momento è meglio commentare, in questo caso non ci dovrei arrivare poichè muore prima
+//        //if we are here it means we finished executed the current benchmark and we should move to next one
+////        if (benchmarks.size() == 0) {
+////            long duration = System.currentTimeMillis() - startTime;
+////            String duartionStr = Utils.getDurationString(duration);
+////            log.info("Sono in master state getNextDistScalingStageToProcess, controlla che sta a succede!" +
+////                    " Successfully executed all benchmarks in " + duartionStr + ", exiting.");
+////            return null;
+////        }
+////        currentBenchmark = benchmarks.remove(0);
+////        logBenchmarkStarted();
+//        c
+//    }
 
 
    public DistStage getCurrentDistStage() {
       return currentDistStage;
    }
+
 
     public DistStage getCurrentDistScalingStage() {
         return this.currentDistScalingStageRef.get();
@@ -118,10 +153,14 @@ public class MasterState extends StateBase {
       return currentDistStage.getActiveSlaveCount();
    }
 
-    public int getSlavesCountForCurrentScalingStage() {
-        log.debug("[[[ MasterState: per questo stage scaling sono attivi " + getCurrentDistScalingStage().getActiveScalingSlavesCount() + "slaves");
-        return getCurrentDistScalingStage().getActiveScalingSlavesCount();
+    public void setSlavesCountForCurrentStage(int activeSlaves) {
+        currentDistStage.setActiveSlavesCount(activeSlaves);
     }
+
+//    public int getSlavesCountForCurrentScalingStage() {
+//        log.debug("[[[ MasterState: per questo stage scaling sono attivi " + getCurrentDistScalingStage().getActiveScalingSlavesCount() + "slaves");
+//        return getCurrentDistScalingStage().getActiveScalingSlavesCount();
+//    }
 
    public boolean distStageFinished(List<DistStageAck> acks) {
       // Sort acks so that logs are more readable.
@@ -136,7 +175,7 @@ public class MasterState extends StateBase {
       boolean stageOk = currentDistStage.processAckOnMaster(acks, this);
       if (stageOk) return true;
       if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
-         log.warn("Execution error for current benchmark, skipping rest of the stages");
+         log.warn("Execution error for current benchmark, skipping rest of the mandatoryStages");
          currentBenchmark.errorOnCurrentBenchmark();
          return true;
       } else {
@@ -149,7 +188,7 @@ public class MasterState extends StateBase {
         boolean stageOk = getCurrentDistScalingStage().processAckOnMaster(acks, this);
         if (stageOk) return true;
         if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
-            log.warn("Execution error for current benchmark, skipping rest of the stages");
+            log.warn("Execution error for current benchmark, skipping rest of the mandatoryStages");
             currentBenchmark.errorOnCurrentBenchmark();
             return true;
         } else {
@@ -183,8 +222,11 @@ public class MasterState extends StateBase {
       return prodName;
    }
 
-    public FixedSizeBenchmarkConfig getCurrentBenchmark() {
-        return currentBenchmark;
+    public ScalingBenchmarkConfig getCurrentBenchmark() {
+        if(currentBenchmark instanceof ScalingBenchmarkConfig)
+            return (ScalingBenchmarkConfig) currentBenchmark;
+        else
+            throw new RuntimeException("currentBenchmark should be a ScalingBenchmarkConfig!");
     }
 
    public String configNameOfTheCurrentBenchmark() {

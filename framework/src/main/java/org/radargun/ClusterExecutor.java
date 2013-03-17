@@ -2,7 +2,6 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.state.MasterState;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,7 +15,7 @@ import java.util.*;
  * User: fabio
  * <p/>
  * Posso prendere le info che mi servono dal MasterScaling (singleton) in questo modo:
- * ScalingMaster.getMaster(null);
+ * ScalingMaster.getInstance(null);
  * <p/>
  * Date: 11/30/12
  * Time: 3:24 PM
@@ -39,7 +38,7 @@ public class ClusterExecutor implements Runnable {
     public ClusterExecutor(ArrayList<SocketChannel> slaves) {
         try {
             this.slaves = slaves;
-            ScalingMaster.getMaster(null).communicationSelector = Selector.open();
+            ScalingMaster.getInstance().communicationSelector = Selector.open();
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -62,7 +61,7 @@ public class ClusterExecutor implements Runnable {
 
     private void prepareNextStage() throws Exception {
         log.debug("Inizio il prepareNextStage");
-        DistStage toExecute = ScalingMaster.getMaster(null).state.getNextDistStageToProcess();
+        DistStage toExecute = ScalingMaster.getInstance().state.getNextDistStageToProcess();
         if (toExecute == null) {
             ShutDownHook.exit(0);
         }
@@ -71,39 +70,39 @@ public class ClusterExecutor implements Runnable {
 
     private void runDistStage(DistStage currentStage, int noSlaves) throws Exception {
         log.debug("Inizio il runDistStage");
-        ScalingMaster.getMaster(null).writeBufferMap.clear();
+        ScalingMaster.getInstance().writeBufferMap.clear();
 
         DistStage toSerialize;
         for (int i = 0; i < noSlaves; i++) {
-            SocketChannel slave = ScalingMaster.getMaster(null).slaves.get(i);
+            SocketChannel slave = ScalingMaster.getInstance().slaves.get(i);
             slave.configureBlocking(false);
-            slave.register(ScalingMaster.getMaster(null).communicationSelector, SelectionKey.OP_WRITE);
+            slave.register(ScalingMaster.getInstance().communicationSelector, SelectionKey.OP_WRITE);
 
             toSerialize = currentStage.clone();
-            toSerialize.initOnMaster(ScalingMaster.getMaster(null).state, i);
+            toSerialize.initOnMaster(ScalingMaster.getInstance().state, i);
             if (i == 0) {//only log this once
                 log.info("Starting dist stage '" + toSerialize.getClass().getSimpleName() + "' on " + toSerialize.getActiveSlaveCount() + " Slaves: " + toSerialize);
             }
             byte[] bytes = SerializationHelper.prepareForSerialization(toSerialize);
-            ScalingMaster.getMaster(null).writeBufferMap.put(slave, ByteBuffer.wrap(bytes));
+            ScalingMaster.getInstance().writeBufferMap.put(slave, ByteBuffer.wrap(bytes));
         }
     }
 
     private void startCommunicationWithSlaves() throws Exception {
         log.debug("Inizio il startCommunicationWithSlaves");
-        while (!ScalingMaster.getMaster(null).stopped) {
-            ScalingMaster.getMaster(null).communicationSelector.select();
+        while (!ScalingMaster.getInstance().stopped) {
+            ScalingMaster.getInstance().communicationSelector.select();
             /** Registro nuovi slave nel caso slavesReadyToMerge non è vuota **/
-            if(!ScalingMaster.getMaster(null).slavesReadyToMerge.isEmpty()){
-                for (SocketChannel sc : ScalingMaster.getMaster(null).slavesReadyToMerge) {
+            if(!ScalingMaster.getInstance().slavesReadyToMerge.isEmpty()){
+                for (SocketChannel sc : ScalingMaster.getInstance().slavesReadyToMerge) {
                     sc.configureBlocking(false);
-                    sc.register(ScalingMaster.getMaster(null).communicationSelector, SelectionKey.OP_READ);
+                    sc.register(ScalingMaster.getInstance().communicationSelector, SelectionKey.OP_READ);
                 }
-                ScalingMaster.getMaster(null).slavesReadyToMerge.clear();
+                ScalingMaster.getInstance().slavesReadyToMerge.clear();
                 continue;
             }
 
-            Set<SelectionKey> keys = ScalingMaster.getMaster(null).communicationSelector.selectedKeys();
+            Set<SelectionKey> keys = ScalingMaster.getInstance().communicationSelector.selectedKeys();
             if (log.isTraceEnabled()) log.trace("Received " + keys.size() + " keys.");
             if (keys.size() > 0) {
                 Iterator<SelectionKey> keysIt = keys.iterator();
@@ -112,7 +111,7 @@ public class ClusterExecutor implements Runnable {
                     keysIt.remove();
                     //controllo se la chiave appartiene all'insime di slave di questo QuickExecutor
 //                    if(this.slaves.contains((SocketChannel) key.channel())){
-//                        int slaveNumber = ScalingMaster.getMaster(null).slave2Index.get((SocketChannel) key.channel());
+//                        int slaveNumber = ScalingMaster.getInstance().slave2Index.get((SocketChannel) key.channel());
 //                        log.debug("ACK ricevuto da uno Slave" + slaveNumber);
 //                        keysIt.remove();
 //                    }
@@ -144,25 +143,25 @@ public class ClusterExecutor implements Runnable {
     private void readStageAck(SelectionKey key) throws Exception {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
-        ByteBuffer byteBuffer = ScalingMaster.getMaster(null).readBufferMap.get(socketChannel);
+        ByteBuffer byteBuffer = ScalingMaster.getInstance().readBufferMap.get(socketChannel);
         int value = socketChannel.read(byteBuffer);
         if (log.isTraceEnabled()) {
             log.trace("We've read into the buffer: " + byteBuffer + ". Number of read bytes is " + value);
         }
 
         if (value == -1) {
-            log.warn("Slave stopped! Index: " + ScalingMaster.getMaster(null).slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
+            log.warn("Slave stopped! Index: " + ScalingMaster.getInstance().slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
             key.cancel();
-            if (!ScalingMaster.getMaster(null).slaves.remove(socketChannel)) {
+            if (!ScalingMaster.getInstance().slaves.remove(socketChannel)) {
                 throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
             }
-            ScalingMaster.getMaster(null).releaseResourcesAndExit();
+            ScalingMaster.getInstance().releaseResourcesAndExit();
         } else if (byteBuffer.limit() >= 4) {
             int expectedSize = byteBuffer.getInt(0);
             if ((expectedSize + 4) > byteBuffer.capacity()) {
                 ByteBuffer replacer = ByteBuffer.allocate(expectedSize + 4);
                 replacer.put(byteBuffer.array());
-                ScalingMaster.getMaster(null).readBufferMap.put(socketChannel, replacer);
+                ScalingMaster.getInstance().readBufferMap.put(socketChannel, replacer);
                 if (log.isTraceEnabled())
                     log.trace("Expected size(" + expectedSize + ")" + " is > bytebuffer's capacity(" +
                             byteBuffer.capacity() + ")" + ".Replacing " + byteBuffer + " with " + replacer);
@@ -176,23 +175,23 @@ public class ClusterExecutor implements Runnable {
                 byteBuffer.clear();
                 /* controllo se l'ack appartiene allo stage corrente */
                 log.info(ack.getStageName());
-                log.info(ScalingMaster.getMaster(null).state.getCurrentDistStage().getClass().getName());
-                if (ack.getStageName().compareTo(ScalingMaster.getMaster(null).state.getCurrentDistStage().getClass().getName()) == 0) {
+                log.info(ScalingMaster.getInstance().state.getCurrentDistStage().getClass().getName());
+                if (ack.getStageName().compareTo(ScalingMaster.getInstance().state.getCurrentDistStage().getClass().getName()) == 0) {
                     /* TODO: controllare se l'ack proviene da uno slave noto */
                     responses.add(ack);
                     log.debug("ACK added: same stage");
                 } else {
                     log.debug("ACK dropped: different stage");
                 }
-                int ackLeft = ScalingMaster.getMaster(null).state.getSlavesCountForCurrentStage() - responses.size();
+                int ackLeft = ScalingMaster.getInstance(null).state.getSlavesCountForCurrentStage() - responses.size();
                 log.info( ackLeft + " ACKs left" );
             }
         }
 
-        if (responses.size() == ScalingMaster.getMaster(null).state.getSlavesCountForCurrentStage()) {
-            if (!ScalingMaster.getMaster(null).state.distStageFinished(responses)) {
-                log.error("Exiting because issues processing current stage: " + ScalingMaster.getMaster(null).state.getCurrentDistStage());
-                ScalingMaster.getMaster(null).releaseResourcesAndExit();
+        if (responses.size() == ScalingMaster.getInstance(null).state.getSlavesCountForCurrentStage()) {
+            if (!ScalingMaster.getInstance(null).state.distStageFinished(responses)) {
+                log.error("Exiting because issues processing current stage: " + ScalingMaster.getInstance(null).state.getCurrentDistStage());
+                ScalingMaster.getInstance(null).releaseResourcesAndExit();
             }
 
             prepareNextStage();
@@ -201,7 +200,7 @@ public class ClusterExecutor implements Runnable {
 
     private void sendStage(SelectionKey key) throws IOException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        ByteBuffer buf = ScalingMaster.getMaster(null).writeBufferMap.get(socketChannel);
+        ByteBuffer buf = ScalingMaster.getInstance(null).writeBufferMap.get(socketChannel);
         if (log.isTraceEnabled())
             log.trace("Writing buffer '" + buf + " to channel '" + socketChannel + "' ");
         socketChannel.write(buf);
@@ -214,10 +213,10 @@ public class ClusterExecutor implements Runnable {
             if (log.isTraceEnabled())
                 log.trace("Current stage successfully transmitted to " + processedSlaves + " slave(s).");
         }
-        if (processedSlaves == ScalingMaster.getMaster(null).state.getSlavesCountForCurrentStage()) {
-            log.trace("Successfully completed broadcasting stage " + ScalingMaster.getMaster(null).state.getCurrentDistStage());
+        if (processedSlaves == ScalingMaster.getInstance(null).state.getSlavesCountForCurrentStage()) {
+            log.trace("Successfully completed broadcasting stage " + ScalingMaster.getInstance(null).state.getCurrentDistStage());
             processedSlaves = 0;
-            ScalingMaster.getMaster(null).writeBufferMap.clear();
+            ScalingMaster.getInstance(null).writeBufferMap.clear();
             responses.clear();
         }
     }

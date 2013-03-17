@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
  * starta un thread che inizierà a far svolgere tutte attività come di consueto.
  * La fase di discovery non muore ma resta in discovery e quando trova 1 o più slaves che si vogliono aggiungere a runtime
  * starta un altro thread che prima di tutto va ad aggiornare la configurazione principale rappresentata da {@link MasterState}
- * dopodichè inizierà ad eseguiro lo stack di stages presenti nel scalingStagesRef che è una variabile locale al thread
+ * dopodichè inizierà ad eseguiro lo stack di mandatoryStages presenti nel scalingStagesRef che è una variabile locale al thread
  * <p/>
  * L'istanza di questa classe verrà usata in vari thread...ATTENTI ALLA SINCRONIZZAZIONE...per il resto speriamo tutto bene,
  * Buon Natale!
@@ -60,13 +60,6 @@ public class ScalingMaster {
     private Selector discoverySelector;
     volatile Selector communicationSelector;
 
-    // questa variabile contiene informazioni (running) sulle istanze dei thread responsabili di far fare il join di slaves
-    public ThreadLocal<Boolean> quickThreadRunning = new ThreadLocal<Boolean>(){
-        protected Boolean initialValue() {
-            return new Boolean(true);
-        }
-    };
-
     /**
      * Mappa utile per associare uno slave a un indice *
      */
@@ -82,9 +75,16 @@ public class ScalingMaster {
         Runtime.getRuntime().addShutdownHook(new ShutDownHook("Master process"));
     }
 
-    public static ScalingMaster getMaster(MasterConfig masterConfig) {
+    public static ScalingMaster getInstance(MasterConfig masterConfig) {
         if (instance == null) {
             instance = new ScalingMaster(masterConfig);
+        }
+        return instance;
+    }
+
+    public static ScalingMaster getInstance() {
+        if (instance == null) {
+            throw new RuntimeException("ScalingMaster not instanciated");
         }
         return instance;
     }
@@ -139,38 +139,39 @@ public class ScalingMaster {
         Runnable worker = new ClusterExecutor(new ArrayList<SocketChannel>(slaves));
         executor.execute(worker);
 
-
         /** adesso resto in attesa di slaves ritardatari **/
         List<SocketChannel> tmpSlaves = new ArrayList<SocketChannel>(); // variabile che contiene i nuovi slaves da passare al nuovo thread
         while (!stopped) {
-            log.info("Waiting for other slaves to register to the master.");
-            discoverySelector.select();
-            Set<SelectionKey> keySet = discoverySelector.selectedKeys();
-            Iterator<SelectionKey> it = keySet.iterator();
-            while (it.hasNext()) {                                       //Seleziono solamente le chiavi con OP_ACCEPT
-                SelectionKey selectionKey = it.next();
-                it.remove();
-                if (!selectionKey.isValid()) {
-                    continue;
+            while (state.getCurrentDistStage()!=null && state.getCurrentDistStage().isScalable()) {
+                log.info("Waiting for other slaves to register to the master.");
+                discoverySelector.select();
+                Set<SelectionKey> keySet = discoverySelector.selectedKeys();
+                Iterator<SelectionKey> it = keySet.iterator();
+                while (it.hasNext()) {                                       //Seleziono solamente le chiavi con OP_ACCEPT
+                    SelectionKey selectionKey = it.next();
+                    it.remove();
+                    if (!selectionKey.isValid()) {
+                        continue;
+                    }
+                    log.info("*---*---* NEW SLAVE DISCOVERED *---*---*");
+                    ServerSocketChannel srvSocketChannel = (ServerSocketChannel) selectionKey.channel();
+                    SocketChannel socketChannel = srvSocketChannel.accept();
+                    slaves.add(socketChannel);      /* aggiungo sia alla variabile che contiene tutti gli slave*/
+                    tmpSlaves.add(socketChannel);   /* sia alla variabile temporanea che contiene un sott'insieme */
+                    slave2Index.put(socketChannel, (slaves.size() - 1));
+                    this.readBufferMap.put(socketChannel, ByteBuffer.allocate(DEFAULT_READ_BUFF_CAPACITY));
+                    log.info("Discovery: IL readBufferMap ha size: " + this.readBufferMap.size());
+                    if (log.isTraceEnabled())
+                        log.trace("Added new slave connection from: " + socketChannel.socket().getInetAddress());
                 }
-                log.info("*---*---* NEW SLAVE DISCOVERED *---*---*");
-                ServerSocketChannel srvSocketChannel = (ServerSocketChannel) selectionKey.channel();
-                SocketChannel socketChannel = srvSocketChannel.accept();
-                slaves.add(socketChannel);      /* aggiungo sia alla variabile che contiene tutti gli slave*/
-                tmpSlaves.add(socketChannel);   /* sia alla variabile temporanea che contiene un sott'insieme */
-                slave2Index.put(socketChannel, (slaves.size() - 1));
-                this.readBufferMap.put(socketChannel, ByteBuffer.allocate(DEFAULT_READ_BUFF_CAPACITY));
-                log.info("Discovery: IL readBufferMap ha size: " + this.readBufferMap.size());
-                if (log.isTraceEnabled())
-                    log.trace("Added new slave connection from: " + socketChannel.socket().getInetAddress());
-            }
-            log.info("Connection established from " + tmpSlaves.size() + " new slaves.");
-            executor = Executors.newSingleThreadExecutor();
-            worker = new QuickExecutor(tmpSlaves);
-            executor.execute(worker);
+                log.info("Connection established from " + tmpSlaves.size() + " new slaves.");
+                executor = Executors.newSingleThreadExecutor();
+                worker = new QuickExecutor(Collections.unmodifiableList(tmpSlaves));
+                executor.execute(worker);
 
-            // per ora lascio questo...potrebbe esserci un NullException
-            tmpSlaves = new ArrayList<SocketChannel>();
+                // per ora lascio questo...potrebbe esserci un NullException
+                tmpSlaves = new ArrayList<SocketChannel>();
+            }
         }
         return;
     }

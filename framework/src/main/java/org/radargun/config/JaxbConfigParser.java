@@ -46,7 +46,7 @@ public class JaxbConfigParser extends ConfigParser {
          sbc.setIncrement(toInt(sb.getIncrement()));
 
          List<Stage> benchmarkStagesFromXml = sb.getBenchmarkStages().getStage();
-         sbc.setStages(processStages(benchmarkStagesFromXml));
+         sbc.setOriginalStages(processStages(benchmarkStagesFromXml));
 
 
          sbc.validate();
@@ -58,7 +58,7 @@ public class JaxbConfigParser extends ConfigParser {
          fbc.setConfigName(fb.getConfigName());
          fbc.setSize(toInt(fb.getSize()));
          List<Stage> stagesFromXml = fb.getStage();
-         fbc.setStages(processStages(stagesFromXml));
+         fbc.setOriginalStages(processStages(stagesFromXml));
          fbc.validate();
          masterConfig.addBenchmark(fbc);
       }

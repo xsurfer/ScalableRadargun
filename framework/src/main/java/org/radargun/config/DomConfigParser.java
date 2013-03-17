@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Master;
 import org.radargun.Stage;
-import org.radargun.stages.GenerateChartStage;
 import org.radargun.stages.GenerateScalingChartStage;
 import org.radargun.stages.StartClusterStage;
 import org.radargun.utils.TypedProperties;
@@ -12,9 +11,7 @@ import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Mircea.Markus@jboss.com
@@ -37,19 +34,10 @@ public class DomConfigParser extends ConfigParser {
 
         Element configRoot = (Element) document.getElementsByTagName("bench-config").item(0);
 
-        FixedSizeBenchmarkConfig prototype;
-        boolean cloudtm = Boolean.parseBoolean(ConfigHelper.getStrAttribute(configRoot, "cloudTm"));
-        log.debug("Is it cloudtm? " + cloudtm);
-        if (cloudtm) {
-            prototype = (DynamicBenchmarkConfig) buildDynamicBenchmarkPrototype(configRoot);
-        } else {
-            prototype = (ScalingBenchmarkConfig) buildScalingBenchmarkPrototype(configRoot);
-        }
+        ScalingBenchmarkConfig prototype = buildBenchmarkPrototype(configRoot);
+
         MasterConfig masterConfig = parseMaster(configRoot, prototype);
 
-        if (cloudtm) {
-            masterConfig.setCloudTm(true);
-        }
         parseProductsElement(configRoot, prototype, masterConfig);
         //now add the reporting
         parseReporting(configRoot, masterConfig);
@@ -69,7 +57,7 @@ public class DomConfigParser extends ConfigParser {
             if (reportElList.item(i) instanceof Element) {
                 Element thisReportEl = (Element) reportElList.item(i);
                 GenerateScalingChartStage generateChartStage = new GenerateScalingChartStage();
-                reportBenchmark.addStage(generateChartStage);
+                reportBenchmark.addOriginalStage(generateChartStage);
                 generateChartStage.setFnPrefix(ConfigHelper.getStrAttribute(thisReportEl, "name"));
                 if (thisReportEl.getAttribute("includeAll") != null) {
                     String inclAll = ConfigHelper.getStrAttribute(thisReportEl, "includeAll");
@@ -88,7 +76,7 @@ public class DomConfigParser extends ConfigParser {
         }
     }
 
-    private void parseProductsElement(Element configRoot, FixedSizeBenchmarkConfig prototype, MasterConfig masterConfig) {
+    private void parseProductsElement(Element configRoot, ScalingBenchmarkConfig prototype, MasterConfig masterConfig) {
         Element productsEl = (Element) configRoot.getElementsByTagName("products").item(0);
         NodeList productsChildEl = productsEl.getChildNodes();
         for (int i = 0; i < productsChildEl.getLength(); i++) {
@@ -102,15 +90,12 @@ public class DomConfigParser extends ConfigParser {
                     String configName = configEl.getAttribute("name");
                     Properties configAttributes = getAttributes(configEl);
 
-                    FixedSizeBenchmarkConfig clone = prototype.clone();
-
+                    ScalingBenchmarkConfig clone = prototype.clone();
                     clone.setProductName(productName);
                     masterConfig.addBenchmark(clone);
                     clone.setConfigName(configName);
                     clone.setConfigAttributes(new TypedProperties(configAttributes));
-                    updateStartupStage(configName, clone, masterConfig.isCloudTm());
-// Check Fabio's branch...
-//               updateStartupStage(configName, clone);
+                    updateStartupStage(configName, clone);
                 }
 
             }
@@ -128,7 +113,7 @@ public class DomConfigParser extends ConfigParser {
         return configAttributes;
     }
 
-    private MasterConfig parseMaster(Element configRoot, FixedSizeBenchmarkConfig prototype) {
+    private MasterConfig parseMaster(Element configRoot, ScalingBenchmarkConfig prototype) {
         MasterConfig masterConfig;
         Element masterEl = (Element) configRoot.getElementsByTagName("master").item(0);
         String bindAddress = ConfigHelper.getStrAttribute(masterEl, "bindAddress");
@@ -137,26 +122,17 @@ public class DomConfigParser extends ConfigParser {
         return masterConfig;
     }
 
-    private void updateStartupStage(String configName, FixedSizeBenchmarkConfig clone, boolean cloudtm) {
-        for (Stage st : clone.getStages()) {
+    private void updateStartupStage(String configName, ScalingBenchmarkConfig clone) {
+        for (Stage st : clone.getOriginalStages()) {
             if (st instanceof StartClusterStage) {
                 StartClusterStage scs = (StartClusterStage) st;
                 scs.setConfig(configName);
                 scs.setConfAttributes(clone.getConfigAttributes());
             }
         }
-        if (cloudtm) {
-            for (Stage st : ((DynamicBenchmarkConfig) clone).getScalingStages()) {
-                if (st instanceof StartClusterStage) {
-                    StartClusterStage scs = (StartClusterStage) st;
-                    scs.setConfig(configName);
-                    scs.setConfAttributes(clone.getConfigAttributes());
-                }
-            }
-        }
     }
 
-    private ScalingBenchmarkConfig buildScalingBenchmarkPrototype(Element configRoot) {
+    private ScalingBenchmarkConfig buildBenchmarkPrototype(Element configRoot) {
         ScalingBenchmarkConfig prototype;
         prototype = new ScalingBenchmarkConfig();
         Element benchmarkEl = (Element) configRoot.getElementsByTagName("benchmark").item(0);
@@ -171,7 +147,7 @@ public class DomConfigParser extends ConfigParser {
                 Element childEl = (Element) child;
                 String stageShortName = childEl.getNodeName();
                 Stage st = JaxbConfigParser.getStage(stageShortName + "Stage");
-                prototype.addStage(st);
+                prototype.addOriginalStage(st);
                 NamedNodeMap attributes = childEl.getAttributes();
                 Map<String, String> attrToSet = new HashMap<String, String>();
                 for (int attrIndex = 0; attrIndex < attributes.getLength(); attrIndex++) {
@@ -184,55 +160,56 @@ public class DomConfigParser extends ConfigParser {
         return prototype;
     }
 
-    private DynamicBenchmarkConfig buildDynamicBenchmarkPrototype(Element configRoot) {
-        DynamicBenchmarkConfig prototype;
-        prototype = new DynamicBenchmarkConfig();
-        Element benchmarkEl = (Element) configRoot.getElementsByTagName("benchmark").item(0);
-
-        prototype.setMaxSize(ConfigHelper.getIntAttribute(benchmarkEl, "maxSize"));
-        /* prototype.setTxLowerBound(ConfigHelper.getIntAttribute(benchmarkEl,"txLowerBound"));
-       prototype.setTxUpperBound(ConfigHelper.getIntAttribute(benchmarkEl,"txUpperBound")); */
-
-        NodeList childNodes = benchmarkEl.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof Element) {
-                Element childEl = (Element) child;
-                String stageShortName = childEl.getNodeName();
-                Stage st = JaxbConfigParser.getStage(stageShortName + "Stage");
-                prototype.addStage(st);
-                NamedNodeMap attributes = childEl.getAttributes();
-                Map<String, String> attrToSet = new HashMap<String, String>();
-                for (int attrIndex = 0; attrIndex < attributes.getLength(); attrIndex++) {
-                    Attr attr = (Attr) attributes.item(attrIndex);
-                    attrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
-                }
-                ConfigHelper.setValues(st, attrToSet, true);
-            }
-        }
-
-        /** Vado a preparare lo stack da eseguire negli slavi "ritardari"**/
-        benchmarkEl = (Element) configRoot.getElementsByTagName("benchmark-scaling").item(0);
-
-        childNodes = benchmarkEl.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof Element) {
-                Element childEl = (Element) child;
-                String stageShortName = childEl.getNodeName();
-                Stage st = JaxbConfigParser.getStage(stageShortName + "Stage");
-                prototype.addScalingStage(st);
-                NamedNodeMap attributes = childEl.getAttributes();
-                Map<String, String> attrToSet = new HashMap<String, String>();
-                for (int attrIndex = 0; attrIndex < attributes.getLength(); attrIndex++) {
-                    Attr attr = (Attr) attributes.item(attrIndex);
-                    attrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
-                }
-                ConfigHelper.setValues(st, attrToSet, true);
-            }
-        }
-
-        return prototype;
-    }
+//    @Deprecated
+//    private DynamicBenchmarkConfig buildDynamicBenchmarkPrototype(Element configRoot) {
+//        DynamicBenchmarkConfig prototype;
+//        prototype = new DynamicBenchmarkConfig();
+//        Element benchmarkEl = (Element) configRoot.getElementsByTagName("benchmark").item(0);
+//
+//        prototype.setMaxSize(ConfigHelper.getIntAttribute(benchmarkEl, "maxSize"));
+//        /* prototype.setTxLowerBound(ConfigHelper.getIntAttribute(benchmarkEl,"txLowerBound"));
+//       prototype.setTxUpperBound(ConfigHelper.getIntAttribute(benchmarkEl,"txUpperBound")); */
+//
+//        NodeList childNodes = benchmarkEl.getChildNodes();
+//        for (int i = 0; i < childNodes.getLength(); i++) {
+//            Node child = childNodes.item(i);
+//            if (child instanceof Element) {
+//                Element childEl = (Element) child;
+//                String stageShortName = childEl.getNodeName();
+//                Stage st = JaxbConfigParser.getStage(stageShortName + "Stage");
+//                prototype.addStage(st);
+//                NamedNodeMap attributes = childEl.getAttributes();
+//                Map<String, String> attrToSet = new HashMap<String, String>();
+//                for (int attrIndex = 0; attrIndex < attributes.getLength(); attrIndex++) {
+//                    Attr attr = (Attr) attributes.item(attrIndex);
+//                    attrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+//                }
+//                ConfigHelper.setValues(st, attrToSet, true);
+//            }
+//        }
+//
+//        /** Vado a preparare lo stack da eseguire negli slavi "ritardari"**/
+//        benchmarkEl = (Element) configRoot.getElementsByTagName("benchmark-scaling").item(0);
+//
+//        childNodes = benchmarkEl.getChildNodes();
+//        for (int i = 0; i < childNodes.getLength(); i++) {
+//            Node child = childNodes.item(i);
+//            if (child instanceof Element) {
+//                Element childEl = (Element) child;
+//                String stageShortName = childEl.getNodeName();
+//                Stage st = JaxbConfigParser.getStage(stageShortName + "Stage");
+//                prototype.addScalingStage(st);
+//                NamedNodeMap attributes = childEl.getAttributes();
+//                Map<String, String> attrToSet = new HashMap<String, String>();
+//                for (int attrIndex = 0; attrIndex < attributes.getLength(); attrIndex++) {
+//                    Attr attr = (Attr) attributes.item(attrIndex);
+//                    attrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+//                }
+//                ConfigHelper.setValues(st, attrToSet, true);
+//            }
+//        }
+//
+//        return prototype;
+//    }
 
 }

@@ -60,7 +60,7 @@
     </category>
 	
     <category name="org.radargun">
-        <priority value="INFO"/>
+        <priority value="TRACE"/>
     </category>
 
     <category name="org.radargun.reporting">

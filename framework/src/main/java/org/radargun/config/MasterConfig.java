@@ -20,8 +20,10 @@ public class MasterConfig {
    private int port;
    private String host;
    private int slavesCount;
-   private boolean cloudTm = false;
 
+    /**
+     * This list contains as many ScalingBenchmarkConfig as the product (PRODUCTS * CONFIGURATION FILE)
+     */
    List<FixedSizeBenchmarkConfig> benchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
 
    public MasterConfig(int port, String host, int slavesCount) {
@@ -29,14 +31,6 @@ public class MasterConfig {
       this.host = host;
       this.slavesCount = slavesCount;
    }
-
-    public boolean isCloudTm() {
-        return cloudTm;
-    }
-
-    public void setCloudTm(boolean _cloudTm) {
-        this.cloudTm = _cloudTm;
-    }
 
    public int getPort() {
       return port;
@@ -54,14 +48,15 @@ public class MasterConfig {
      *  ed è incaricato di aggiornare anche il numero di slaves nello stage attualmente in esecuzione
      *  che DEVE essere OBLiGATORIAMENTE il WebSessionBenchmarkStage!!!
      **/
-    public void setSlavesCount(int slavesCount){
-        this.slavesCount = slavesCount;
-        log.debug("Modifico numero di slaves in CurrentDistStage:" + ScalingMaster.getMaster(null).state.getCurrentDistStage().getClass().getName() + "(deve essere WebSessionBenchmark!!)" );
-        for (FixedSizeBenchmarkConfig f : benchmarks) {
-            f.setSize(slavesCount);
-        }
-
-    }
+//    @Deprecated
+//    public void setSlavesCount(int slavesCount){
+//        this.slavesCount = slavesCount;
+//        log.debug("Modifico numero di slaves in CurrentDistStage:" + ScalingMaster.getInstance(null).state.getCurrentDistStage().getClass().getName() + "(deve essere WebSessionBenchmark!!)" );
+//        for (FixedSizeBenchmarkConfig f : benchmarks) {
+//            f.setSize(slavesCount);
+//        }
+//
+//    }
 
    public List<FixedSizeBenchmarkConfig> getBenchmarks() {
       return benchmarks;

@@ -7,10 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Questa classe è quella che starta rapidamente un insieme di slaves. Cosa fà?
@@ -22,41 +19,28 @@ import java.util.Set;
  * Date: 11/30/12
  * Time: 7:15 PM
  */
-public class QuickExecutor implements Runnable {
+public class QuickExecutor extends Observable implements Runnable {
 
     private static Log log = LogFactory.getLog(QuickExecutor.class);
 
     private Selector communicationSelector;
 
-    /**
-     * TODO: Questa variabile deve essere locale al thread *
-     */
-    //private List<DistStageAck> responses = new ArrayList<DistStageAck>();
+    private List<DistStageAck> responses = new ArrayList<DistStageAck>();
 
-    protected ThreadLocal<List<DistStageAck>> responsesRef = new ThreadLocal<List<DistStageAck>>() {
-        protected List<DistStageAck> initialValue() {
-            return new ArrayList<DistStageAck>();
-        }
-    };
-
-
+    private boolean quickThreadRunning = true;
+//    // questa variabile contiene informazioni (running) sulle istanze dei thread responsabili di far fare il join di slaves
+//    public ThreadLocal<Boolean> quickThreadRunning = new ThreadLocal<Boolean>(){
+//        protected Boolean initialValue() {
+//            return new Boolean(true);
+//        }
+//    };
 
     int processedSlaves = 0;
 
-    List<SocketChannel> tmpSlaves;
-
-    protected ThreadLocal<List<SocketChannel>> newSlavesRef = new ThreadLocal<List<SocketChannel>>() {
-        protected List<SocketChannel> initialValue() {
-            return new ArrayList<SocketChannel>(tmpSlaves);
-        }
-    };
-
-    /**
-     * Inizio dei metodi
-     */
+    private final List<SocketChannel> newSlaves;
 
     public QuickExecutor(List<SocketChannel> newSlaves) {
-        this.tmpSlaves = newSlaves;
+        this.newSlaves = newSlaves;
         try {
             communicationSelector = Selector.open();
         } catch (IOException e) {
@@ -69,13 +53,24 @@ public class QuickExecutor implements Runnable {
     @Override
     public void run() {
         log.debug("Starting...");
-        newSlavesRef.set(tmpSlaves);
+        //newSlaves.set(tmpSlaves);
         try {
-            // aggiorno il numero di slaves nel master config
-            int newSize = ScalingMaster.getMaster(null).masterConfig.getSlaveCount() + newSlavesRef.get().size();
-            log.debug("Editing slaves number on masterConfig: from " + ScalingMaster.getMaster(null).masterConfig.getSlaveCount() + " to " + newSize);
-            ScalingMaster.getMaster(null).masterConfig.setSlavesCount(newSize);
-            ScalingMaster.getMaster(null).state.getCurrentDistStage().setActiveSlavesCount(newSize);
+            /*
+            * 16Mar2013 - perchè aggiornavo il numero di slave nel master conf
+            * oggi direi che non è necessario in quanto se voglio mantenere la feature dello scalingtest (quello originale di radargun)
+            * non devo cambiare il conf in modo che quando rinizia ricomincia col numero giusto di slave,
+            * nel caso poi si devono riaggiungere i nodi!
+            */
+            log.warn("Commentato le modifiche sul MasterConfig: inutile altrimenti dovrei fare un reset");
+            int newSize = ScalingMaster.getInstance().masterConfig.getSlaveCount() + newSlaves.size();
+            //log.debug("Editing slaves number on masterConfig: from " + ScalingMaster.getInstance().masterConfig.getSlaveCount() + " to " + newSize);
+            //ScalingMaster.getInstance().masterConfig.setSlavesCount(newSize);
+
+            log.debug("Editing slaves number on the current stage: from " + ScalingMaster.getInstance().state.getCurrentDistStage() + " to " + newSize);
+            ScalingMaster.getInstance().state.getCurrentDistStage().setActiveSlavesCount(newSize);
+
+            log.debug("Editing size for the current fixed benchmark");
+            ScalingMaster.getInstance().state.getCurrentBenchmark().currentFixedBenchmark().setSize(newSize);
 
             prepareNextStage();
             startCommunicationWithSlaves();
@@ -89,37 +84,42 @@ public class QuickExecutor implements Runnable {
 
     private void prepareNextStage() throws Exception {
         log.debug("Executing prepareNextStage()");
-        DistStage toExecute = ScalingMaster.getMaster(null).state.getNextDistScalingStageToProcess(newSlavesRef.get().size());
+        DistStage toExecute = ScalingMaster.getInstance().state.getNextDistScalingStageToProcess();
         if (toExecute == null) {
             ShutDownHook.exit(0);
+            //return;
         }
-        runDistStage(toExecute, toExecute.getActiveScalingSlavesCount());
+        log.warn("PLACEHOLDER: QuickExecutor->prepareNextStage ["+newSlaves.size()+"!="+toExecute.getActiveSlaveCount()+"]");
+        // Eseguo lo stage con active slave pari a clusterSize+newSlaves ma poi invio/ricevo stage/ack dagli slavi attuali
+        runDistStage(toExecute, toExecute.getActiveSlaveCount());
     }
 
     private void runDistStage(DistStage currentStage, int noSlaves) throws Exception {
-        log.debug("Executing runDistStage; noSlaves=" + noSlaves + "=?=" + newSlavesRef.get().size() + "=newSlavesRef.size");
-        ScalingMaster.getMaster(null).writeBufferMap.clear();
+        log.debug("Executing runDistStage; noSlaves=" + noSlaves + "=?=" + newSlaves.size() + "=newSlaves.size");
+        ScalingMaster.getInstance().writeBufferMap.clear();
 
         DistStage toSerialize;
-        for (int i = 0; i < newSlavesRef.get().size(); i++) {
+        for (int i = 0; i < newSlaves.size(); i++) {
             /** Qui sotto, a differenza di prima, devo eseguire gli stage solamente in quegli slave nuovi quindi per fare
              *  questo prendo l'indice dello slave tramite lo slave2Index dello Scaling Master. Dopodichè uso quest'indice
              *  per recuperare la socket
-             *  SocketChannel slave = ScalingMaster.getMaster(null).slaves.get( ScalingMaster.getMaster(null).slave2Index.get(newSlavesRef.get().get(i)) );
+             *  SocketChannel slave = ScalingMaster.getInstance().slaves.get( ScalingMaster.getInstance().slave2Index.get(newSlaves.get().get(i)) );
              *
              *  altriemnti più semplicemente scorro gli slave passati
              **/
-            SocketChannel slave = newSlavesRef.get().get(i);
+            SocketChannel slave = newSlaves.get(i);
             slave.configureBlocking(false);
             slave.register(communicationSelector, SelectionKey.OP_WRITE);
 
             toSerialize = currentStage.clone();
-            toSerialize.initOnMaster(ScalingMaster.getMaster(null).state, ScalingMaster.getMaster(null).slave2Index.get(slave));
+            toSerialize.initOnMaster(ScalingMaster.getInstance().state, ScalingMaster.getInstance().slave2Index.get(slave));
             if (i == 0) {//only log this once
-                log.info("Starting dist stage '" + toSerialize.getClass().getSimpleName() + "' on " + toSerialize.getActiveScalingSlavesCount() + " Slaves: " + toSerialize);
+                log.warn("PLACEHORLDER: QuickExecutor->runDistStage");
+                log.info("Starting dist stage '" + toSerialize.getClass().getSimpleName() + "' on " + this.newSlaves.size() + " Slaves: " + toSerialize);
+                //log.info("Starting dist stage '" + toSerialize.getClass().getSimpleName() + "' on " + toSerialize.getActiveScalingSlavesCount() + " Slaves: " + toSerialize);
             }
             byte[] bytes = SerializationHelper.prepareForSerialization(toSerialize);
-            ScalingMaster.getMaster(null).writeBufferMap.put(slave, ByteBuffer.wrap(bytes));
+            ScalingMaster.getInstance().writeBufferMap.put(slave, ByteBuffer.wrap(bytes));
         }
     }
 
@@ -135,8 +135,8 @@ public class QuickExecutor implements Runnable {
                     SelectionKey key = keysIt.next();
 
                     //controllo se la chiave appartiene all'insime di slave di questo QuickExecutor
-                    if (this.newSlavesRef.get().contains((SocketChannel) key.channel())) {
-                        int slaveNumber = ScalingMaster.getMaster(null).slave2Index.get((SocketChannel) key.channel());
+                    if (this.newSlaves.contains((SocketChannel) key.channel())) {
+                        int slaveNumber = ScalingMaster.getInstance().slave2Index.get((SocketChannel) key.channel());
                         log.debug("ACK ricevuto da uno Slave" + slaveNumber);
                         keysIt.remove();
                     } else {
@@ -159,13 +159,13 @@ public class QuickExecutor implements Runnable {
                 }
 
             }
-            if (!ScalingMaster.getMaster(null).quickThreadRunning.get()) {
+            if (!quickThreadRunning) {
                 log.info("Ok, abbiamo appena inviato lo state del Benchmark, possiamo morire!");
-                for (int i = 0; i < newSlavesRef.get().size(); i++) {
-                    SocketChannel slave = newSlavesRef.get().get(i);
-                    ScalingMaster.getMaster(null).slavesReadyToMerge.add(slave);
+                for (int i = 0; i < newSlaves.size(); i++) {
+                    SocketChannel slave = newSlaves.get(i);
+                    ScalingMaster.getInstance().slavesReadyToMerge.add(slave);
                 }
-                ScalingMaster.getMaster(null).communicationSelector.wakeup();
+                ScalingMaster.getInstance().communicationSelector.wakeup();
                 break;
             }
         }
@@ -178,25 +178,25 @@ public class QuickExecutor implements Runnable {
     private void readStageAck(SelectionKey key) throws Exception {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
-        ByteBuffer byteBuffer = ScalingMaster.getMaster(null).readBufferMap.get(socketChannel);
+        ByteBuffer byteBuffer = ScalingMaster.getInstance().readBufferMap.get(socketChannel);
         int value = socketChannel.read(byteBuffer);
         if (log.isTraceEnabled()) {
             log.trace("We've read into the buffer: " + byteBuffer + ". Number of read bytes is " + value);
         }
 
         if (value == -1) {
-            log.warn("Slave stopped! Index: " + ScalingMaster.getMaster(null).slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
+            log.warn("Slave stopped! Index: " + ScalingMaster.getInstance().slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
             key.cancel();
-            if (!ScalingMaster.getMaster(null).slaves.remove(socketChannel)) {
+            if (!ScalingMaster.getInstance().slaves.remove(socketChannel)) {
                 throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
             }
-            ScalingMaster.getMaster(null).releaseResourcesAndExit();
+            ScalingMaster.getInstance().releaseResourcesAndExit();
         } else if (byteBuffer.limit() >= 4) {
             int expectedSize = byteBuffer.getInt(0);
             if ((expectedSize + 4) > byteBuffer.capacity()) {
                 ByteBuffer replacer = ByteBuffer.allocate(expectedSize + 4);
                 replacer.put(byteBuffer.array());
-                ScalingMaster.getMaster(null).readBufferMap.put(socketChannel, replacer);
+                ScalingMaster.getInstance().readBufferMap.put(socketChannel, replacer);
                 if (log.isTraceEnabled())
                     log.trace("Expected size(" + expectedSize + ")" + " is > bytebuffer's capacity(" +
                             byteBuffer.capacity() + ")" + ".Replacing " + byteBuffer + " with " + replacer);
@@ -210,9 +210,9 @@ public class QuickExecutor implements Runnable {
                 byteBuffer.clear();
                 /* controllo se l'ack appartiene allo stage corrente */
                 log.debug(ack.getStageName());
-                log.debug(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName());
-                if (ack.getStageName().compareTo(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName()) == 0) {
-                    responsesRef.get().add(ack);
+                log.debug(ScalingMaster.getInstance().state.getCurrentDistScalingStage().getClass().getName());
+                if (ack.getStageName().compareTo(ScalingMaster.getInstance().state.getCurrentDistScalingStage().getClass().getName()) == 0) {
+                    responses.add(ack);
                     log.info("ACK added: same stage");
                 } else {
                     log.info("ACK dropped: different stage");
@@ -220,23 +220,25 @@ public class QuickExecutor implements Runnable {
             }
         }
 
-        if (responsesRef.get().size() == this.newSlavesRef.get().size()) {
-            if (!ScalingMaster.getMaster(null).state.distScalingStageFinished(responsesRef.get())) {
-                log.error("Exiting because issues processing current stage: " + ScalingMaster.getMaster(null).state.getCurrentDistStage());
-                ScalingMaster.getMaster(null).releaseResourcesAndExit();
+        if (responses.size() == this.newSlaves.size()) {
+            if (!ScalingMaster.getInstance().state.distScalingStageFinished(responses)) {
+                log.error("Exiting because issues processing current stage: " + ScalingMaster.getInstance().state.getCurrentDistStage());
+                ScalingMaster.getInstance().releaseResourcesAndExit();
             }
 
             prepareNextStage();
         } else {
-            int ackLeft = ScalingMaster.getMaster(null).state.getSlavesCountForCurrentScalingStage() - responsesRef.get().size();
-            log.info("Mancano " + ackLeft + "ACKs per questo Scaling Thread: " + Thread.currentThread().toString());
+            log.warn("PLACEHOLDER: QuickExecutor->ReadStageAck");
+            //int ackLeft = ScalingMaster.getInstance().state.getSlavesCountForCurrentScalingStage() - responses.size();
+            int ackLeft = this.newSlaves.size() - responses.size();
+            log.info(ackLeft + "ACKs left for this scaling thread [" +Thread.currentThread().toString()+ "]");
         }
     }
 
 
     private void sendStage(SelectionKey key) throws IOException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        ByteBuffer buf = ScalingMaster.getMaster(null).writeBufferMap.get(socketChannel);
+        ByteBuffer buf = ScalingMaster.getInstance().writeBufferMap.get(socketChannel);
         if (log.isTraceEnabled())
             log.trace("Writing buffer '" + buf + " to channel '" + socketChannel + "' ");
         socketChannel.write(buf);
@@ -249,18 +251,23 @@ public class QuickExecutor implements Runnable {
             if (log.isTraceEnabled())
                 log.trace("Current stage successfully transmitted to " + processedSlaves + " slave(s).");
 
-            //log.info(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName());
-            // org.radargun.stages.WebSessionBenchmarkStage
-            if(ScalingMaster.getMaster(null).state.getCurrentDistScalingStage().getClass().getName().contains("TpccBenchmarkStage")){
+            //log.info(ScalingMaster.getInstance().state.getCurrentDistScalingStage().getClass().getName());
+            // org.radargun.mandatoryStages.WebSessionBenchmarkStage
+
+//            if(ScalingMaster.getInstance().state.getCurrentDistScalingStage().getClass().getName().contains("TpccBenchmarkStage")){
+
+            if(ScalingMaster.getInstance().state.getCurrentDistStage().getId().equals(ScalingMaster.getInstance().state.getCurrentDistScalingStage().getId())){
                 log.debug("Ho appena inviato lo stage per il benchmark, setto a false la variabile di questo thread per terminare");
-                ScalingMaster.getMaster(null).quickThreadRunning.set(new Boolean(false));
+                quickThreadRunning = false;
             }
         }
-        if (processedSlaves == ScalingMaster.getMaster(null).state.getSlavesCountForCurrentScalingStage()) {
-            log.trace("Successfully completed broadcasting stage " + ScalingMaster.getMaster(null).state.getCurrentDistScalingStage());
+        log.warn("PLACEHOLDER: QuickExecutor->sendStage");
+        //if (processedSlaves == ScalingMaster.getInstance().state.getSlavesCountForCurrentScalingStage()) {
+        if (processedSlaves == this.newSlaves.size()) {
+            log.trace("Successfully completed broadcasting stage " + ScalingMaster.getInstance().state.getCurrentDistScalingStage());
             processedSlaves = 0;
-            ScalingMaster.getMaster(null).writeBufferMap.clear();
-            responsesRef.get().clear();
+            ScalingMaster.getInstance().writeBufferMap.clear();
+            responses.clear();
         }
     }
 }
