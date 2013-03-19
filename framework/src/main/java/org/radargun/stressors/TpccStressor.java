@@ -119,19 +119,16 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private AtomicLong countJobs;
    private Producer[] producers;
    private StatSampler statSampler;
-   private boolean running = true;
+   private volatile boolean running = true;
 
    private final Timer finishBenchmarkTimer = new Timer("Finish-Benchmark-Timer");
 
    private final List<Stressor> stressors = new LinkedList<Stressor>();
    private final List<Integer> listLocalWarehouses = new LinkedList<Integer>();
 
-
     public TpccStressor(AbstractWorkloadGenerator loadGenerator){
-        log.info("costruendo");
         this.workloadGenerator = loadGenerator;
-        // registering myself to the workloadGenerator
-        log.info("registrando");
+        log.trace("Registring this TpccStressor to the WorkLoadGenerator (Observable)");
         this.workloadGenerator.addObserver(this);
     }
 
@@ -145,70 +142,58 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
     public void update(Observable o, Object arg) {
         // Reinitialize the producer
         log.trace("Arrival rate changed");
-        log.info("Stopping old producer");
-        if( running ){
-            //stopping the "old" producer
-            for (Producer producer : producers) {
-                producer.interrupt();
+
+        if ( workloadGenerator.getArrivalRate() == lastArrivalRate ){
+            return;
+        } else {
+            // reconfiguration is needed
+            this.lastArrivalRate = workloadGenerator.getArrivalRate();
+            if( running && producers!=null  ){
+                log.info("Stopping old producer");
+                for (Producer producer : producers) { producer.interrupt(); }
             }
-        }
-        createProducer(workloadGenerator.getCurrentArrivalRate());
-        if(running){
-            //starting the "new" producer
-            for (Producer producer : producers) {
-                producer.start();
+            createProducer(workloadGenerator.getArrivalRate());
+            if( running ){
+                log.info("Starting " + producers.length + " producers");
+                for (Producer producer : producers) { producer.start(); }
             }
         }
     }
 
     /**
      * Class in charge of create or update the Producer in base of
+     *
      * @param arrivalRate
      */
-    private void createProducer(int arrivalRate){
-        if(arrivalRate == lastArrivalRate)
-            return;
+    private void createProducer(int arrivalRate) {
 
-        if (this.workloadGenerator.isOpenSystem()) {     //Open system
-            ProducerRate[] producerRates;
-            if (cacheWrapper.isPassiveReplication()) {
-                double writeWeight = Math.max(100 - orderStatusWeight, paymentWeight) / 100D;
-                double readWeight = orderStatusWeight / 100D;
-                if (cacheWrapper.isTheMaster()) {
-                    log.info("Creating producers groups for the master. Write transaction percentage is " + writeWeight);
-                    producerRates = new GroupProducerRateFactory(arrivalRate * writeWeight, 1, nodeIndex,
-                            AVERAGE_PRODUCER_SLEEP_TIME).create();
-                } else {
-                    log.info("Creating producers groups for the slave. Read-only transaction percentage is " + readWeight);
-                    producerRates = new GroupProducerRateFactory(arrivalRate * readWeight, numSlaves - 1,
-                            nodeIndex == 0 ? nodeIndex : nodeIndex - 1,
-                            AVERAGE_PRODUCER_SLEEP_TIME).create();
-                }
+        if ( ! this.workloadGenerator.isOpenSystem()) { return; } // Closed System
+        log.info("Creating/Updating producers");
+
+        ProducerRate[] producerRates;
+        if (cacheWrapper.isPassiveReplication()) {
+            double writeWeight = Math.max(100 - orderStatusWeight, paymentWeight) / 100D;
+            double readWeight = orderStatusWeight / 100D;
+            if (cacheWrapper.isTheMaster()) {
+                log.info("Creating producers groups for the master. Write transaction percentage is " + writeWeight);
+                producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(), arrivalRate * writeWeight, 1, nodeIndex,
+                        AVERAGE_PRODUCER_SLEEP_TIME).create();
             } else {
-                log.info("Creating producers groups");
-                producerRates = new GroupProducerRateFactory(arrivalRate, numSlaves, nodeIndex,
+                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + readWeight);
+                producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(), arrivalRate * readWeight, numSlaves - 1,
+                        nodeIndex == 0 ? nodeIndex : nodeIndex - 1,
                         AVERAGE_PRODUCER_SLEEP_TIME).create();
             }
-//
-//            if ( !initProducer ) {
-//                // no maxArrivalRate setted! I need to recreate the producer each time
-//                producers = new Producer[producerRates.length];
-//                if(workloadGenerator.getMaxArrivalRate() > 0)
-//                    initProducer= true;
-//            }
-            producers = new Producer[producerRates.length];
-
-            for (int i = 0; i < producerRates.length; ++i) {
-                producers[i] = new Producer(producerRates[i], i);
-            }
-
         } else {
-            if (producers == null) {
-                producers = new Producer[0];
-            }
+            log.info("Creating producers groups");
+            producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(), arrivalRate, numSlaves, nodeIndex,
+                    AVERAGE_PRODUCER_SLEEP_TIME).create();
         }
+        producers = new Producer[producerRates.length];
 
-        this.lastArrivalRate = arrivalRate;
+        for (int i = 0; i < producerRates.length; ++i) {
+            producers[i] = new Producer(producerRates[i], i);
+        }
     }
 
    public Map<String, String> stress(CacheWrapper wrapper) {
@@ -225,6 +210,10 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
        if(workloadGenerator.isOpenSystem()){
            queue = new LinkedBlockingQueue<RequestType>();
            countJobs = new AtomicLong(0L);
+           producers = new Producer[0];
+           //if (workloadGenerator.getMaxArrivalRate() != -1) {
+           //    createProducer(workloadGenerator.getMaxArrivalRate());
+           //}
        }
 
        //// I'll create the Producer before only if the user set max arrival rate
@@ -233,9 +222,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
        log.info("InitTime: " + workloadGenerator.getInitTime());
        log.info("OpenSystem: " + workloadGenerator.isOpenSystem());
 
-       if (workloadGenerator.getMaxArrivalRate() != -1) {
-           createProducer(workloadGenerator.getMaxArrivalRate());
-       }
+
 
        if (statsSamplingInterval > 0) {
          statSampler = new StatSampler(statsSamplingInterval);
@@ -253,9 +240,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
 
       try {
          if (workloadGenerator.isOpenSystem()) { //Open system
-            log.info("Starting " + producers.length + " producers");
             // Don't start the Producer here. Start the load generator. When it has a new arrival rate create/update the producer and start them
-             (new Thread(workloadGenerator)).start();
+             workloadGenerator.start();
+             log.trace("Workload generator started");
          }
          if (statSampler != null) {
             statSampler.start();
@@ -668,7 +655,11 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
          this.threadIndex = threadIndex;
          this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
          if (backOffTime > 0)
-            this.backOffSleeper = new ProducerRate(Math.pow((double) backOffTime, -1D));
+             try {
+                 this.backOffSleeper = ProducerRate.createInstance(workloadGenerator.getRateDistribution() ,Math.pow((double) backOffTime, -1D));
+             } catch (ProducerRate.ProducerRateException e) {
+                 throw new RuntimeException(e);
+             }
       }
 
       private TpccTransaction regenerate(TpccTransaction oldTransaction, int threadIndex, boolean lastSuccessful) {

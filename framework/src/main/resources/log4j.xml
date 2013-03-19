@@ -58,7 +58,7 @@
     <category name="org.apache">
         <priority value="WARN"/>
     </category>
-	
+
     <category name="org.radargun">
         <priority value="TRACE"/>
     </category>
@@ -67,12 +67,12 @@
         <priority value="WARN"/>
     </category>
 
-   <category name="org.radargun.stressors">
-	<priority value="DEBUG"/>
-   </category>
-  <category name="org.radargun.tpcc.TpccPopulation">
-	<priority value="INFO"/>
-  </category>
+    <category name="org.radargun.stressors">
+        <priority value="OFF"/>
+    </category>
+    <category name="org.radargun.tpcc.TpccPopulation">
+        <priority value="INFO"/>
+    </category>
     <category name="org.jgroups">
         <priority value="WARN"/>
     </category>
@@ -84,13 +84,13 @@
     <category name="org.infinispan">
         <priority value="OFF"/>
     </category>
-  <category name="org.radargun.cachewrappers.InfinispanWrapper">
-	<priority value="WARN"/>
-   </category>
-<category name="org.radargun.tpcc.domain">
-	<priority value="OFF"/>
-</category> 
-   <!-- Here goes the root -->
+    <category name="org.radargun.cachewrappers.InfinispanWrapper">
+        <priority value="WARN"/>
+    </category>
+    <category name="org.radargun.tpcc.domain">
+        <priority value="OFF"/>
+    </category>
+    <!-- Here goes the root -->
     <root>
         <priority value="INFO"/>
         <appender-ref ref="CONSOLE"/>

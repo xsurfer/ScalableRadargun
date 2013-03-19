@@ -19,7 +19,7 @@ public class RampWorkloadGenerator extends AbstractWorkloadGenerator {
     @Override
     public int getCurrentArrivalRate() {
         int eval = (int) Math.ceil(( slope * getTime() )+ yintercept);
-        log.trace("Time: "+getTime()+", ArrivalRate: " + eval);
+        log.trace("Time: "+getTime()+"s, ArrivalRate: " + eval);
         return eval;
     }
 

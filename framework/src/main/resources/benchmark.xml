@@ -41,12 +41,25 @@
                 retryOnAbort="true"
                 backOffTime="0"
                 perThreadTrackNewKeys="true" >
-            <Ramp
+            <Trace
+                    rateDistribution="exponential"
+                    granularity="1"
+                    initTime="0"
+                    file="trace.log"
+                    maxArrivalRate="3000" />
+            <!--Sin
+                    rateDistribution="exponential"
+                    granularity="2"
+                    initTime="1"
+                    amplitude="1000"
+                    maxArrivalRate="3000" /-->
+            <!--Ramp
+                    rateDistribution="exponential"
                     granularity="2"
                     initTime="1"
                     slope="1"
                     yintercept="0"
-                    maxArrivalRate="3000" />
+                    maxArrivalRate="3000" /-->
         </TpccBenchmark>
         <TpccCsvReportGeneration/>
 
