@@ -32,11 +32,12 @@ import static org.radargun.utils.Utils.numberFormat;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractDistStage {
+public class TpccBenchmarkStage extends BenchmarkStage {
 
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
+
 
    /**
     * the number of threads that will work on this slave
@@ -48,10 +49,6 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     */
    private long perThreadSimulTime = 180L;
 
-   /**
-    * average arrival rate of the transactions to the system
-    */
-   private int arrivalRate = 0;
 
    /**
     * percentage of Payment transactions
@@ -149,12 +146,11 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
       trackNewKeys();
-      tpccStressor = new TpccStressor();
+      tpccStressor = new TpccStressor(this.workloadGenerator);
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
       tpccStressor.setNumOfThreads(this.numOfThreads);
       tpccStressor.setPerThreadSimulTime(this.perThreadSimulTime);
-      tpccStressor.setArrivalRate(this.arrivalRate);
       tpccStressor.setPaymentWeight(this.paymentWeight);
       tpccStressor.setOrderStatusWeight(this.orderStatusWeight);
       tpccStressor.setAccessSameWarehouse(accessSameWarehouse);
@@ -223,10 +219,6 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       this.perThreadSimulTime = perThreadSimulTime;
    }
 
-   public void setArrivalRate(int arrivalRate) {
-      this.arrivalRate = arrivalRate;
-   }
-
    public void setPaymentWeight(int paymentWeight) {
       this.paymentWeight = paymentWeight;
    }
@@ -276,7 +268,6 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       return "TpccBenchmarkStage {" +
               "numOfThreads=" + numOfThreads +
               ", perThreadSimulTime=" + perThreadSimulTime +
-              ", arrivalRate=" + arrivalRate +
               ", paymentWeight=" + paymentWeight +
               ", orderStatusWeight=" + orderStatusWeight +
               ", accessSameWarehouse=" + accessSameWarehouse +

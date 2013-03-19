@@ -1,5 +1,7 @@
 package org.radargun.producer;
 
+import org.apache.log4j.helpers.LogLog;
+
 import java.util.Random;
 
 /**
@@ -30,7 +32,7 @@ public class ProducerRate {
       try {
          Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
-         //interrupted
+          LogLog.warn("Interrupt");
       }
       return sleepTime;
    }
