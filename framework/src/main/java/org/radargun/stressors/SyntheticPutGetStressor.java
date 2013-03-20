@@ -51,11 +51,11 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       int remoteFailures = 0;
       duration = System.nanoTime() - startTime;
       for (Stressor stressorrrr : stressors) {
-         SyntheticStressor stressor = (SyntheticStressor)stressorrrr;
+         SyntheticStressor stressor = (SyntheticStressor) stressorrrr;
          reads += stressor.reads;
          writes += stressor.writes;
-         localFailures +=stressor.localAborts;
-         remoteFailures +=stressor.remoteAborts;
+         localFailures += stressor.localAborts;
+         remoteFailures += stressor.remoteAborts;
       }
 
       Map<String, String> results = new LinkedHashMap<String, String>();
@@ -132,7 +132,6 @@ public class SyntheticPutGetStressor extends PutGetStressor {
                log.warn("Unexpected exception" + e.getMessage());
                outcome = result.OTHER;
             }
-
             switch (outcome) {
                case COM: {
                   sampleCommit(lastClazz);
