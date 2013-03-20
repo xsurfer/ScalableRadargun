@@ -31,44 +31,44 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
    /**
     * total number of request to be made against this session: reads + writes
     */
-   private int numberOfRequests = 50000;
+   protected int numberOfRequests = 50000;
 
    /**
     * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
     * performed (for PUT is overwrite)
     */
-   private int numberOfAttributes = 100;
+   protected int numberOfAttributes = 100;
 
    /**
     * Each attribute will be a byte[] of this size
     */
-   private int sizeOfAnAttribute = 1000;
+   protected int sizeOfAnAttribute = 1000;
 
    /**
     * Out of the total number of request, this define the frequency of writes (percentage)
     */
-   private int writePercentage = 20;
+   protected int writePercentage = 20;
 
 
    /**
     * the number of threads that will work on this slave
     */
-   private int numOfThreads = 10;
+   protected int numOfThreads = 10;
 
-   private boolean reportNanos = false;
+   protected boolean reportNanos = false;
 
-   private String keyGeneratorClass = StringKeyGenerator.class.getName();
+   protected String keyGeneratorClass = StringKeyGenerator.class.getName();
 
 
    protected CacheWrapper cacheWrapper;
 
-   private boolean useTransactions = false;
+   protected boolean useTransactions = false;
 
-   private boolean commitTransactions = true;
+   protected boolean commitTransactions = true;
 
-   private int transactionSize = 1;
+   protected int transactionSize = 1;
 
-   private long durationMillis = -1;
+   protected long durationMillis = -1;
 
    protected Map<String, String> doWork() {
       log.info("Starting " + getClass().getSimpleName() + ": " + this);

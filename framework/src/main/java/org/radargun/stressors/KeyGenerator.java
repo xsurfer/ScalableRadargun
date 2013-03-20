@@ -9,7 +9,7 @@ package org.radargun.stressors;
  * @author Mircea.Markus@jboss.com
  */
 public interface KeyGenerator {
-
+   static final int CONTEND = 0;
    /**
     * Called for distributed benchmarks.
     */
