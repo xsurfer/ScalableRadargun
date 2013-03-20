@@ -9,7 +9,7 @@ set -e
 
 CONF_DIR=target/distribution/RadarGun-1.1.0-SNAPSHOT/conf
 POM_DIR=plugins/infinispan4
-JGROUPS_DIR=plugins/infinispan4/conf/jgroups
+JGROUPS_DIR=target/distribution/RadarGun-1.1.0-SNAPSHOT/plugins/infinispan4/conf/jgroups
 CONFS="confs"
 BENCH="benchmark.xml"
 JGROUPS="jgroups-tcp.xml"
@@ -56,6 +56,6 @@ echo "Setting the correct stats file for version $1"
 cp ${CONF_DIR}/${STATS_VERSION} ${CONF_DIR}/${STATS}
 
 echo "Setting the correct jgroups file for version $1"
-cp ${JGROUPS_DIR}/${JGROUPS_VERSION} ${JGROUPS_DI}/${JGROUPS}
+cp ${JGROUPS_DIR}/${JGROUPS_VERSION} ${JGROUPS_DIR}/${JGROUPS}
 echo "Done."
    

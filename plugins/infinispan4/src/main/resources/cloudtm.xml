@@ -1,133 +1,123 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <infinispan
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="urn:infinispan:config:5.2 http://www.infinispan.org/schemas/infinispan-config-5.2.xsd"
-    xmlns="urn:infinispan:config:5.2">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:5.1 http://www.infinispan.org/schemas/infinispan-config-5.1.xsd"
+        xmlns="urn:infinispan:config:5.1">
     <global>
         <globalJmxStatistics
-        enabled="true"
-        jmxDomain="org.infinispan"/>
+                enabled="true"
+                jmxDomain="org.infinispan"/>
         <transport
-            clusterName="cloudtm-ispn-cluster">
+                clusterName="infinispan-cluster">
             <properties>
                 <property
-                name="configurationFile"
-                value="jgroups-cloudtm.xml"/>
+                        name="configurationFile"
+                        value="jgroups/jgroups-tcp.xml" />
             </properties>
         </transport>
     </global>
     <default>
         <locking
-        isolationLevel="SERIALIZABLE"
-        concurrencyLevel="32"
-        writeSkewCheck="false"
-        useLockStriping="false"
-        lockAcquisitionTimeout="0"/>
+                isolationLevel="SERIALIZABLE"
+                concurrencyLevel="32"
+                writeSkewCheck="false"
+                useLockStriping="false"
+                lockAcquisitionTimeout="0"/>
         <transaction
-        transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
-        useEagerLocking="false"
-        transactionMode="TRANSACTIONAL"
-        syncRollbackPhase="false"
-        cacheStopTimeout="30000"
-        useSynchronization="false"
-        syncCommitPhase="false"
-        lockingMode="OPTIMISTIC"
-        eagerLockSingleNode="false"
-        use1PcForAutoCommitTransactions="false"
-        transactionProtocol="TWO_PHASE_COMMIT"
-        autoCommit="true"
-        />
-        <customStats sampleServiceTimes="true"/>
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"
+                />
         <jmxStatistics
-        enabled="true"/>
-        <deadlockDetection
-        enabled="false"/>
+                enabled="true"/>
+        <customStats sampleServiceTimes="true"/>
+	<deadlockDetection
+                enabled="false"/>
         <clustering mode="d">
             <sync
-            replTimeout="15000"/>
+                    replTimeout="15000" />
             <hash
-            numVirtualNodes="100"
-            numOwners="1"
-            />
+                    numVirtualNodes="100"
+                    numOwners="1"
+                    rehashEnabled="false"
+                    rehashRpcTimeout="600000"
+                    rehashWait="60000" />
+            <l1
+                    enabled="false"
+                    onRehash="false"
+                    lifespan="600000"
+                    invalidationThreshold="0" />
         </clustering>
         <customInterceptors>
             <interceptor
-            after="org.infinispan.interceptors.InvocationContextInterceptor"
-            class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
+                    after="org.infinispan.interceptors.InvocationContextInterceptor"
+                    class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
             <interceptor
-            before="org.infinispan.interceptors.NotificationInterceptor"
-            class="org.infinispan.stats.topK.DistributedStreamLibInterceptor"/>
+                    before="org.infinispan.interceptors.NotificationInterceptor"
+                    class="org.infinispan.stats.topK.DistributedStreamLibInterceptor"/>
         </customInterceptors>
         <versioning
-        enabled="true"
-        versioningScheme="GMU"/>
-        <garbageCollector
-        enabled="true"
-        transactionThreshold="1000"
-        versionGCMaxIdle="60"
-        viewGCBackOff="120"
-        l1GCInterval="60"/>
-        <conditionalExecutorService
-        corePoolSize="2"
-        maxPoolSize="16"
-        keepAliveTime="60"/>
+                enabled="true"
+                versioningScheme="GMU" />
     </default>
     <namedCache
-    name="x">
-        <locking
-        isolationLevel="SERIALIZABLE"
-        concurrencyLevel="32"
-        writeSkewCheck="false"
-        useLockStriping="false"
-        lockAcquisitionTimeout="0"/>
+            name="x">
+     <locking
+                isolationLevel="SERIALIZABLE"
+                concurrencyLevel="32"
+                writeSkewCheck="false"
+                useLockStriping="false"
+                lockAcquisitionTimeout="0"/>
         <transaction
-        transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
-        useEagerLocking="false"
-        transactionMode="TRANSACTIONAL"
-        syncRollbackPhase="false"
-        cacheStopTimeout="30000"
-        useSynchronization="false"
-        syncCommitPhase="false"
-        lockingMode="OPTIMISTIC"
-        eagerLockSingleNode="false"
-        use1PcForAutoCommitTransactions="false"
-        transactionProtocol="TWO_PHASE_COMMIT"
-        autoCommit="true"
-        />
-        <customStats sampleServiceTimes="true"/>
-        <dataPlacement enabled="false"/>
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"
+                />
         <jmxStatistics
-        enabled="true"/>
+                enabled="true"/>
+	<customStats sampleServiceTimes="true"/>
         <deadlockDetection
-        enabled="false"/>
+                enabled="false"/>
         <clustering mode="d">
             <sync
-            replTimeout="15000"/>
+                    replTimeout="15000" />
             <hash
-            numVirtualNodes="100"
-            numOwners="1"
-            />
+                    numVirtualNodes="1"
+                    numOwners="1"
+                    rehashEnabled="false"
+                    rehashRpcTimeout="600000"
+                    rehashWait="60000" />
+            <l1
+                    enabled="false"
+                    onRehash="false"
+                    lifespan="600000"
+                    invalidationThreshold="0" />
         </clustering>
         <customInterceptors>
+             <interceptor
+                    after="org.infinispan.interceptors.InvocationContextInterceptor"
+                    class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
             <interceptor
-            after="org.infinispan.interceptors.InvocationContextInterceptor"
-            class="org.infinispan.distribution.wrappers.DistCustomStatsInterceptor"/>
-            <interceptor
-            before="org.infinispan.interceptors.NotificationInterceptor"
-            class="org.infinispan.stats.topK.DistributedStreamLibInterceptor"/>
+                    before="org.infinispan.interceptors.NotificationInterceptor"
+                    class="org.infinispan.stats.topK.DistributedStreamLibInterceptor"/>
         </customInterceptors>
         <versioning
-        enabled="true"
-        versioningScheme="GMU"/>
-        <garbageCollector
-        enabled="true"
-        transactionThreshold="1000"
-        versionGCMaxIdle="60"
-        viewGCBackOff="120"
-        l1GCInterval="60"/>
-        <conditionalExecutorService
-        corePoolSize="2"
-        maxPoolSize="16"
-        keepAliveTime="60"/>
-    </namedCache>
+                enabled="true"
+                versioningScheme="GMU" />
+	</namedCache>
 </infinispan>
