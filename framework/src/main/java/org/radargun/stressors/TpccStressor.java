@@ -504,7 +504,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       results.put("CPU_USAGE", str(cpu));
       results.put("MEMORY_USAGE", str(mem));
       results.putAll(cacheWrapper.getAdditionalStats());
-      results.put("TEST_ID",this.testIdString(paymentWeight,orderStatusWeight,numOfThreads));
+      results.put("TEST_ID", this.testIdString(paymentWeight, orderStatusWeight, numOfThreads));
       saveSamples();
 
       log.info("Sending map to master " + results.toString());
@@ -745,7 +745,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
             }
             //If we experience an elementNotFoundException we do not want to restart the very same xact!!
             //If a xact is not progressing at the end of the test, we kill it. Some stats will be slightly affected by this
-            while ( assertRunning() && retryOnAbort && !successful && !elementNotFoundExceptionThrown);
+            while (assertRunning() && retryOnAbort && !successful && !elementNotFoundExceptionThrown);
 
             end = System.nanoTime();
 
@@ -1170,8 +1170,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
 
-   private String testIdString(long payment, long orderStatus, long threads){
-     return threads+"T_"+payment+"PA_"+orderStatus+"OS";
+   private String testIdString(long payment, long orderStatus, long threads) {
+      return threads + "T_" + payment + "PA_" + orderStatus + "OS";
    }
 
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PutGetStressor extends AbstractCacheWrapperStressor {
 
-   private static Log log = LogFactory.getLog(PutGetStressor.class);
+   protected static Log log = LogFactory.getLog(PutGetStressor.class);
 
    private int opsCountStatusLog = 5000;
 
@@ -29,17 +29,17 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
    /**
     * for each there will be created fixed number of keys. All the GETs and PUTs are performed on these keys only.
     */
-   private int numberOfKeys = 100;
+   protected int numberOfKeys = 100;
 
    /**
     * Each key will be a byte[] of this size.
     */
-   private int sizeOfValue = 1000;
+   protected int sizeOfValue = 1000;
 
    /**
     * Out of the total number of operations, this defines the frequency of writes (percentage).
     */
-   private int writePercentage = 20;
+   protected int writePercentage = 20;
 
    /**
     * Negative values means duration is not enabled.
@@ -50,7 +50,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
    /**
     * the number of threads that will work on this cache wrapper.
     */
-   private int numOfThreads = 10;
+   protected int numOfThreads = 10;
 
    /**
     * This node's index in the Radargun cluster.  -1 is used for local benchmarks.
@@ -70,11 +70,11 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
    private KeyGenerator keyGenerator;
 
 
-   private CacheWrapper cacheWrapper;
+   protected CacheWrapper cacheWrapper;
    private static Random r = new Random();
    private volatile long startNanos;
-   private volatile CountDownLatch startPoint;
-   private volatile StressorCompletion completion;
+   protected volatile CountDownLatch startPoint;
+   protected volatile StressorCompletion completion;
 
 
    public Map<String, String> stress(CacheWrapper wrapper) {
@@ -139,7 +139,9 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       return results;
    }
 
-   private List<Stressor> executeOperations() throws Exception {
+
+
+   protected List<Stressor> executeOperations() throws Exception {
       List<Stressor> stressors = new ArrayList<Stressor>(numOfThreads);
       startPoint = new CountDownLatch(1);
       for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
@@ -371,7 +373,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       this.opsCountStatusLog = opsCountStatusLog;
    }
 
-   private static String generateRandomString(int size) {
+   protected static String generateRandomString(int size) {
       // each char is 2 bytes
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < size / 2; i++) sb.append((char) (64 + r.nextInt(26)));

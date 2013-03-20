@@ -1,4 +1,4 @@
-package org.radargun.stressors;/*
+package org.radargun.stages;/*
  * INESC-ID, Instituto de Engenharia de Sistemas e Computadores Investigação e Desevolvimento em Lisboa
  * Copyright 2013 INESC-ID and/or its affiliates and other
  * contributors as indicated by the @author tags. All rights reserved.
@@ -25,5 +25,5 @@ package org.radargun.stressors;/*
  * @author Diego Didona, didona@gsd.inesc-id.pt
  *         Date: 20/03/13
  */
-public class SyntheticStressor extends PutGetStressor {
+public class SyntheticWarmupStage extends WebSessionBenchmarkStage{
 }

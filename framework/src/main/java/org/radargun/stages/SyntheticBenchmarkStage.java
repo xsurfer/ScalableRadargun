@@ -21,8 +21,7 @@ package org.radargun.stages;/*
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import org.radargun.stressors.PutGetStressor;
-import org.radargun.stressors.SyntheticStressor;
+import org.radargun.stressors.SyntheticPutGetStressor;
 
 import java.util.Map;
 
@@ -32,11 +31,11 @@ import java.util.Map;
  */
 public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
 
-   private int numWrites = 1;
+   private int updateXactWrites = 1;
 
    protected Map<String, String> doWork() {
       log.info("Starting " + getClass().getSimpleName() + ": " + this);
-      SyntheticStressor putGetStressor = new SyntheticStressor();
+      SyntheticPutGetStressor putGetStressor = new SyntheticPutGetStressor();
       putGetStressor.setNodeIndex(getSlaveIndex());
       putGetStressor.setNumberOfAttributes(numberOfAttributes);
       putGetStressor.setNumOfThreads(numOfThreads);
@@ -47,6 +46,18 @@ public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
       putGetStressor.setCommitTransactions(commitTransactions);
       putGetStressor.setTransactionSize(transactionSize);
       putGetStressor.setDurationMillis(durationMillis);
+      putGetStressor.setupdateXactWrites(updateXactWrites);
       return putGetStressor.stress(cacheWrapper);
    }
+
+   public int getUpdateXactWrites() {
+      return updateXactWrites;
+   }
+
+   public void setUpdateXactWrites(int updateXactWrites) {
+      this.updateXactWrites = updateXactWrites;
+   }
+
+
+
 }
