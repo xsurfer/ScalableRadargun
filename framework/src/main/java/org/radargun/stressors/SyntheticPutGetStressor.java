@@ -21,9 +21,7 @@ package org.radargun.stressors;/*
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -34,6 +32,7 @@ public class SyntheticPutGetStressor extends PutGetStressor {
    private int readOnlyXactSize = 1;
    private int updateXactWrites = 1;
    private int updateXactReads = 1;
+   private long startTime;
 
 
    public int getupdateXactWrites() {
@@ -44,10 +43,38 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       this.updateXactWrites = numWrites;
    }
 
+   protected Map<String, String> processResults(List<Stressor> stressors) {
+      long duration = 0;
+      int reads = 0;
+      int writes = 0;
+      int localFailures = 0;
+      int remoteFailures = 0;
+      duration = System.nanoTime() - startTime;
+      for (Stressor stressorrrr : stressors) {
+         SyntheticStressor stressor = (SyntheticStressor)stressorrrr;
+         reads += stressor.reads;
+         writes += stressor.writes;
+         localFailures +=stressor.localAborts;
+         remoteFailures +=stressor.remoteAborts;
+      }
+
+      Map<String, String> results = new LinkedHashMap<String, String>();
+      results.put("DURATION", str(duration));
+      results.put("READ_COUNT", str(reads));
+      results.put("WRITE_COUNT", str(writes));
+      results.put("LOCAL_FAILURES", str(localFailures));
+      results.put("REMOTE_FAILURES", str(remoteFailures));
+      results.putAll(cacheWrapper.getAdditionalStats());
+      return results;
+
+   }
+
+
    @Override
    protected List<Stressor> executeOperations() throws Exception {
       List<Stressor> stressors = new ArrayList<Stressor>(numOfThreads);
       startPoint = new CountDownLatch(1);
+      startTime = System.nanoTime();
       for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
          Stressor stressor = new Stressor(threadIndex);
          stressors.add(stressor);
@@ -62,13 +89,15 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       return stressors;
    }
 
-   private class SyntheticStressor extends Thread {
+   private class SyntheticStressor extends Stressor {
 
 
       private KeyGenerator keyGen;
       private int nodeIndex, threadIndex, numKeys;
+      private long writes, reads, localAborts, remoteAborts;
 
-      SyntheticStressor(KeyGenerator keyGen, int nodeIndex, int threadIndex, int numKeys) {
+      SyntheticStressor(int threadIndex, KeyGenerator keyGen, int nodeIndex, int numKeys) {
+         super(threadIndex);
          this.keyGen = keyGen;
          this.nodeIndex = nodeIndex;
          this.threadIndex = threadIndex;
@@ -86,7 +115,8 @@ public class SyntheticPutGetStressor extends PutGetStressor {
 
       private void runInternal() {
          Random r = new Random();
-         xactClass lastClazz;
+         xactClass lastClazz = xactClass.RO;
+         result outcome;
          try {
             startPoint.await();
             log.trace("Starting thread: " + getName());
@@ -97,12 +127,68 @@ public class SyntheticPutGetStressor extends PutGetStressor {
          while (completion.moreToRun()) {
             try {
                lastClazz = xactClass(r);
-               doXact(r,lastClazz);
+               outcome = doXact(r, lastClazz);
             } catch (Exception e) {
                log.warn("Unexpected exception" + e.getMessage());
+               outcome = result.OTHER;
+            }
+
+            switch (outcome) {
+               case COM: {
+                  sampleCommit(lastClazz);
+                  break;
+               }
+               case AB_L: {
+                  sampleLocalAbort(lastClazz);
+                  break;
+               }
+               case AB_R: {
+                  sampleRemoteAbort(lastClazz);
+               }
+               default: {
+                  log.error("I got strange exception for class " + lastClazz);
+               }
             }
          }
       }
+
+      private void sampleCommit(xactClass clazz) {
+         switch (clazz) {
+            case RO: {
+               reads++;
+               break;
+            }
+            case WR: {
+               writes++;
+               break;
+            }
+            default:
+               throw new RuntimeException("Unknown xactClass " + clazz);
+         }
+      }
+
+      private void sampleLocalAbort(xactClass clazz) {
+         switch (clazz) {
+            case WR: {
+               localAborts++;
+               break;
+            }
+            default:
+               throw new RuntimeException("Xact class " + clazz + " should not abort");
+         }
+      }
+
+      private void sampleRemoteAbort(xactClass clazz) {
+         switch (clazz) {
+            case WR: {
+               remoteAborts++;
+               break;
+            }
+            default:
+               throw new RuntimeException("Xact class " + clazz + " should not abort");
+         }
+      }
+
 
       private boolean readOnlyXact(Random r, int writePerc) {
          return !cacheWrapper.isTheMaster() || r.nextInt(100) > writePerc;
@@ -147,30 +233,34 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       }
 
 
-      private void doXact(Random r, xactClass clazz) throws Exception {
+      private result doXact(Random r, xactClass clazz) throws Exception {
          cacheWrapper.startTransaction();
          try {
             switch (clazz) {
                case RO: {
                   doReadXact(r);
+                  break;
                }
                case WR: {
                   doWriteXact(r);
+                  break;
                }
                default:
                   throw new RuntimeException("Invalid xact clazz " + clazz);
-
             }
          } catch (Exception e) {
             log.trace("Rollback while running locally");
             cacheWrapper.endTransaction(false);
+            return result.AB_L;
          }
 
          try {
             cacheWrapper.endTransaction(true);
          } catch (Exception e) {
             log.trace("Rollback at prepare time");
+            return result.AB_R;
          }
+         return result.COM;
       }
 
 
@@ -179,6 +269,10 @@ public class SyntheticPutGetStressor extends PutGetStressor {
 
    private enum xactClass {
       RO, WR
+   }
+
+   private enum result {
+      AB_L, AB_R, COM, OTHER
    }
 
 

@@ -172,8 +172,8 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       private long readDuration = 0;
       private long writeDuration = 0;
       private long transactionDuration = 0;
-      private long reads;
-      private long writes;
+      protected long reads;
+      protected long writes;
       private final String bucketId;
       boolean txNotCompleted = false;
 
@@ -345,7 +345,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       return false;
    }
 
-   private String str(Object o) {
+   protected String str(Object o) {
       return String.valueOf(o);
    }
 
