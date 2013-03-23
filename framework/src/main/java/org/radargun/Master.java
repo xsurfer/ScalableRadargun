@@ -26,29 +26,38 @@ public class Master {
 
    MasterConfig masterConfig;
 
-   private ServerSocketChannel serverSocketChannel;
-   private List<SocketChannel> slaves = new ArrayList<SocketChannel>();
+   protected ServerSocketChannel serverSocketChannel;
+   protected volatile List<SocketChannel> slaves = new ArrayList<SocketChannel>();
 
-   private Map<SocketChannel, ByteBuffer> writeBufferMap = new HashMap<SocketChannel, ByteBuffer>();
-   private Map<SocketChannel, ByteBuffer> readBufferMap = new HashMap<SocketChannel, ByteBuffer>();
+   protected volatile Map<SocketChannel, ByteBuffer> writeBufferMap = new HashMap<SocketChannel, ByteBuffer>();
+   protected volatile Map<SocketChannel, ByteBuffer> readBufferMap = new HashMap<SocketChannel, ByteBuffer>();
    private List<DistStageAck> responses = new ArrayList<DistStageAck>();
    private Selector communicationSelector;
    private Selector discoverySelector;
-   private Map<SocketChannel, Integer> slave2Index = new HashMap<SocketChannel, Integer>();
-   private MasterState state;
+    /**
+     * Mappa utile per associare uno slave a un indice *
+     */
+   protected volatile Map<SocketChannel, Integer> slave2Index = new HashMap<SocketChannel, Integer>();
+   protected volatile MasterState state;
    int processedSlaves = 0;
-   private static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
+   protected static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
 
    public Master(MasterConfig masterConfig) {
       this.masterConfig = masterConfig;
       state = new MasterState(masterConfig);
       try {
+          log.info("Opening communicationSelector");
          communicationSelector = Selector.open();
       } catch (IOException e) {
          throw new IllegalStateException(e);
       }
-      Runtime.getRuntime().addShutdownHook(new ShutDownHook("Master process"));
+      setShutDownHook();
    }
+
+    protected void setShutDownHook(){
+        Runtime.getRuntime().addShutdownHook(new ShutDownHook("Master process"));
+    }
+
 
    public void start() throws Exception {
       try {
@@ -90,7 +99,7 @@ public class Master {
       }
    }
 
-   private void releaseResources() {
+   protected void releaseResources() {
       try {
          discoverySelector.close();
       } catch (Throwable e) {
@@ -110,13 +119,13 @@ public class Master {
       }
 
       try {
-         if (serverSocketChannel != null) serverSocketChannel.socket().close();
+         if (communicationSelector != null) serverSocketChannel.socket().close();
       } catch (Throwable e) {
          log.warn(e);
       }
    }
 
-   private void runDiscovery() throws IOException {
+   protected void runDiscovery() throws IOException {
       discoverySelector = Selector.open();
       serverSocketChannel.register(discoverySelector, SelectionKey.OP_ACCEPT);
       while (slaves.size() < masterConfig.getSlaveCount()) {
@@ -209,7 +218,7 @@ public class Master {
       }
    }
 
-   private void releaseResourcesAndExit() {
+   protected void releaseResourcesAndExit() {
       releaseResources();
       ShutDownHook.exit(0);
    }
@@ -251,4 +260,5 @@ public class Master {
          // ignore
       }
    }
+
 }

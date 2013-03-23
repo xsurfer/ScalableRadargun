@@ -117,7 +117,9 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    private final List<Stressor> stressors = new LinkedList<Stressor>();
    private final List<Integer> listLocalWarehouses = new LinkedList<Integer>();
 
-   public Map<String, String> stress(CacheWrapper wrapper) {
+    private boolean stoppedByJmx = false;
+
+    public Map<String, String> stress(CacheWrapper wrapper) {
       if (wrapper == null) {
          throw new IllegalStateException("Null wrapper not allowed");
       }
@@ -365,6 +367,8 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       Map<String, String> results = new LinkedHashMap<String, String>();
 
       duration = endTime - startTime;
+
+      results.put("STOPPED", str(this.stoppedByJmx));
 
       results.put("DURATION (msec)", str(duration));
       double requestPerSec = (reads + writes) / (duration / 1000.0);
@@ -1169,6 +1173,7 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
    }
 
    public synchronized final void stopBenchmark() {
+      this.stoppedByJmx = true;
       finishBenchmarkTimer.cancel();
       finishBenchmark();
    }

@@ -1,6 +1,7 @@
 package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
+import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
@@ -32,7 +33,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractDistStage {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage {
 
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
@@ -42,11 +43,6 @@ public class TpccBenchmarkStage extends AbstractDistStage {
     * the number of threads that will work on this slave
     */
    private int numOfThreads = 10;
-
-   /**
-    * total time (in seconds) of simulation for each stressor thread
-    */
-   private long perThreadSimulTime = 180L;
 
    /**
     * average arrival rate of the transactions to the system
@@ -108,7 +104,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    private transient TpccStressor tpccStressor;
 
-   @Override
+
+    @Override
    public void initOnMaster(MasterState masterState, int slaveIndex) {
       super.initOnMaster(masterState, slaveIndex);
       Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
@@ -215,12 +212,10 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       return success;
    }
 
-   public void setNumOfThreads(int numOfThreads) {
-      this.numOfThreads = numOfThreads;
-   }
 
-   public void setPerThreadSimulTime(long perThreadSimulTime) {
-      this.perThreadSimulTime = perThreadSimulTime;
+
+    public void setNumOfThreads(int numOfThreads) {
+      this.numOfThreads = numOfThreads;
    }
 
    public void setArrivalRate(int arrivalRate) {
@@ -331,8 +326,13 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       return tpccStressor.getOrderStatusWeight();
    }
 
+   @Override
    @ManagedOperation(description = "Stop the current benchmark")
    public final void stopBenchmark() {
       tpccStressor.stopBenchmark();
    }
+
+    public TpccBenchmarkStage clone() {
+        return (TpccBenchmarkStage) super.clone();
+    }
 }

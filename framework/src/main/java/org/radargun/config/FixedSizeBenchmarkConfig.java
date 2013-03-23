@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.DistStage;
 import org.radargun.Stage;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.utils.TypedProperties;
 import org.radargun.utils.Utils;
 
@@ -113,6 +114,10 @@ public class FixedSizeBenchmarkConfig implements Cloneable {
         if (productName == null) throw new RuntimeException("Name must be set!");
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public void setSize(int size) {
         this.size = size;
     }
@@ -135,7 +140,6 @@ public class FixedSizeBenchmarkConfig implements Cloneable {
      * @return Stage
      */
     public boolean hasNextStage() {
-        log.trace("hasNextStage="+ stIterator.get()+"<"+stages.get().size());
         return stIterator.get() < stages.get().size();
     }
 
@@ -145,13 +149,12 @@ public class FixedSizeBenchmarkConfig implements Cloneable {
      * @return Stage
      */
     public Stage nextStage() {
-        log.trace("nextStage");
         Stage stage = stages.get().get(stIterator.get());
         stIterator.set(stIterator.get()+1);
         if (stage instanceof DistStage) {
             DistStage distStage = (DistStage) stage;
             if (!distStage.isRunOnAllSlaves()) {
-                log.debug("size for this fixed benchmark is: " + size);
+                //log.debug("size for this fixed benchmark is: " + size);
                 distStage.setActiveSlavesCount(size);
             } else {
                 if (maxSize <= 0) throw new IllegalStateException("Make sure you set the maxSize first!");

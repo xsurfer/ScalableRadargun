@@ -2,7 +2,7 @@
 //
 //import org.radargun.CacheWrapper;
 //import org.radargun.DistStageAck;
-//import org.radargun.ScalingMaster;
+//import org.radargun.ElasticMaster;
 //import org.radargun.jmx.annotations.MBean;
 //import org.radargun.jmx.annotations.ManagedAttribute;
 //import org.radargun.jmx.annotations.ManagedOperation;

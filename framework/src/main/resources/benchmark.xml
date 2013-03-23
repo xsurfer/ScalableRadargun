@@ -14,7 +14,7 @@
 
         <DestroyWrapper id="a"
                         runOnAllSlaves="true"
-                        skippable="false" />
+                        skippable="true" />
         <StartCluster id="b"
                       staggerSlaveStartup="false"
                       delayAfterFirstSlaveStarts="5000"
@@ -34,7 +34,7 @@
                         cIdMask="0"
                         threadParallelLoad="true"
                         batchLevel="50"
-                        numLoaderThreads="1"
+                        numLoaderThreads="2"
                         oneWarmup="false"
                         skippable="true" />
         <GarbageCollection id="e"
@@ -47,7 +47,7 @@
         <TpccBenchmark id="h"
                        statsSamplingInterval="30000"
                        numOfThreads="1"
-                       perThreadSimulTime="60"
+                       perThreadSimulTime="120"
                        arrivalRate="0"
                        accessSameWarehouse="false"
                        paymentWeight="43"
@@ -55,7 +55,20 @@
                        retryOnAbort="true"
                        backOffTime="0"
                        perThreadTrackNewKeys="true"
-                       skippable="false"
+                       skippable="true"
+                       scalable="true" />
+        <TpccBenchmark id="i"
+                       statsSamplingInterval="30000"
+                       numOfThreads="1"
+                       perThreadSimulTime="120"
+                       arrivalRate="0"
+                       accessSameWarehouse="false"
+                       paymentWeight="43"
+                       orderStatusWeight="53"
+                       retryOnAbort="true"
+                       backOffTime="0"
+                       perThreadTrackNewKeys="true"
+                       skippable="true"
                        scalable="true" />
 
     </benchmark>

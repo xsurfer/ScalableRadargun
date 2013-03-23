@@ -4,6 +4,7 @@ import org.radargun.state.MasterState;
 import org.radargun.state.SlaveState;
 
 import java.io.Serializable;
+import java.nio.channels.SocketChannel;
 import java.util.List;
 
 /**
@@ -53,6 +54,8 @@ public interface DistStage extends Stage, Serializable {
      */
     boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState);
 
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves);
+
     public DistStage clone();
 
     /**
@@ -67,5 +70,4 @@ public interface DistStage extends Stage, Serializable {
 
     public void setExitBenchmarkOnSlaveFailure(boolean exitOnFailure);
 
-    public long getInitTs();
 }

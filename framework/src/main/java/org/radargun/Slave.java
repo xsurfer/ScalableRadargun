@@ -109,7 +109,7 @@ public class Slave {
                                     long start = System.currentTimeMillis();
                                     DistStageAck ack = stage.executeOnSlave();
                                     ack.setDuration(System.currentTimeMillis() - start);
-                                    ack.setInitialTs(stage.getInitTs());
+                                    //ack.setInitialTs(stage.getAbsolutInitTs());
                                     byte[] bytes = SerializationHelper.prepareForSerialization(ack);
                                     log.info("Finished stage: " + stage);
                                     byteBuffer.clear();

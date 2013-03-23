@@ -15,9 +15,9 @@ public interface DistStageAck extends Serializable {
 
     public void setDuration(long duration);
 
-    public void setInitialTs(long ts);
+//    public void setInitialTs(long ts);
 
-    public long getInitialTs();
+//    public long getInitialTs();
 
     public String getStageName();
 }

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.ScalingMaster;
 
 /**
  * Comntains master's configuration elements.
@@ -51,7 +50,7 @@ public class MasterConfig {
 //    @Deprecated
 //    public void setSlavesCount(int slavesCount){
 //        this.slavesCount = slavesCount;
-//        log.debug("Modifico numero di slaves in CurrentDistStage:" + ScalingMaster.getInstance(null).state.getCurrentDistStage().getClass().getName() + "(deve essere WebSessionBenchmark!!)" );
+//        log.debug("Modifico numero di slaves in CurrentDistStage:" + ElasticMaster.getInstance(null).state.getCurrentDistStage().getClass().getName() + "(deve essere WebSessionBenchmark!!)" );
 //        for (FixedSizeBenchmarkConfig f : benchmarks) {
 //            f.setSize(slavesCount);
 //        }

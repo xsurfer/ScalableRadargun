@@ -28,7 +28,7 @@ public class LaunchMaster {
       ConfigParser configParser = ConfigParser.getConfigParser();
        //configParser è DomConfigParser
       MasterConfig masterConfig = configParser.parseConfig(config);
-      ScalingMaster server = ScalingMaster.getInstance(masterConfig);
+      Master server = new ElasticMaster(masterConfig);
       server.start();
    }
 

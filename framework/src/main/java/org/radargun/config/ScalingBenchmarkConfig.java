@@ -58,17 +58,13 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
 
    @Override
    public boolean hasNextStage() {
-       log.trace("hasNextStage");
       initialize();
       log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
-      //log.warn("17Mar2013_3_12 Commenting next line, asking if there is any other stage to the fixedBenchmark");
-       log.trace(fixedBenchmarkIt+"<"+(fixedBenchmarks.size() - 1));
        if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
       return currentFixedBenchmark().hasNextStage();
    }
 
    private void initialize() {
-       log.trace("initialize");
       if (!initialized) {
          log.info("Initializing.  Starting with " + initSize + " nodes, up to " + getMaxSize() + " nodes, incrementing by " + increment);
          for (int i = initSize; i <= getMaxSize(); i += increment) {
@@ -90,7 +86,6 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
 
    @Override
    public Stage nextStage() {
-       log.trace("nextStage");
       initialize();
 
       if (!currentFixedBenchmark().hasNextStage()) {

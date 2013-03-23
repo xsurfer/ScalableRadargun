@@ -9,7 +9,11 @@ import org.radargun.state.MasterState;
 import org.radargun.state.SlaveState;
 import org.radargun.utils.Utils;
 
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.List;
+
+import static org.radargun.utils.Utils.numberFormat;
 
 /**
  * Support class for distributed mandatoryStages.
@@ -41,14 +45,6 @@ public abstract class AbstractDistStage implements DistStage {
     protected int slaveIndex;
     private int activeSlavesCount;
 
-    /**
-     * how many slaves *
-     */
-    private int activeScalingSlavesCount;
-
-    /* added by Fabio */
-    private long initTs;
-
     private int totalSlavesCount;
 
     private boolean runOnAllSlaves;
@@ -63,11 +59,9 @@ public abstract class AbstractDistStage implements DistStage {
         assert masterConfig != null;
         this.totalSlavesCount = masterState.getConfig().getSlaveCount();
         if (isRunOnAllSlaves()) {
-            log.debug("from initOnMaster: setActiveSlavesCount");
+            log.debug(Thread.currentThread().getName() + " - " + "from initOnMaster: setActiveSlavesCount" );
             setActiveSlavesCount(totalSlavesCount);
         }
-        // time elapsed from the init
-        initTs = System.currentTimeMillis() - masterState.getStartTime();
     }
 
 
@@ -105,15 +99,27 @@ public abstract class AbstractDistStage implements DistStage {
         for (DistStageAck stageAck : acks) {
             DefaultDistStageAck defaultStageAck = (DefaultDistStageAck) stageAck;
             if (defaultStageAck.isError()) {
-                log.warn("Received error ack " + defaultStageAck);
+                log.warn(Thread.currentThread().getName() + " - " + "Received error ack " + defaultStageAck );
                 return false;
             } else {
-                log.trace("Received success ack " + defaultStageAck);
+                log.trace(Thread.currentThread().getName() + " - " + "Received success ack " + defaultStageAck );
             }
         }
         if (log.isTraceEnabled())
-            log.trace("All ack messages were successful");
+            log.trace(Thread.currentThread().getName() + " - " + "All ack messages were successful" );
         return success;
+    }
+
+    /**
+     * This method iterates acks list looking for nodes stopped by JMX.<br/>
+     * @param acks Acks from previous stage
+     * @param slaves All the slaves actually running the test
+     * @return List of slaveIndex stopped by JMX
+     */
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves){
+        if(acks.size() != slaves.size())
+            log.warn("Number of acks and number of slaves SHOULD be ugual. It has to be different just in case SupportExecutor is running");
+        return new ArrayList<Integer>();
     }
 
     protected void logDurationInfo(List<DistStageAck> acks) {
@@ -126,7 +132,7 @@ public abstract class AbstractDistStage implements DistStage {
             else processingDuration += ", ";
             processingDuration += ack.getSlaveIndex() + ":" + Utils.prettyPrintMillis(ack.getDuration());
         }
-        log.info("Received responses from all " + acks.size() + " slaves. " + processingDuration + "]");
+        log.info(Thread.currentThread().getName() + " - " + "Received responses from all " + acks.size() + " slaves. " + processingDuration + "]" );
     }
 
     /**
@@ -146,7 +152,7 @@ public abstract class AbstractDistStage implements DistStage {
      * +            else processingDuration += ", ";
      * +            processingDuration += e.getKey() + ":" + e.getValue();
      * +        }
-     * +        log.info(getClass().getSimpleName() + " received ack from all (" + acks.size() + ") slaves. " + processingDuration + "]");
+     * +        log.info(Thread.currentThread().getName() + " - " + getClass().getSimpleName() + " received ack from all (" + acks.size() + ") slaves. " + processingDuration + "]" );
      * +    }
      */
 
@@ -155,7 +161,7 @@ public abstract class AbstractDistStage implements DistStage {
     }
 
     public void setActiveSlavesCount(int activeSlaves) {
-        log.debug("AbstractDistStage.setActiveSlavesCount - da " + this.activeSlavesCount + " a " + activeSlaves);
+        log.debug(Thread.currentThread().getName() + " - " + "AbstractDistStage.setActiveSlavesCount - da " + this.activeSlavesCount + " a " + activeSlaves );
         this.activeSlavesCount = activeSlaves;
     }
 
@@ -164,7 +170,7 @@ public abstract class AbstractDistStage implements DistStage {
 //    }
 //
 //    public void setActiveScalingSlavesCount(int activeSlaves) {
-//        log.debug("AbstractDistStage.setActiveScalingSlavesCount - da " + this.activeScalingSlavesCount + " a " + activeSlaves);
+//        log.debug(Thread.currentThread().getName() + " - " + "AbstractDistStage.setActiveScalingSlavesCount - da " + this.activeScalingSlavesCount + " a " + activeSlaves );
 //        this.activeScalingSlavesCount = activeSlaves;
 //    }
 
@@ -179,12 +185,4 @@ public abstract class AbstractDistStage implements DistStage {
                 ", totalSlavesCount=" + totalSlavesCount +
                 "} ";
     }
-
-    /**
-     * added by Fabio *
-     */
-    public long getInitTs() {
-        return initTs;
-    }
-
 }

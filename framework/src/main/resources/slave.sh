@@ -105,9 +105,9 @@ D_VARS="${D_VARS} -Djgroups.gossip_host=${GOSSIP_HOST}"
 fi
 
 #enable	remote JMX
-#D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.port=${JMX_SLAVES_PORT}"
-#D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.authenticate=false"
-#D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.ssl=false"
+D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.port=${JMX_SLAVES_PORT}"
+D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.authenticate=false"
+D_VARS="${D_VARS} -Dcom.sun.management.jmxremote.ssl=false"
 
 
 HOST_NAME=`hostname`

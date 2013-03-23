@@ -6,17 +6,15 @@ import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.MasterStage;
 import org.radargun.Stage;
-import org.radargun.config.DynamicBenchmarkConfig;
 import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
 import org.radargun.config.ScalingBenchmarkConfig;
 import org.radargun.jmx.JmxRegistration;
+import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.nio.channels.SocketChannel;
+import java.util.*;
 
 /**
  * State residing on the server, passed to each stage before execution.
@@ -31,9 +29,10 @@ public class MasterState extends StateBase {
    private List<FixedSizeBenchmarkConfig> benchmarks;
    private FixedSizeBenchmarkConfig currentBenchmark;
    private long startTime = System.currentTimeMillis();
-   protected DistStage currentDistStage;
+   protected ThreadLocal<DistStage> currentDistStage = new ThreadLocal<DistStage>();
+   protected DistStage currentMainDistStage;
 
-   protected ThreadLocal<DistStage> currentDistScalingStageRef = new ThreadLocal<DistStage>();
+   protected volatile int sizeForNextStage = -1;
 
    private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();
 
@@ -58,8 +57,12 @@ public class MasterState extends StateBase {
       while (currentBenchmark.hasNextStage()) {
          Stage stage = currentBenchmark.nextStage();
          if (stage instanceof DistStage) {
-            currentDistStage = (DistStage) stage;
-            return currentDistStage;
+            currentDistStage.set( (DistStage) stage );
+            if(this.sizeForNextStage<0){
+                log.info("Initializing sizeForNextStage to: " + ((DistStage) stage).getActiveSlaveCount());
+                this.sizeForNextStage = ((DistStage) stage).getActiveSlaveCount();
+            }
+            return currentDistStage.get();
          } else {
             jmxRegistration.processStage(stage);
             executeServerStage((MasterStage) stage);
@@ -77,90 +80,10 @@ public class MasterState extends StateBase {
       return getNextDistStageToProcess();
    }
 
-    /**
-     * This method is useful when you are processing a new slave.<br/>
-     * It allows you to execute only the mandatory stages till reaching the currentDistStage, skippable test will be skipped
-     * @return
-     */
-    public DistStage getNextDistScalingStageToProcess() {
-        log.trace("getNextDistScalingStageToProcess");
-        while (currentBenchmark.hasNextStage()) {
-            Stage stage = currentBenchmark.nextStage();
-            // finchè non raggiungo il current stage principale
-            // seleziono il primo stage da eseguire:
-            // se skippable, lo salto
-            // altrimenti lo eseguo
+   public DistStage getCurrentDistStage() { return currentDistStage.get(); }
 
-            if (stage instanceof DistStage) {
-                // se non è uguale allo stato corrente
-                if (!(((DistStage) stage).getId().equals(currentDistStage.getId()))) {
-                    // allora se è skippabile lo skippo
-                    if (((DistStage) stage).isSkippable()) {
-                        log.trace("Skipping the stage [id=" + ((DistStage) stage).getId() + "; type=" + stage.getClass().toString() + "]");
-                        continue;
-                    }
-                }
-                currentDistScalingStageRef.set((DistStage) stage);
-                return currentDistScalingStageRef.get();
-            }
-            else{
-                log.warn("Stage is not an instance of DistStage. Check it. Skipping...");
-            }
-        }
-        return null;
-    }
-
-//    @Deprecated
-//    public DistStage getNextDistScalingStageToProcess(int slaves) {
-//        while (((DynamicBenchmarkConfig) currentBenchmark).hasNextScalingStage(slaves)) {
-//            Stage stage = ((DynamicBenchmarkConfig) currentBenchmark).nextScalingStage();
-//            if (stage instanceof DistStage) {
-//                currentDistScalingStageRef.set((DistStage) stage);
-//                return currentDistScalingStageRef.get();
-//                //Questo è commentato poichè non ho nessuno scaling stage da eseguire solo sul master
-////            } else {
-////                jmxRegistration.processStage(stage);
-////                executeServerStage((MasterStage) stage);
-////            }
-//            }
-//        }
-//
-//        // TODO: penso che per il momento è meglio commentare, in questo caso non ci dovrei arrivare poichè muore prima
-//        //if we are here it means we finished executed the current benchmark and we should move to next one
-////        if (benchmarks.size() == 0) {
-////            long duration = System.currentTimeMillis() - startTime;
-////            String duartionStr = Utils.getDurationString(duration);
-////            log.info("Sono in master state getNextDistScalingStageToProcess, controlla che sta a succede!" +
-////                    " Successfully executed all benchmarks in " + duartionStr + ", exiting.");
-////            return null;
-////        }
-////        currentBenchmark = benchmarks.remove(0);
-////        logBenchmarkStarted();
-//        c
-//    }
-
-
-   public DistStage getCurrentDistStage() {
-      return currentDistStage;
-   }
-
-
-    public DistStage getCurrentDistScalingStage() {
-        return this.currentDistScalingStageRef.get();
-    }
-
-   public int getSlavesCountForCurrentStage() {
-      return currentDistStage.getActiveSlaveCount();
-   }
-
-    public void setSlavesCountForCurrentStage(int activeSlaves) {
-        currentDistStage.setActiveSlavesCount(activeSlaves);
-    }
-
-//    public int getSlavesCountForCurrentScalingStage() {
-//        log.debug("[[[ MasterState: per questo stage scaling sono attivi " + getCurrentDistScalingStage().getActiveScalingSlavesCount() + "slaves");
-//        return getCurrentDistScalingStage().getActiveScalingSlavesCount();
-//    }
+   public int getSlavesCountForCurrentStage() { return currentDistStage.get().getActiveSlaveCount(); }
+   public void setSlavesCountForCurrentStage(int activeSlaves) { currentDistStage.get().setActiveSlavesCount(activeSlaves); }
 
    public boolean distStageFinished(List<DistStageAck> acks) {
       // Sort acks so that logs are more readable.
@@ -172,10 +95,13 @@ public class MasterState extends StateBase {
             return (thisVal < anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
          }
       });
-      boolean stageOk = currentDistStage.processAckOnMaster(acks, this);
-      if (stageOk) return true;
-      if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
-         log.warn("Execution error for current benchmark, skipping rest of the mandatoryStages");
+      boolean stageOk = currentDistStage.get().processAckOnMaster(acks, this);
+
+      if (stageOk){
+          return true;
+      }
+      if (!currentDistStage.get().isExitBenchmarkOnSlaveFailure()) {
+         log.warn("Execution error for current benchmark, skipping rest of the stages");
          currentBenchmark.errorOnCurrentBenchmark();
          return true;
       } else {
@@ -184,20 +110,15 @@ public class MasterState extends StateBase {
       }
    }
 
-    public boolean distScalingStageFinished(List<DistStageAck> acks) {
-        boolean stageOk = getCurrentDistScalingStage().processAckOnMaster(acks, this);
-        if (stageOk) return true;
-        if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
-            log.warn("Execution error for current benchmark, skipping rest of the mandatoryStages");
-            currentBenchmark.errorOnCurrentBenchmark();
-            return true;
-        } else {
-            log.info("Exception error on current stage, and exiting (stage's exitBenchmarkOnSlaveFailure is set to true).");
-            return false;
-        }
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves) {
+        List<Integer> ret = currentDistStage.get().sizeForNextStage(acks, slaves);
+        this.sizeForNextStage = slaves.size() - ret.size();
+        return ret;
     }
 
-   private void executeServerStage(MasterStage servStage) {
+    public int getSizeForNextStage(){ return sizeForNextStage; }
+
+    private void executeServerStage(MasterStage servStage) {
       if (log.isDebugEnabled())
          log.debug("Starting '" + servStage.getClass().getSimpleName() + "' on master node only. Details:" + servStage);
       else
@@ -229,13 +150,18 @@ public class MasterState extends StateBase {
             throw new RuntimeException("currentBenchmark should be a ScalingBenchmarkConfig!");
     }
 
-   public String configNameOfTheCurrentBenchmark() {
-      return currentBenchmark.getConfigName();
-   }
+   public String configNameOfTheCurrentBenchmark() { return currentBenchmark.getConfigName(); }
 
    private void logBenchmarkStarted() {
       if (currentBenchmark.getProductName() != null) {
          log.info("Started benchmarking product '" + currentBenchmark.getProductName() + "' with configuration '" + currentBenchmark.getConfigName() + "'");
       }
    }
+
+    public void setCurrentMainDistStage(DistStage currentMainDistStage) {
+        log.info("Settato CurrentMainDistStage a: " + currentMainDistStage.getId() + " - " + currentMainDistStage );
+        this.currentMainDistStage = currentMainDistStage;
+    }
+
+    public DistStage getCurrentMainDistStage() { return this.currentMainDistStage; }
 }
