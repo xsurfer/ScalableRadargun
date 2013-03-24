@@ -17,7 +17,6 @@ import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This is the master that will coordonate the {@link Slave}s in order to run the benchmark.
@@ -93,17 +92,19 @@ public class ElasticMaster extends Master {
         return !clusterExecutorThread.stopped;
     }
 
-    /**********************************************/
-    /*************** EXECUTOR CLASS ***************/
-    /**
-     * ******************************************
-     */
-    class Executor implements Runnable {
+
+
+    /* ******************************************* */
+    /* ******** ABSTRACT EXECUTOR CLASS ********** */
+    /* ******************************************* */
+
+    abstract class Executor implements Runnable{
 
         protected Log log;
         protected List<DistStageAck> localResponses = new ArrayList<DistStageAck>();
         protected int processedSlaves = 0;
         protected List<SocketChannel> localSlaves;
+
 
         /**
          * This variable is used for the Cluster Executor Thread to check if we have terminated
@@ -123,19 +124,13 @@ public class ElasticMaster extends Master {
             }
         }
 
-        /**
-         * Implemented using Template Pattern. Is possible to use init() and finalization() to execute something
-         * respectly right before start/end of executor
-         */
         @Override
         public final void run() {
             try {
-                log.debug("Starting new executor...");
                 init();
                 prepareNextStage();
                 startCommunicationWithSlaves();
-                finalization();
-                log.debug("Ending executor");
+                finalize();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -144,15 +139,12 @@ public class ElasticMaster extends Master {
         /**
          * Method to override if you want to execute something before starting the executor
          */
-        protected void init() {
-            Runtime.getRuntime().addShutdownHook(new ShutDownHook("ClusterExecutor process"));
-        }
+        protected void init(){ log.trace("Init new executor..."); }
 
         /**
          * Method to override if you want to execute something before ending the executor
          */
-        protected void finalization() {
-        }
+        protected void finalize(){ log.trace("Finalize executor"); }
 
         protected void prepareNextStage() throws Exception {
             DistStage toExecute = state.getNextDistStageToProcess();
@@ -176,8 +168,8 @@ public class ElasticMaster extends Master {
                 slave.configureBlocking(false);
                 slave.register(communicationSelector, SelectionKey.OP_WRITE);
                 toSerialize = currentStage.clone();
-                perThreadSimulTime(toSerialize);
                 toSerialize.initOnMaster(state, ((ElasticMaster.this.slaves.size() - localSlaves.size()) + i));
+                preSerialization(toSerialize);
                 if (i == 0) {//only log this once
                     log.info("Starting dist stage '" + toSerialize.getClass().getSimpleName() + "' on " + noSlavesToSend + " Slaves: " + toSerialize);
                 }
@@ -186,12 +178,7 @@ public class ElasticMaster extends Master {
             }
         }
 
-        protected void perThreadSimulTime(DistStage toSerialize){
-            if(toSerialize instanceof AbstractBenchmarkStage){
-                ((AbstractBenchmarkStage) toSerialize).setInitTimeStamp();
-            }
-            ElasticMaster.this.state.setCurrentMainDistStage(toSerialize);
-        }
+        protected void preSerialization(DistStage readyToWriteOnBuffer){}
 
         private void startCommunicationWithSlaves() throws Exception {
             while (!stopped) {
@@ -233,9 +220,24 @@ public class ElasticMaster extends Master {
                         if (key.isWritable()) {
                             if (log.isTraceEnabled()) log.trace("Received writable key:" + key);
                             sendStage(key);
+                            if (processedSlaves == ElasticMaster.this.state.getSlavesCountForCurrentStage()) {
+                                log.trace("Successfully completed broadcasting stage " + ElasticMaster.this.state.getCurrentDistStage());
+                                postStageBroadcast();
+                            }
                         } else if (key.isReadable()) {
                             if (log.isTraceEnabled()) log.trace("Received readable key:" + key);
                             readStageAck(key);
+
+                            //TODO: spostare l'informazione localSlaves.size() ossia il numero di slave che stanno processando lo stage
+                            //TODO: all'interno di una classe corretta, per ora va bene così
+                            if (localResponses.size() == localSlaves.size()) {
+                                if (!ElasticMaster.this.state.distStageFinished(localResponses)) {
+                                    log.error("Exiting because issues processing current stage: " + ElasticMaster.this.state.getCurrentDistStage());
+                                    releaseResourcesAndExit();
+                                }
+                                prePrepareNextStage();
+                                prepareNextStage();
+                            }
                         } else {
                             log.warn("Unknown selection on key " + key);
                         }
@@ -244,10 +246,8 @@ public class ElasticMaster extends Master {
             }
         }
 
-        /**
-         * TODO: riportare le modifiche fatte nell'altro sorgente che permettono di distinguere gli ACK in base allo stage
-         */
         private void readStageAck(SelectionKey key) throws Exception {
+            // TODO: riportare le modifiche fatte nell'altro sorgente che permettono di distinguere gli ACK in base allo stage
             SocketChannel socketChannel = (SocketChannel) key.channel();
 
             ByteBuffer byteBuffer = ElasticMaster.this.readBufferMap.get(socketChannel);
@@ -294,38 +294,10 @@ public class ElasticMaster extends Master {
                 }
             }
 
-            //TODO: spostare l'informazione localSlaves.size() ossia il numero di slave che stanno processando lo stage
-            //TODO: all'interno di una classe corretta, per ora va bene così
-            if (localResponses.size() == localSlaves.size()) {
-                if (!ElasticMaster.this.state.distStageFinished(localResponses)) {
-                    log.error("Exiting because issues processing current stage: " + ElasticMaster.this.state.getCurrentDistStage());
-                    releaseResourcesAndExit();
-                }
-                // Analyze the acks in order to find some stopped
 
-                if(ElasticMaster.this.state.getCurrentDistStage() instanceof AbstractBenchmarkStage){
-                    List<Integer> deadSlaveIndexList = ElasticMaster.this.state.sizeForNextStage(localResponses, ElasticMaster.this.slaves);
-                    if (deadSlaveIndexList.size() > 0) {
-                        for (Integer i : deadSlaveIndexList) {
-                            log.info("Removing slave " + i + " because stopped by JMX");
-                            SocketChannel deleted = ElasticMaster.this.slaves.remove(i.intValue());
-                            deleted.socket().close();
-                        }
-                        log.debug("New size of slaves: " + ElasticMaster.this.slaves.size());
-                        log.info("Re-mapping hash map");
-                        ElasticMaster.this.slave2Index.clear();
-                        for (int j = 0; j < ElasticMaster.this.slaves.size(); j++) {
-                            ElasticMaster.this.slave2Index.put(ElasticMaster.this.slaves.get(j), j);
-                        }
-                        log.debug("New size of slave2Index: " + ElasticMaster.this.slave2Index.size());
-                        log.info("Updating the currentFixedBenchmark().getSize");
-                        log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + ElasticMaster.this.slaves.size());
-                        ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
-                    }
-                }
-                prepareNextStage();
-            }
         }
+
+        protected void prePrepareNextStage(){}
 
         private void sendStage(SelectionKey key) throws IOException {
             SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -341,27 +313,79 @@ public class ElasticMaster extends Master {
                 processedSlaves++;
                 if (log.isTraceEnabled())
                     log.trace("Current stage successfully transmitted to " + processedSlaves + " slave(s).");
-
-                isCurrentMainDistStageReached();
-            }
-
-            if (processedSlaves == ElasticMaster.this.state.getSlavesCountForCurrentStage()) {
-                log.trace("Successfully completed broadcasting stage " + ElasticMaster.this.state.getCurrentDistStage());
-                processedSlaves = 0;
-                ElasticMaster.this.writeBufferMap.clear();
-                localResponses.clear();
             }
         }
 
-        protected void isCurrentMainDistStageReached() {
+        protected void postStageBroadcast() {
+            processedSlaves = 0;
+            ElasticMaster.this.writeBufferMap.clear();
+            localResponses.clear();
+        }
+
+
+    }
+
+
+
+    /* ******************************************* */
+    /* ************* EXECUTOR CLASS ************** */
+    /* ******************************************* */
+
+    class ClusterExecutor extends Executor {
+
+        public ClusterExecutor(List<SocketChannel> slaves) { super(slaves); }
+
+        protected void init() {
+            super.init();
+            Runtime.getRuntime().addShutdownHook(new ShutDownHook("ClusterExecutor process"));
+        }
+
+        @Override
+        protected void preSerialization(DistStage toSerialize){
+            ElasticMaster.this.state.setCurrentMainDistStage(toSerialize);
+        }
+
+        @Override
+        protected void prePrepareNextStage(){
+            // Analyze the acks in order to find some slave stopped
+            if (ElasticMaster.this.state.getCurrentDistStage() instanceof AbstractBenchmarkStage) {
+                List<Integer> deadSlaveIndexList = ElasticMaster.this.state.sizeForNextStage(localResponses, ElasticMaster.this.slaves);
+                if (deadSlaveIndexList.size() > 0) {
+                    for (Integer i : deadSlaveIndexList) {
+                        log.info("Removing slave " + i + " because stopped by JMX");
+                        SocketChannel deleted = ElasticMaster.this.slaves.remove(i.intValue());
+                        try {
+                            deleted.socket().close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    log.debug("New size of slaves: " + ElasticMaster.this.slaves.size());
+                    log.info("Re-mapping hash map");
+                    ElasticMaster.this.slave2Index.clear();
+                    for (int j = 0; j < ElasticMaster.this.slaves.size(); j++) {
+                        ElasticMaster.this.slave2Index.put(ElasticMaster.this.slaves.get(j), j);
+                    }
+                    log.debug("New size of slave2Index: " + ElasticMaster.this.slave2Index.size());
+                    log.info("Updating the currentFixedBenchmark().getSize");
+                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + ElasticMaster.this.slaves.size());
+                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
+                }
+            }
         }
     }
 
-    /**********************************************/
-    /*********** SUPPORT EXECUTOR CLASS ***********/
-    /**
-     * ******************************************
-     */
+
+
+
+
+
+
+
+    /* ******************************************** */
+    /* ********** SUPPORT EXECUTOR CLASS ********** */
+    /* ******************************************** */
+
     private class SupportExecutor extends Executor {
 
         private Selector communicationSelector;
@@ -378,6 +402,8 @@ public class ElasticMaster extends Master {
             // int newSize = ElasticMaster.this.masterConfig.getSlaveCount() + localSlaves.size();
             int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() + localSlaves.size();
 
+            log.info("Updating current benchmark state");
+
             log.debug("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() + " to " + newSize);
             ElasticMaster.this.state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
 
@@ -386,7 +412,7 @@ public class ElasticMaster extends Master {
         }
 
         @Override
-        protected void finalization() {
+        protected void finalize() {
 
             for (int i = 0; i < localSlaves.size(); i++) {
                 SocketChannel slave = localSlaves.get(i);
@@ -398,27 +424,30 @@ public class ElasticMaster extends Master {
 
         @Override
         protected void prepareNextStage() throws Exception {
-            log.debug("Starting scaling prepareNextStage, it'll skip skippable ");
-
             DistStage toExecute = null;
 
             // salta finchè non è raggiunto il current stage.
             // nel caso in cui lo stage non è skippable ma è settato come RunOnAllSlaves allora lancia una eccezione
             // se lo stage non è skippable e non è RunOnAllSlaves allora devo eseguirlo
 
-
             boolean isCurrent = false;
             do {
                 toExecute = ElasticMaster.this.state.getNextDistStageToProcess();
-                if (toExecute == null) { ShutDownHook.exit(0); }
-                else { isCurrent = toExecute.getId().equals(state.getCurrentMainDistStage().getId()); }
+                if (toExecute == null) {
+                    ShutDownHook.exit(0);
+                } else {
+                    isCurrent = toExecute.getId().equals(state.getCurrentMainDistStage().getId());
+                }
 
                 if (!toExecute.isSkippable() && toExecute.isRunOnAllSlaves()) {
                     throw new IllegalStateException("While adding a slave at runtime, stage " + toExecute.getId() + " cannot be executed on all slaves. If you can't change it, please set it as skippable.");
                 }
 
-                if ( isCurrent ) { log.trace("Reachead Current Main Dist Stage"); }
-                else if ( toExecute.isSkippable() ) { log.trace("Skipping the stage [id=" + toExecute.getId() + "; type=" + toExecute.getClass().toString() + "]"); }
+                if (isCurrent) {
+                    log.trace("Reachead Current Main Dist Stage");
+                } else if (toExecute.isSkippable()) {
+                    log.trace("Skipping the stage [id=" + toExecute.getId() + "; type=" + toExecute.getClass().toString() + "]");
+                }
 
 
             } while (!isCurrent && toExecute.isSkippable());
@@ -428,44 +457,15 @@ public class ElasticMaster extends Master {
         }
 
         @Override
-        protected void perThreadSimulTime(DistStage toSerialize){
-            if( ! (toSerialize instanceof AbstractBenchmarkStage) ){
-                return;
-            }
-            log.info("Calculating perThreadSimulTime");
-            DistStage currMainStage = ElasticMaster.this.state.getCurrentMainDistStage();
-            if( ! (currMainStage instanceof AbstractBenchmarkStage) )
-                throw new RuntimeException("Synchronization error!! Stage id=" + currMainStage.getId()+ "  should be instance of AbstractBenchmarkStage");
-            else{
-
-                log.info("");
-                log.info("");
-
-                long totalSimulTime = ((AbstractBenchmarkStage) currMainStage).getPerThreadSimulTime();
-                log.info("totalSimulTime: " + totalSimulTime + " (120) ");
-
-                long currentMainStageInitTs = ((AbstractBenchmarkStage) currMainStage).getInitTimeStamp();
-                log.info("currentMainStageInitTs: " + currentMainStageInitTs );
-
-                ((AbstractBenchmarkStage) toSerialize).setInitTimeStamp();
-                long toExecuteInitTs = ((AbstractBenchmarkStage) toSerialize).getInitTimeStamp();
-                log.info("toExecuteInitTs: " + toExecuteInitTs);
-
-                long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
-                long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning  / 1000 );
-
-                log.info("elapsedTimeFromBeginning: " + elapsedTimeFromBeginning);
-                log.info( "secondToExecute: " + secondToExecute );
-
-                ((AbstractBenchmarkStage) toSerialize).setPerThreadSimulTime(secondToExecute);
-
-                log.info("");
-                log.info("");
-            }
+        protected void preSerialization(DistStage readyToWriteOnBuffer){
+            if(readyToWriteOnBuffer instanceof AbstractBenchmarkStage)
+                ((AbstractBenchmarkStage) readyToWriteOnBuffer).perThreadSimulTime(ElasticMaster.this.state.getCurrentMainDistStage());
         }
 
+
         @Override
-        protected void isCurrentMainDistStageReached() {
+        protected void postStageBroadcast() {
+            super.postStageBroadcast();
             // checking if main current stage has been reached
             if (ElasticMaster.this.state.getCurrentDistStage().getId().equals(ElasticMaster.this.state.getCurrentMainDistStage().getId())) {
                 log.info("CurrentMainStage sent to new slave, preparing to quit");
@@ -476,11 +476,13 @@ public class ElasticMaster extends Master {
     }
 
 
-    /**********************************************/
-    /************** DISCOVERER CLASS **************/
-    /**
-     * ******************************************
-     */
+
+
+
+    /* ******************************************** */
+    /* ************* DISCOVERER CLASS ************* */
+    /* ******************************************** */
+
     private class Discoverer {
 
         private Log log;
@@ -530,7 +532,7 @@ public class ElasticMaster extends Master {
             log.info("Ready to start benchmarking on the cluster; Slave number: " + ElasticMaster.this.slaves.size());
 
             ExecutorService executor = Executors.newSingleThreadExecutor(new WorkerThreadFactory("ClusterExecutor", true));
-            ElasticMaster.this.clusterExecutorThread = new Executor(ElasticMaster.this.slaves);
+            ElasticMaster.this.clusterExecutorThread = new ClusterExecutor(ElasticMaster.this.slaves);
             executor.execute(ElasticMaster.this.clusterExecutorThread);
             executor.shutdown();
         }

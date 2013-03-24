@@ -170,15 +170,16 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       startTime = System.currentTimeMillis();
       log.info("Executing: " + this.toString());
 
-       if (perThreadSimulTime != 0) {
+       if (perThreadSimulTime > 0) {
            finishBenchmarkTimer.schedule(new TimerTask() {
                @Override
                public void run() {
                    finishBenchmark();
                }
            }, perThreadSimulTime * 1000);
-       } else {
-           log.trace("Executing infinite time");
+       } else if(perThreadSimulTime < 0) {
+           log.warn("Slave arrived too late, it will works on the next stage");
+           return null;
        }
 
        try {

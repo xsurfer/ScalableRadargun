@@ -62,7 +62,42 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
     public void initOnMaster(MasterState masterState, int slaveIndex) {
         super.initOnMaster(masterState, slaveIndex);
+        this.setInitTimeStamp();
     }
+
+
+    public void perThreadSimulTime(DistStage currentMainStage) {
+
+        log.info("Calculating perThreadSimulTime");
+
+        log.info("");
+        log.info("");
+
+        long totalSimulTime = ((AbstractBenchmarkStage) currentMainStage).getPerThreadSimulTime();
+        log.info("totalSimulTime: " + totalSimulTime + " (120) ");
+
+        long currentMainStageInitTs = ((AbstractBenchmarkStage) currentMainStage).getInitTimeStamp();
+        log.info("currentMainStageInitTs: " + currentMainStageInitTs);
+
+        long toExecuteInitTs = this.getInitTimeStamp();
+        log.info("toExecuteInitTs: " + toExecuteInitTs);
+
+        long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
+        long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning / 1000);
+
+        log.info("elapsedTimeFromBeginning: " + elapsedTimeFromBeginning);
+        log.info("secondToExecute: " + secondToExecute);
+
+        if (secondToExecute < 0) {
+            secondToExecute = 0;
+        }
+
+        this.setPerThreadSimulTime(secondToExecute);
+
+        log.info("");
+        log.info("");
+    }
+
 
     /**
      * This method iterates acks list looking for nodes stopped by JMX.<br/>

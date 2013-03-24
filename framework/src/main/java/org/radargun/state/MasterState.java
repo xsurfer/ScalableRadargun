@@ -158,8 +158,12 @@ public class MasterState extends StateBase {
       }
    }
 
+    /**
+     * This method MUST BE USED ONLY by the ClusterExecutor thread
+     * @param currentMainDistStage
+     */
     public void setCurrentMainDistStage(DistStage currentMainDistStage) {
-        log.info("Settato CurrentMainDistStage a: " + currentMainDistStage.getId() + " - " + currentMainDistStage );
+        log.info("Setting CurrentMainDistStage to: [ id = " + currentMainDistStage.getId() + "]" );
         this.currentMainDistStage = currentMainDistStage;
     }
 
