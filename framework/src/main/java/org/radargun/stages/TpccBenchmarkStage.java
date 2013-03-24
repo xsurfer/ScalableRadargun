@@ -1,7 +1,6 @@
 package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
-import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
@@ -23,7 +22,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * <pre>
  * Params:
  *       - numOfThreads : the number of stressor threads that will work on each slave.
- *       - perThreadSimulTime : total time (in seconds) of simulation for each stressor thread.
+ *       - updateTimes : total time (in seconds) of simulation for each stressor thread.
  *       - arrivalRate : if the value is greater than 0.0, the "open system" mode is active and the parameter represents the arrival rate (in transactions per second) of a job (a transaction to be executed) to the system; otherwise the "closed system" mode is active: this means that each thread generates and executes a new transaction in an iteration as soon as it has completed the previous iteration.
  *       - paymentWeight : percentage of Payment transactions.
  *       - orderStatusWeight : percentage of Order Status transactions.
@@ -35,9 +34,11 @@ import static org.radargun.utils.Utils.numberFormat;
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
 public class TpccBenchmarkStage extends AbstractBenchmarkStage {
 
+
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
+
 
    /**
     * the number of threads that will work on this slave
@@ -146,12 +147,11 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage {
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
       trackNewKeys();
-      tpccStressor = new TpccStressor();
+      tpccStressor = new TpccStressor(this.workloadGenerator);
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
       tpccStressor.setNumOfThreads(this.numOfThreads);
       tpccStressor.setPerThreadSimulTime(this.perThreadSimulTime);
-      tpccStressor.setArrivalRate(this.arrivalRate);
       tpccStressor.setPaymentWeight(this.paymentWeight);
       tpccStressor.setOrderStatusWeight(this.orderStatusWeight);
       tpccStressor.setAccessSameWarehouse(accessSameWarehouse);
@@ -218,10 +218,6 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage {
       this.numOfThreads = numOfThreads;
    }
 
-   public void setArrivalRate(int arrivalRate) {
-      this.arrivalRate = arrivalRate;
-   }
-
    public void setPaymentWeight(int paymentWeight) {
       this.paymentWeight = paymentWeight;
    }
@@ -270,8 +266,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage {
    public String toString() {
       return "TpccBenchmarkStage {" +
               "numOfThreads=" + numOfThreads +
-              ", perThreadSimulTime=" + perThreadSimulTime +
-              ", arrivalRate=" + arrivalRate +
+              ", updateTimes=" + perThreadSimulTime +
               ", paymentWeight=" + paymentWeight +
               ", orderStatusWeight=" + orderStatusWeight +
               ", accessSameWarehouse=" + accessSameWarehouse +

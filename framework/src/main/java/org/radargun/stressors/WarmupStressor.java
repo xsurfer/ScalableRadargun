@@ -6,6 +6,7 @@ import org.radargun.CacheWrapper;
 import org.radargun.stages.WarmupStage;
 
 import java.util.Map;
+import java.util.Observable;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -135,4 +136,9 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
       wrapper.empty();
       wrapper = null;
    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

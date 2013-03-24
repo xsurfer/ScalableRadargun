@@ -4,6 +4,7 @@ import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.state.MasterState;
+import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -31,11 +32,19 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
      */
     private long initTimeStamp = 0L;
 
+    /**
+     * the workload generator
+     */
+    AbstractWorkloadGenerator workloadGenerator;
+
 
 
     /***************************/
     /***    GETTER/SETTER    ***/
     /***************************/
+
+    public void setWorkloadGenerator(AbstractWorkloadGenerator wg){ this.workloadGenerator = wg; }
+    public AbstractWorkloadGenerator getWorkloadGenerator(){ return this.workloadGenerator; }
 
     public long getPerThreadSimulTime(){ return this.perThreadSimulTime; }
     public void setPerThreadSimulTime(long perThreadSimulTime){ this.perThreadSimulTime = perThreadSimulTime; }
@@ -66,36 +75,23 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
     }
 
 
-    public void perThreadSimulTime(DistStage currentMainStage) {
+    public void updateTimes(DistStage currentMainStage) {
 
-        log.info("Calculating perThreadSimulTime");
-
-        log.info("");
-        log.info("");
+        log.info("Updating perThreadSimulTime");
 
         long totalSimulTime = ((AbstractBenchmarkStage) currentMainStage).getPerThreadSimulTime();
-        log.info("totalSimulTime: " + totalSimulTime + " (120) ");
-
         long currentMainStageInitTs = ((AbstractBenchmarkStage) currentMainStage).getInitTimeStamp();
-        log.info("currentMainStageInitTs: " + currentMainStageInitTs);
-
         long toExecuteInitTs = this.getInitTimeStamp();
-        log.info("toExecuteInitTs: " + toExecuteInitTs);
-
         long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
         long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning / 1000);
+        if (secondToExecute < 0) { secondToExecute = 0; }
 
-        log.info("elapsedTimeFromBeginning: " + elapsedTimeFromBeginning);
-        log.info("secondToExecute: " + secondToExecute);
-
-        if (secondToExecute < 0) {
-            secondToExecute = 0;
-        }
-
+        log.info("This stage will execute for: " + secondToExecute);
         this.setPerThreadSimulTime(secondToExecute);
 
-        log.info("");
-        log.info("");
+        log.info("Updating initTime Workload Generator");
+
+        this.getWorkloadGenerator().setInitTime( (int) (elapsedTimeFromBeginning / 1000) );
     }
 
 
@@ -137,8 +133,8 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
         AbstractBenchmarkStage clone = (AbstractBenchmarkStage) super.clone();
         log.info("cloning AbstractBenchmarkStage");
         clone.initTimeStamp = 0;
+        clone.workloadGenerator = workloadGenerator.clone();
 
         return clone;
     }
-
 }

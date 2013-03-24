@@ -4,9 +4,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Master;
 import org.radargun.Stage;
+
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
+import org.radargun.stages.GenerateChartStage;
 import org.radargun.stages.StartClusterStage;
 import org.radargun.utils.TypedProperties;
+import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
+import org.radargun.workloadGenerator.ClosedWorkloadGenerator;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -39,6 +44,7 @@ public class DomConfigParser extends ConfigParser {
         MasterConfig masterConfig = parseMaster(configRoot, prototype);
 
         parseProductsElement(configRoot, prototype, masterConfig);
+
         //now add the reporting
         parseReporting(configRoot, masterConfig);
 
@@ -56,8 +62,13 @@ public class DomConfigParser extends ConfigParser {
         for (int i = 0; i < reportElList.getLength(); i++) {
             if (reportElList.item(i) instanceof Element) {
                 Element thisReportEl = (Element) reportElList.item(i);
+
                 GenerateScalingChartStage generateChartStage = new GenerateScalingChartStage();
                 reportBenchmark.addOriginalStage(generateChartStage);
+
+//                GenerateChartStage generateChartStage = new GenerateChartStage();
+//                reportBenchmark.addStage(generateChartStage);
+
                 generateChartStage.setFnPrefix(ConfigHelper.getStrAttribute(thisReportEl, "name"));
                 if (thisReportEl.getAttribute("includeAll") != null) {
                     String inclAll = ConfigHelper.getStrAttribute(thisReportEl, "includeAll");
@@ -124,6 +135,7 @@ public class DomConfigParser extends ConfigParser {
 
     private void updateStartupStage(String configName, ScalingBenchmarkConfig clone) {
         for (Stage st : clone.getOriginalStages()) {
+
             if (st instanceof StartClusterStage) {
                 StartClusterStage scs = (StartClusterStage) st;
                 scs.setConfig(configName);
@@ -155,10 +167,41 @@ public class DomConfigParser extends ConfigParser {
                     attrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
                 }
                 ConfigHelper.setValues(st, attrToSet, true);
+
+                // Setting workload generator
+                if (st instanceof AbstractBenchmarkStage) {
+                    //let's read the workloadGenerator
+                    NodeList stageChildNodes = childEl.getChildNodes();
+                    for (int j = 0; j < stageChildNodes.getLength(); j++) {
+                        Node workloadChild = stageChildNodes.item(j);
+                        if (workloadChild instanceof Element) {
+                            Element generatorEl = (Element) workloadChild;
+                            String generatorShortName = generatorEl.getNodeName();
+                            AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator");
+                            if (wg == null)
+                                throw new RuntimeException("Unvalid Workload Generator");
+                            ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
+                            NamedNodeMap loadGenAttributes = generatorEl.getAttributes();
+                            Map<String, String> loadGenAttrToSet = new HashMap<String, String>();
+                            for (int attrIndex = 0; attrIndex < loadGenAttributes.getLength(); attrIndex++) {
+                                Attr attr = (Attr) loadGenAttributes.item(attrIndex);
+                                loadGenAttrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+                            }
+                            ConfigHelper.setValues(wg, loadGenAttrToSet, true);
+                        }
+                    }
+                    if (((AbstractBenchmarkStage) st).getWorkloadGenerator() == null) {
+                        AbstractWorkloadGenerator wg = new ClosedWorkloadGenerator();
+                        ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
+                    }
+                }
+
             }
         }
         return prototype;
     }
+
+
 
 //    @Deprecated
 //    private DynamicBenchmarkConfig buildDynamicBenchmarkPrototype(Element configRoot) {
@@ -211,5 +254,6 @@ public class DomConfigParser extends ConfigParser {
 //
 //        return prototype;
 //    }
+
 
 }

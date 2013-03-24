@@ -59,7 +59,7 @@
 //    private String rdOpsPerReadTx = "100";
 //
 //    //simulation time (in seconds)
-//    private long perThreadSimulTime;
+//    private long updateTimes;
 //
 //    //allows execution without contention
 //    private boolean noContentionEnabled = false;
@@ -108,7 +108,7 @@
 //        stressor.setWrtOpsPerWriteTx(wrtOpsPerWriteTx);
 //        stressor.setRdOpsPerWriteTx(rdOpsPerWriteTx);
 //        stressor.setRdOpsPerReadTx(rdOpsPerReadTx);
-//        stressor.setSimulationTime(perThreadSimulTime);
+//        stressor.setSimulationTime(updateTimes);
 //        stressor.setBucketPrefix(getSlaveIndex() + "");
 //        stressor.setNumberOfKeys(numberOfKeys);
 //        stressor.setNumOfThreads(numOfThreads);
@@ -196,7 +196,7 @@
 //                ", wrtOpsPerWriteTx=" + wrtOpsPerWriteTx +
 //                ", rdOpsPerWriteTx=" + rdOpsPerWriteTx +
 //                ", rdOpsPerReadTx=" + rdOpsPerReadTx +
-//                ", perThreadSimulTime=" + perThreadSimulTime +
+//                ", updateTimes=" + updateTimes +
 //                ", noContentionEnabled=" + noContentionEnabled +
 //                ", cacheWrapper=" + cacheWrapper +
 //                ", " + super.toString();
@@ -235,8 +235,8 @@
 //        }
 //    }
 //
-//    public void setPerThreadSimulTime(long perThreadSimulTime) {
-//        this.perThreadSimulTime = perThreadSimulTime;
+//    public void setPerThreadSimulTime(long updateTimes) {
+//        this.updateTimes = updateTimes;
 //    }
 //
 //    @ManagedOperation

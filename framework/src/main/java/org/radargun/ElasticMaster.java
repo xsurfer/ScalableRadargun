@@ -458,8 +458,9 @@ public class ElasticMaster extends Master {
 
         @Override
         protected void preSerialization(DistStage readyToWriteOnBuffer){
-            if(readyToWriteOnBuffer instanceof AbstractBenchmarkStage)
-                ((AbstractBenchmarkStage) readyToWriteOnBuffer).perThreadSimulTime(ElasticMaster.this.state.getCurrentMainDistStage());
+            if(readyToWriteOnBuffer instanceof AbstractBenchmarkStage){
+                ((AbstractBenchmarkStage) readyToWriteOnBuffer).updateTimes(ElasticMaster.this.state.getCurrentMainDistStage());
+            }
         }
 
 
