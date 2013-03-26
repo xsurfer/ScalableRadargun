@@ -2,6 +2,7 @@ package org.radargun.workloadGenerator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.AbstractBenchmarkStage;
 
 /**
  * Generate a workload based on function f(t)=amplitude*sin(t)
@@ -13,6 +14,10 @@ public class SinWorkloadGenerator extends AbstractWorkloadGenerator {
     private static Log log = LogFactory.getLog(SinWorkloadGenerator.class);
 
     private double amplitude = 1.0;
+
+    public SinWorkloadGenerator(AbstractBenchmarkStage stage) {
+        super(stage);
+    }
 
     @Override
     public int getCurrentArrivalRate() {

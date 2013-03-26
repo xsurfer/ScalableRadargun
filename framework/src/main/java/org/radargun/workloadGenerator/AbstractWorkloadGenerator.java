@@ -2,9 +2,12 @@ package org.radargun.workloadGenerator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.state.MasterState;
+import org.radargun.utils.Utils;
 
-import java.io.Serializable;
-import java.util.Observable;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -16,12 +19,28 @@ import java.util.concurrent.*;
  */
 public abstract class AbstractWorkloadGenerator extends Observable implements Cloneable, Serializable {
 
+    public AbstractWorkloadGenerator(AbstractBenchmarkStage stage){
+        this.stage = stage;
+    }
+
 
     /***************************/
     /***      ATTRIBUTES     ***/
     /***************************/
 
     private static Log log = LogFactory.getLog(AbstractWorkloadGenerator.class);
+
+    private AbstractBenchmarkStage stage;
+
+    private String targetDir = "workloads";
+
+    private String separator = ",";
+
+    private File outputFile;
+
+    private FileWriter fileWriter;
+
+    private List<TimeArrivalRate> outputData = new ArrayList<TimeArrivalRate>();
 
     private RateDistribution rateDistribution = RateDistribution.EXPONENTIAL;
 
@@ -31,14 +50,14 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     private int granularity = 1000;
 
     /**
-     * init time (in milliseconds)
+     * init time (in seconds)
      */
-    private int initTime = 0;
+    private double initTime = 0;
 
     /**
-     * current time (in millisecond)
+     * current time (in seconds)
      */
-    private int t = 0;
+    private double t = 0;
 
     /**
      * in seconds
@@ -58,18 +77,18 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     public void setRateDistribution(String rateDistribution) { this.rateDistribution = RateDistribution.valueOf(rateDistribution.toUpperCase());  }
 
     public int getGranularity() { return this.granularity; }
-    public void setGranularity(int granularitySeconds) { this.granularity = granularitySeconds * 1000; }
+    public void setGranularity(int granularityMs) { this.granularity = granularityMs; }
 
     /**
-     * returns init time (in second)
+     * returns init time (in seconds)
      */
-    public double getInitTime() { return this.initTime/1000; }
+    public double getInitTime() { return this.initTime; }
 
     /**
      * Sets the init time
-     * @param initTime in seconds
+     * @param initTime in ms
      */
-    public void setInitTime(int initTime) { this.initTime = initTime * 1000; }
+    public void setInitTime(int initTime) { this.initTime = initTime; }
 
     public int getMaxArrivalRate() { return this.maxArrivalRate; }
     public void setMaxArrivalRate(int maxArrivalRate) { this.maxArrivalRate = maxArrivalRate; }
@@ -78,7 +97,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
      * returns current time in seconds
      * @return
      */
-    public double getTime(){ return this.t/1000; }
+    public double getTime(){ return this.t; }
 
     public boolean isOpenSystem(){ return true; }
 
@@ -99,6 +118,87 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /***************************/
     /***       METHODS       ***/
     /***************************/
+
+    protected void prepareOutputFile() {
+        File parentDir;
+        if (targetDir == null) {
+            log.trace("Defaulting to local dir");
+            parentDir = new File(".");
+        } else {
+            parentDir = new File(targetDir);
+            if (!parentDir.exists()) {
+                if (!parentDir.mkdirs()) {
+                    log.warn("Issues creating parent dir " + parentDir);
+                }
+            }
+        }
+        assert parentDir.exists() && parentDir.isDirectory();
+
+        String actualFileName = "stage_" +this.stage.getId() + "_" + System.currentTimeMillis() + ".csv";
+
+        try {
+            outputFile = Utils.createOrReplaceFile(parentDir, actualFileName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void writeData() {
+
+        try {
+            openFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<String> headerRow = new ArrayList<String>();
+        headerRow.add("time");
+        headerRow.add("arrivalRate");
+        try {
+            writeRowToFile(headerRow);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<String> dataRow = new ArrayList<String>();
+        for (TimeArrivalRate entry : outputData) {
+            dataRow.add( Double.toString(entry.time) );
+            dataRow.add( Integer.toString(entry.arrivalRate) );
+            try {
+                writeRowToFile(dataRow);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            dataRow.clear();
+        }
+
+        try {
+            closeFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void closeFile() throws IOException {
+        fileWriter.close();
+    }
+
+    private void openFile() throws IOException {
+        fileWriter = new FileWriter(outputFile);
+    }
+
+    private void writeRowToFile(List<String> row) throws IOException {
+        for (int i = 0; i < row.size(); i++) {
+            fileWriter.write(row.get(i));
+            if (i == row.size() - 1) {
+                fileWriter.write('\n');
+            } else {
+                fileWriter.write(separator);
+            }
+        }
+    }
+
+
 
     public void start(){
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -151,12 +251,12 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     private class Starter implements Runnable{
         @Override
         public void run() {
-            BlockingQueue<Integer> queue = new LinkedBlockingQueue<Integer>();
+            BlockingQueue<Double> queue = new LinkedBlockingQueue<Double>();
 
-            t = initTime - granularity;
+            t = initTime - ( ( (double) granularity ) /1000 );
             log.info("Scheduling timer");
             ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-            executor.scheduleWithFixedDelay(new TimeIncrementer(queue), granularity, granularity, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(new TimeIncrementer(queue), granularity, granularity, TimeUnit.MILLISECONDS);
             while (running){
                 log.info("waiting for producer");
                 try {
@@ -164,15 +264,20 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+                outputData.add(new TimeArrivalRate(t,getCurrentArrivalRate()));
                 setChanged();
                 notifyObservers();
             }
             executor.shutdown();
+
             try {
                 executor.awaitTermination(2*granularity, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+
+            prepareOutputFile();
+            writeData();
 
         }
     }
@@ -202,20 +307,31 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
     private class TimeIncrementer implements Runnable {
 
-        BlockingQueue<Integer> queue;
+        BlockingQueue<Double> queue;
 
-        public TimeIncrementer(BlockingQueue<Integer> queue){ this.queue = queue; }
+        public TimeIncrementer(BlockingQueue<Double> queue){ this.queue = queue; }
 
         @Override
         public void run() {
             log.info("Incrementing timer");
-            t+=granularity;
+            t+=  ( ( (double) granularity ) /1000 );
             log.info("t=" + t);
             try {
                 queue.put(t);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+
+    private class TimeArrivalRate {
+        private double time;
+        private int arrivalRate;
+
+        TimeArrivalRate(double t, int arrivalRate){
+            this.time = t;
+            this.arrivalRate = arrivalRate;
         }
     }
 

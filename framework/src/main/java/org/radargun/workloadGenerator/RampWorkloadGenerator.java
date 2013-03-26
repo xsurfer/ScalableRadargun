@@ -2,6 +2,7 @@ package org.radargun.workloadGenerator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.AbstractBenchmarkStage;
 
 /**
  * Generate a workload based on function f(t)=mt+q
@@ -15,6 +16,10 @@ public class RampWorkloadGenerator extends AbstractWorkloadGenerator {
     private double slope = 1.0;
 
     private double yintercept = 0.0;
+
+    public RampWorkloadGenerator(AbstractBenchmarkStage stage) {
+        super(stage);
+    }
 
     @Override
     public int getCurrentArrivalRate() {

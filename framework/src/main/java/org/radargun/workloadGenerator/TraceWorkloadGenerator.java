@@ -2,6 +2,7 @@ package org.radargun.workloadGenerator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.AbstractBenchmarkStage;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -20,6 +21,11 @@ public class TraceWorkloadGenerator extends AbstractWorkloadGenerator {
     private List<Integer> arrivalRates;
 
     private String file = null;
+
+    public TraceWorkloadGenerator(AbstractBenchmarkStage stage) {
+        super(stage);
+    }
+
     public String getFile(){ return this.file; }
 
     public void setFile(String file){

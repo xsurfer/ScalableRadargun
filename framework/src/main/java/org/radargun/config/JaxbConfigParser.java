@@ -4,11 +4,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Master;
 import org.radargun.config.jaxb.*;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,12 +115,15 @@ public class JaxbConfigParser extends ConfigParser {
       }
    }
 
-    public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName) {
+    public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName, AbstractBenchmarkStage stage) {
         if (workloadGeneratorName.indexOf('.') < 0) {
             workloadGeneratorName = "org.radargun.workloadGenerator." + workloadGeneratorName;
         }
         try {
-            return (org.radargun.workloadGenerator.AbstractWorkloadGenerator) Class.forName(workloadGeneratorName).newInstance();
+            AbstractWorkloadGenerator obj;
+            Constructor c = Class.forName(workloadGeneratorName).getConstructor(AbstractBenchmarkStage.class);
+            obj = (AbstractWorkloadGenerator) c.newInstance(stage);
+            return obj;
         } catch (Exception e) {
             String s = "Could not create stage of type: " + workloadGeneratorName;
             log.error(s);

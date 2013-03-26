@@ -54,7 +54,7 @@
                 id="h"
                 statsSamplingInterval="30000"
                 numOfThreads="1"
-                perThreadSimulTime="180"
+                perThreadSimulTime="60"
                 accessSameWarehouse="false"
                 paymentWeight="43"
                 orderStatusWeight="53"
@@ -69,19 +69,19 @@
                     initTime="0"
                     file="trace.log"
                     maxArrivalRate="3000" /-->
-            <!--Sin
+            <Sin
                     rateDistribution="exponential"
-                    granularity="2"
-                    initTime="1"
+                    granularity="500"
+                    initTime="0"
                     amplitude="1000"
-                    maxArrivalRate="3000" /-->
-            <Ramp
+                    maxArrivalRate="3000" />
+            <!--Ramp
                     rateDistribution="exponential"
                     granularity="2"
                     initTime="1"
                     slope="0"
                     yintercept="3"
-                    maxArrivalRate="3000" />
+                    maxArrivalRate="3000" /-->
         </TpccBenchmark>
         <TpccCsvReportGeneration/>
 

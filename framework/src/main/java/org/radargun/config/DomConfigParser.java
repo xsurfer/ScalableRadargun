@@ -177,7 +177,7 @@ public class DomConfigParser extends ConfigParser {
                         if (workloadChild instanceof Element) {
                             Element generatorEl = (Element) workloadChild;
                             String generatorShortName = generatorEl.getNodeName();
-                            AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator");
+                            AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator", (AbstractBenchmarkStage) st);
                             if (wg == null)
                                 throw new RuntimeException("Unvalid Workload Generator");
                             ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
