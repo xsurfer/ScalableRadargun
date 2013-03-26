@@ -1074,14 +1074,18 @@ public class TpccStressor extends AbstractCacheWrapperStressor {
       }
       running = false;
       for (Stressor stressor : stressors) {
+          log.trace("Stopping stressors");
          stressor.finish();
       }
       if(workloadGenerator.isOpenSystem()){
+          log.trace("Stopping producers");
         for (Producer producer : producers) {
             producer.interrupt();
         }
       }
+       log.trace("Stopping workload generator");
       workloadGenerator.stop();
+       log.trace("Waking up waiting thread");
       notifyAll();
    }
 

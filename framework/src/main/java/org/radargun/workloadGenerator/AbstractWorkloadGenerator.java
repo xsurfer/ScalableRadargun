@@ -162,8 +162,8 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
         List<String> dataRow = new ArrayList<String>();
         for (TimeArrivalRate entry : outputData) {
-            dataRow.add( Double.toString(entry.time) );
-            dataRow.add( Integer.toString(entry.arrivalRate) );
+            dataRow.add( Double.toString( entry.time ) );
+            dataRow.add( Integer.toString( entry.arrivalRate ) );
             try {
                 writeRowToFile(dataRow);
             } catch (IOException e) {
