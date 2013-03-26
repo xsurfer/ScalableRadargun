@@ -55,7 +55,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
    /**
     * This node's index in the Radargun cluster.  -1 is used for local benchmarks.
     */
-   private int nodeIndex = -1;
+   protected int nodeIndex = -1;
 
    private int transactionSize = 1;
 
@@ -67,7 +67,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
 
    private String keyGeneratorClass = StringKeyGenerator.class.getName();
 
-   private KeyGenerator keyGenerator;
+   protected KeyGenerator keyGenerator;
 
 
    protected CacheWrapper cacheWrapper;

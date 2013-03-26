@@ -6,12 +6,14 @@
       <DestroyWrapper runOnAllSlaves="true"/>
       <StartCluster staggerSlaveStartup="true" delayAfterFirstSlaveStarts="5000" delayBetweenStartingSlaves = "500"/>
       <ClusterValidation partialReplication="false"/>
-      <Warmup operationCount="10000" batch="100" loadOnWarmup="yes" sizeOfAnAttribute="1000" isPartitioned="no" numOfThreads="1"/>
+      <SyntheticWarmup keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator" numberOfAttributes="10000" sizeOfAnAttribute="1000" numOfThreads="1"/>
       <!--
          This will average to 10000 requests per thread, although a work-stealing pattern is used so some threads may
          do more work than others.
        -->
-      <WebSessionBenchmark sizeOfAnAttribute="1000" numberOfAttributes="10000" numOfThreads="2" numReads="10" updateXactWrites="1" writePercentage="20" perThreadSimulTime="60" interReadSpin="0" partitioned="no"/>
+      <GarbageCollection/>
+      <ResetStats/>
+      <SyntheticBenchmark sizeOfAnAttribute="1000" keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator" numberOfAttributes="10000" numOfThreads="2" updateXactWrites="1" updateXactReads="9" readOnlyXactSize="10" writePercentage="20" duration="30000"/>
       <CsvReportGeneration/>
    </benchmark>
 

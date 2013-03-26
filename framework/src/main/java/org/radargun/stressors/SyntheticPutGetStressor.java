@@ -39,6 +39,30 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       return updateXactWrites;
    }
 
+   public int getReadOnlyXactSize() {
+      return readOnlyXactSize;
+   }
+
+   public void setReadOnlyXactSize(int readOnlyXactSize) {
+      this.readOnlyXactSize = readOnlyXactSize;
+   }
+
+   public int getUpdateXactWrites() {
+      return updateXactWrites;
+   }
+
+   public void setUpdateXactWrites(int updateXactWrites) {
+      this.updateXactWrites = updateXactWrites;
+   }
+
+   public int getUpdateXactReads() {
+      return updateXactReads;
+   }
+
+   public void setUpdateXactReads(int updateXactReads) {
+      this.updateXactReads = updateXactReads;
+   }
+
    public void setupdateXactWrites(int numWrites) {
       this.updateXactWrites = numWrites;
    }
@@ -49,7 +73,7 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       int writes = 0;
       int localFailures = 0;
       int remoteFailures = 0;
-      duration = System.nanoTime() - startTime;
+      duration = (long) (1e-6 * (System.nanoTime() - startTime));
       for (Stressor stressorrrr : stressors) {
          SyntheticStressor stressor = (SyntheticStressor) stressorrrr;
          reads += stressor.reads;
@@ -60,6 +84,7 @@ public class SyntheticPutGetStressor extends PutGetStressor {
 
       Map<String, String> results = new LinkedHashMap<String, String>();
       results.put("DURATION", str(duration));
+      results.put("REQ_PER_SEC", str((reads + writes) / duration));
       results.put("READ_COUNT", str(reads));
       results.put("WRITE_COUNT", str(writes));
       results.put("LOCAL_FAILURES", str(localFailures));
@@ -76,7 +101,7 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       startPoint = new CountDownLatch(1);
       startTime = System.nanoTime();
       for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
-         Stressor stressor = new Stressor(threadIndex);
+         Stressor stressor = new SyntheticStressor(threadIndex, keyGenerator, nodeIndex, numberOfKeys);
          stressors.add(stressor);
          stressor.start();
       }
@@ -213,6 +238,11 @@ public class SyntheticPutGetStressor extends PutGetStressor {
                doPut = r.nextInt(100) < writePerc;
             doOp(doPut, r.nextInt(numKeys));
             toDo--;
+            if (doPut) {
+               toDoWrite--;
+            } else {
+               toDoRead--;
+            }
          }
 
       }
@@ -228,7 +258,7 @@ public class SyntheticPutGetStressor extends PutGetStressor {
       private xactClass xactClass(Random r) {
          if (readOnlyXact(r, writePercentage))
             return xactClass.RO;
-         else return xactClass.WR;
+         return xactClass.WR;
       }
 
 

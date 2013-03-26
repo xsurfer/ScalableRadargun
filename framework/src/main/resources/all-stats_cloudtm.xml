@@ -73,5 +73,6 @@
         <stat displayName="NumAbortedTxDueToValidation" attributeName="NumAbortedTxDueToValidation"/>
        <stat displayName="NumAbortedTxDueToWriteLock" attributeName="NumAbortedTxDueToWriteLock"/>
         <stat displayName="NumAbortedTxDueToReadLock" attributeName="NumAbortedTxDueToReadLock"/>
+        <stat displayName="NumAbortedTxDueToNotLastValueAccessed" attributeName="NumAbortedTxDueToNotLastValueAccessed"/> 
     </component>
 </stats-collector>

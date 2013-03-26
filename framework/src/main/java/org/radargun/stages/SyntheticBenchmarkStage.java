@@ -32,6 +32,8 @@ import java.util.Map;
 public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
 
    private int updateXactWrites = 1;
+   private int readOnlyXactSize = 1;
+   private int updateXactReads = 1;
 
    protected Map<String, String> doWork() {
       log.info("Starting " + getClass().getSimpleName() + ": " + this);
@@ -47,6 +49,8 @@ public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
       putGetStressor.setTransactionSize(transactionSize);
       putGetStressor.setDurationMillis(durationMillis);
       putGetStressor.setupdateXactWrites(updateXactWrites);
+      putGetStressor.setReadOnlyXactSize(readOnlyXactSize);
+      putGetStressor.setUpdateXactReads(updateXactReads);
       return putGetStressor.stress(cacheWrapper);
    }
 
@@ -54,10 +58,32 @@ public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
       return updateXactWrites;
    }
 
+   public int getReadOnlyXactSize() {
+      return readOnlyXactSize;
+   }
+
+   public void setReadOnlyXactSize(int readOnlyXactSize) {
+      this.readOnlyXactSize = readOnlyXactSize;
+   }
+
+   public int getUpdateXactReads() {
+      return updateXactReads;
+   }
+
+   public void setUpdateXactReads(int updateXactReads) {
+      this.updateXactReads = updateXactReads;
+   }
+
    public void setUpdateXactWrites(int updateXactWrites) {
       this.updateXactWrites = updateXactWrites;
    }
 
-
-
+   @Override
+   public String toString() {
+      return "SyntheticBenchmarkStage{" +
+              "updateXactWrites=" + updateXactWrites +
+              ", readOnlyXactSize=" + readOnlyXactSize +
+              ", updateXactReads=" + updateXactReads +
+              '}';
+   }
 }
