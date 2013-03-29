@@ -64,7 +64,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
       return true;
    }
 
-   private void joinCacheSizes(Map<Integer, Map<String, Object>> results, List<CacheSizeValues> cacheSizeValues) {
+   protected void joinCacheSizes(Map<Integer, Map<String, Object>> results, List<CacheSizeValues> cacheSizeValues) {
       if (cacheSizeValues == null || cacheSizeValues.size() == 0) {
          log.info("Cache size values not collected. Skip join to results");
          return;
@@ -84,7 +84,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
       }
    }
 
-   private void writeData(Map<Integer, Map<String, Object>> results) throws Exception {
+   protected void writeData(Map<Integer, Map<String, Object>> results) throws Exception {
 
       openFile();
 
@@ -136,7 +136,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
       }
    }
 
-   private void prepareOutputFile(int clusterSize) throws IOException {
+   protected void prepareOutputFile(int clusterSize) throws IOException {
       File parentDir;
       if (targetDir == null) {
          log.trace("Defaulting to local dir");

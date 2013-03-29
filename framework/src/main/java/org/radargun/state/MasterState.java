@@ -8,13 +8,13 @@ import org.radargun.MasterStage;
 import org.radargun.Stage;
 import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
+import org.radargun.config.ScalingBenchmarkConfig;
 import org.radargun.jmx.JmxRegistration;
+import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.nio.channels.SocketChannel;
+import java.util.*;
 
 /**
  * State residing on the server, passed to each stage before execution.
@@ -29,7 +29,11 @@ public class MasterState extends StateBase {
    private List<FixedSizeBenchmarkConfig> benchmarks;
    private FixedSizeBenchmarkConfig currentBenchmark;
    private long startTime = System.currentTimeMillis();
-   private DistStage currentDistStage;
+   protected ThreadLocal<DistStage> currentDistStage = new ThreadLocal<DistStage>();
+   protected DistStage currentMainDistStage;
+
+   protected volatile int sizeForNextStage = -1;
+
    private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();
 
    public MasterState(MasterConfig config) {
@@ -45,12 +49,20 @@ public class MasterState extends StateBase {
       return config;
    }
 
+    public long getStartTime(){
+        return this.startTime;
+    }
+
    public DistStage getNextDistStageToProcess() {
       while (currentBenchmark.hasNextStage()) {
          Stage stage = currentBenchmark.nextStage();
          if (stage instanceof DistStage) {
-            currentDistStage = (DistStage) stage;
-            return currentDistStage;
+            currentDistStage.set( (DistStage) stage );
+            if(this.sizeForNextStage<0){
+                log.info("Initializing sizeForNextStage to: " + ((DistStage) stage).getActiveSlaveCount());
+                this.sizeForNextStage = ((DistStage) stage).getActiveSlaveCount();
+            }
+            return currentDistStage.get();
          } else {
             jmxRegistration.processStage(stage);
             executeServerStage((MasterStage) stage);
@@ -68,14 +80,10 @@ public class MasterState extends StateBase {
       return getNextDistStageToProcess();
    }
 
+   public DistStage getCurrentDistStage() { return currentDistStage.get(); }
 
-   public DistStage getCurrentDistStage() {
-      return currentDistStage;
-   }
-
-   public int getSlavesCountForCurrentStage() {
-      return currentDistStage.getActiveSlaveCount();
-   }
+   public int getSlavesCountForCurrentStage() { return currentDistStage.get().getActiveSlaveCount(); }
+   public void setSlavesCountForCurrentStage(int activeSlaves) { currentDistStage.get().setActiveSlavesCount(activeSlaves); }
 
    public boolean distStageFinished(List<DistStageAck> acks) {
       // Sort acks so that logs are more readable.
@@ -87,9 +95,12 @@ public class MasterState extends StateBase {
             return (thisVal < anotherVal ? -1 : (thisVal == anotherVal ? 0 : 1));
          }
       });
-      boolean stageOk = currentDistStage.processAckOnMaster(acks, this);
-      if (stageOk) return true;
-      if (!currentDistStage.isExitBenchmarkOnSlaveFailure()) {
+      boolean stageOk = currentDistStage.get().processAckOnMaster(acks, this);
+
+      if (stageOk){
+          return true;
+      }
+      if (!currentDistStage.get().isExitBenchmarkOnSlaveFailure()) {
          log.warn("Execution error for current benchmark, skipping rest of the stages");
          currentBenchmark.errorOnCurrentBenchmark();
          return true;
@@ -99,7 +110,15 @@ public class MasterState extends StateBase {
       }
    }
 
-   private void executeServerStage(MasterStage servStage) {
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves) {
+        List<Integer> ret = currentDistStage.get().sizeForNextStage(acks, slaves);
+        this.sizeForNextStage = slaves.size() - ret.size();
+        return ret;
+    }
+
+    public int getSizeForNextStage(){ return sizeForNextStage; }
+
+    private void executeServerStage(MasterStage servStage) {
       if (log.isDebugEnabled())
          log.debug("Starting '" + servStage.getClass().getSimpleName() + "' on master node only. Details:" + servStage);
       else
@@ -124,13 +143,29 @@ public class MasterState extends StateBase {
       return prodName;
    }
 
-   public String configNameOfTheCurrentBenchmark() {
-      return currentBenchmark.getConfigName();
-   }
+    public ScalingBenchmarkConfig getCurrentBenchmark() {
+        if(currentBenchmark instanceof ScalingBenchmarkConfig)
+            return (ScalingBenchmarkConfig) currentBenchmark;
+        else
+            throw new RuntimeException("currentBenchmark should be a ScalingBenchmarkConfig!");
+    }
+
+   public String configNameOfTheCurrentBenchmark() { return currentBenchmark.getConfigName(); }
 
    private void logBenchmarkStarted() {
       if (currentBenchmark.getProductName() != null) {
          log.info("Started benchmarking product '" + currentBenchmark.getProductName() + "' with configuration '" + currentBenchmark.getConfigName() + "'");
       }
    }
+
+    /**
+     * This method MUST BE USED ONLY by the ClusterExecutor thread
+     * @param currentMainDistStage
+     */
+    public void setCurrentMainDistStage(DistStage currentMainDistStage) {
+        log.info("Setting CurrentMainDistStage to: [ id = " + currentMainDistStage.getId() + "]" );
+        this.currentMainDistStage = currentMainDistStage;
+    }
+
+    public DistStage getCurrentMainDistStage() { return this.currentMainDistStage; }
 }

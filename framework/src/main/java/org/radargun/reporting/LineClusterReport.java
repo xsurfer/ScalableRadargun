@@ -48,6 +48,10 @@ public class LineClusterReport implements ClusterReport {
       this.categorySet.addValue(value, rowKey, columnKey);
    }
 
+    public void addCategory(String productName, double time, Number value) {
+        this.categorySet.addValue(value, productName, time);
+    }
+
    public void generate() throws Exception {
       sort();
       File root = new File(reportDir);

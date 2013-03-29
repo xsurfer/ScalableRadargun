@@ -10,6 +10,7 @@ import org.radargun.tpcc.TpccPopulation;
 import org.radargun.tpcc.TpccTools;
 
 import java.util.Map;
+import java.util.Observable;
 
 /**
  * Populate <code>numWarehouses</code> Warehouses in cache.
@@ -196,4 +197,9 @@ public class TpccPopulationStressor extends AbstractCacheWrapperStressor {
    public void setOneWarmup(boolean oneWarmup) {
       this.oneWarmup = oneWarmup;
    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

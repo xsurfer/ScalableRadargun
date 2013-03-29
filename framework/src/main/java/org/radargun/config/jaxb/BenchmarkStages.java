@@ -34,7 +34,7 @@ import java.util.List;
 @XmlType(name = "", propOrder = {
         "stage"
 })
-@XmlRootElement(name = "benchmark-stages")
+@XmlRootElement(name = "benchmark-mandatoryStages")
 public class BenchmarkStages {
 
    @XmlElement(required = true)

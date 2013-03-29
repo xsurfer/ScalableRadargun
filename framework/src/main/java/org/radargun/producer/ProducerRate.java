@@ -1,6 +1,12 @@
 package org.radargun.producer;
 
-import java.util.Random;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.helpers.LogLog;
+import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class handles the sleep time for the producer rates
@@ -9,51 +15,64 @@ import java.util.Random;
  * @author Diego Didona
  * @since 1.1
  */
-public class ProducerRate {
+public abstract class ProducerRate {
 
+   private static Log log = LogFactory.getLog(ProducerRate.class);
    private final double lambda;
-   private final Random random;
+
+    /**
+     * Inner class to for exceptions
+     */
+    public static class ProducerRateException extends Exception{
+        public ProducerRateException(Exception e) { super(e); }
+    }
+
+    public static ProducerRate createInstance(AbstractWorkloadGenerator.RateDistribution producerRateEnum, double producerLambda) throws ProducerRateException{
+        ProducerRate obj;
+        String producerRateString = producerRateEnum.getDistributionRateName();
+        if (producerRateString.indexOf('.') < 0) {
+            producerRateString = "org.radargun.producer." + producerRateString;
+        }
+        try {
+            Constructor c = Class.forName(producerRateString).getConstructor(Double.TYPE);
+            obj = (ProducerRate) c.newInstance(producerLambda);
+        } catch (Exception e) {
+            String s = "Could not create ProducerRate of type: " + producerRateString;
+            log.error(s);
+            throw new RuntimeException(e);
+        }
+        return obj;
+    }
 
    /**
     * @param producerLambda the lambda (arrival rate) in transaction per millisecond
     */
-   public ProducerRate(double producerLambda) {
+   protected ProducerRate(double producerLambda) {
       this.lambda = producerLambda;
-      this.random = new Random(System.currentTimeMillis());
    }
 
    /**
     * it sleeps to a determined rate, in order to achieve the lambda (arrival rate) desired
     */
    public final long sleep() {
-      long sleepTime = (long) exp(random, lambda);
+      //log.trace("Using " + this.getClass().toString());
+      long sleepTime = (long) timeToSleep(lambda);
       try {
          Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
-         //interrupted
+          log.warn("Interrupt");
       }
       return sleepTime;
    }
 
-   /**
-    * NOTE: the public visibility is only for testing purpose!
-    *
-    * @param random random generator number
-    * @param lambda the lambda in milliseconds
-    * @return the sleeping time in milliseconds
-    */
-   public final double exp(Random random, double lambda) {
-      double ret = -Math.log(1.0D - random.nextDouble()) / lambda;
-      //I bound the value in the interval 1msec-30sec--> at least 1msec!
-      return ret < 1 ? 1 : (ret > 30000 ? 30000 : ret);
-   }
+    /**
+     * returns the lambda of this producer rate
+     *
+     * @return the lambda of this producer rate
+     */
+    public double getLambda() { return lambda; }
 
-   /**
-    * returns the lambda of this producer rate
-    *
-    * @return the lambda of this producer rate
-    */
-   public double getLambda() {
-      return lambda;
-   }
+    public abstract double timeToSleep(double lambda);
+
+
 }

@@ -26,8 +26,9 @@ public class LaunchMaster {
       out("Configuration file is: " + config);
 
       ConfigParser configParser = ConfigParser.getConfigParser();
+       //configParser è DomConfigParser
       MasterConfig masterConfig = configParser.parseConfig(config);
-      Master server = new Master(masterConfig);
+      Master server = new ElasticMaster(masterConfig);
       server.start();
    }
 

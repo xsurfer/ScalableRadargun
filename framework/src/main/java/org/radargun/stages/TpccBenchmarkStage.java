@@ -22,7 +22,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * <pre>
  * Params:
  *       - numOfThreads : the number of stressor threads that will work on each slave.
- *       - perThreadSimulTime : total time (in seconds) of simulation for each stressor thread.
+ *       - updateTimes : total time (in seconds) of simulation for each stressor thread.
  *       - arrivalRate : if the value is greater than 0.0, the "open system" mode is active and the parameter represents the arrival rate (in transactions per second) of a job (a transaction to be executed) to the system; otherwise the "closed system" mode is active: this means that each thread generates and executes a new transaction in an iteration as soon as it has completed the previous iteration.
  *       - paymentWeight : percentage of Payment transactions.
  *       - orderStatusWeight : percentage of Order Status transactions.
@@ -32,21 +32,18 @@ import static org.radargun.utils.Utils.numberFormat;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractDistStage {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage {
+
 
    private static final String SIZE_INFO = "SIZE_INFO";
    private static final String SCRIPT_LAUNCH = "_script_launch_";
    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
 
+
    /**
     * the number of threads that will work on this slave
     */
    private int numOfThreads = 10;
-
-   /**
-    * total time (in seconds) of simulation for each stressor thread
-    */
-   private long perThreadSimulTime = 180L;
 
    /**
     * average arrival rate of the transactions to the system
@@ -108,7 +105,8 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
    private transient TpccStressor tpccStressor;
 
-   @Override
+
+    @Override
    public void initOnMaster(MasterState masterState, int slaveIndex) {
       super.initOnMaster(masterState, slaveIndex);
       Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
@@ -139,7 +137,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    }
 
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress());
+      DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
       this.cacheWrapper = slaveState.getCacheWrapper();
       if (cacheWrapper == null) {
          log.info("Not running test on this slave as the wrapper hasn't been configured.");
@@ -149,12 +147,11 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       log.info("Starting TpccBenchmarkStage: " + this.toString());
 
       trackNewKeys();
-      tpccStressor = new TpccStressor();
+      tpccStressor = new TpccStressor(this.workloadGenerator);
       tpccStressor.setNodeIndex(getSlaveIndex());
       tpccStressor.setNumSlaves(getActiveSlaveCount());
       tpccStressor.setNumOfThreads(this.numOfThreads);
       tpccStressor.setPerThreadSimulTime(this.perThreadSimulTime);
-      tpccStressor.setArrivalRate(this.arrivalRate);
       tpccStressor.setPaymentWeight(this.paymentWeight);
       tpccStressor.setOrderStatusWeight(this.orderStatusWeight);
       tpccStressor.setAccessSameWarehouse(accessSameWarehouse);
@@ -168,13 +165,14 @@ public class TpccBenchmarkStage extends AbstractDistStage {
 
       try {
          Map<String, String> results = tpccStressor.stress(cacheWrapper);
-         String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+         if( results != null ){
+            String sizeInfo = "size info: " + cacheWrapper.getInfo() +
                  ", clusterSize:" + super.getActiveSlaveCount() +
                  ", nodeIndex:" + super.getSlaveIndex() +
                  ", cacheSize: " + cacheWrapper.getCacheSize();
-
-         log.info(sizeInfo);
-         results.put(SIZE_INFO, sizeInfo);
+            log.info(sizeInfo);
+            results.put(SIZE_INFO, sizeInfo);
+         }
          result.setPayload(results);
          return result;
       } catch (Exception e) {
@@ -215,16 +213,10 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       return success;
    }
 
-   public void setNumOfThreads(int numOfThreads) {
+
+
+    public void setNumOfThreads(int numOfThreads) {
       this.numOfThreads = numOfThreads;
-   }
-
-   public void setPerThreadSimulTime(long perThreadSimulTime) {
-      this.perThreadSimulTime = perThreadSimulTime;
-   }
-
-   public void setArrivalRate(int arrivalRate) {
-      this.arrivalRate = arrivalRate;
    }
 
    public void setPaymentWeight(int paymentWeight) {
@@ -275,8 +267,7 @@ public class TpccBenchmarkStage extends AbstractDistStage {
    public String toString() {
       return "TpccBenchmarkStage {" +
               "numOfThreads=" + numOfThreads +
-              ", perThreadSimulTime=" + perThreadSimulTime +
-              ", arrivalRate=" + arrivalRate +
+              ", updateTimes=" + perThreadSimulTime +
               ", paymentWeight=" + paymentWeight +
               ", orderStatusWeight=" + orderStatusWeight +
               ", accessSameWarehouse=" + accessSameWarehouse +
@@ -331,8 +322,13 @@ public class TpccBenchmarkStage extends AbstractDistStage {
       return tpccStressor.getOrderStatusWeight();
    }
 
+   @Override
    @ManagedOperation(description = "Stop the current benchmark")
    public final void stopBenchmark() {
       tpccStressor.stopBenchmark();
    }
+
+    public TpccBenchmarkStage clone() {
+        return (TpccBenchmarkStage) super.clone();
+    }
 }

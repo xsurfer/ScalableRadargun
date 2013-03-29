@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.DistStage;
 import org.radargun.Stage;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.utils.TypedProperties;
 import org.radargun.utils.Utils;
 
@@ -19,126 +20,160 @@ import java.util.List;
  */
 public class FixedSizeBenchmarkConfig implements Cloneable {
 
-   private static Log log = LogFactory.getLog(FixedSizeBenchmarkConfig.class);
+    private static Log log = LogFactory.getLog(FixedSizeBenchmarkConfig.class);
 
-   protected List<Stage> stages = new ArrayList<Stage>();
+    /**
+     * originalStackStages contains the original stack stage.
+     */
+    protected List<Stage> originalStackStages = new ArrayList<Stage>();
 
-   protected String productName;
-   protected String configName;
-   protected int size;
+    public void addOriginalStage(Stage stage) { originalStackStages.add(stage); }
+    public List<Stage> getOriginalStages() { return new ArrayList<Stage>(originalStackStages); }
+    public void setOriginalStages(List<Stage> stages) { this.originalStackStages = new ArrayList<Stage>(stages); }
 
-   private TypedProperties configAttributes;
+    /**
+     *
+     */
+    protected ThreadLocal<List<Stage>> stages = new ThreadLocal<List<Stage>>() {
+        protected List<Stage> initialValue() {
+            return new ArrayList<Stage>(originalStackStages);
+        }
+    };
 
+    //protected List<Stage> stages = new ArrayList<Stage>();
 
-   protected int stIterator = 0;
-   private int maxSize = -1;
+    protected String productName;
+    protected String configName;
 
-   public int getMaxSize() {
-      return maxSize;
-   }
+    /**
+     * Current number of slaves for this test.<br>
+     */
+    protected int size;
 
-   public void setMaxSize(int maxSize) {
-      this.maxSize = maxSize;
-   }
-
-   public FixedSizeBenchmarkConfig() {
-   }
-
-   public void setStages(List<Stage> stages) {
-      this.stages = new ArrayList<Stage>(stages);
-   }
-
-   public void addStage(Stage stage) {
-      stages.add(stage);
-   }
-
-   public List<Stage> getStages() {
-      return new ArrayList<Stage>(stages);
-   }
-
-   public String getProductName() {
-      return productName;
-   }
-
-   public void setProductName(String productName) {
-      assertNo_(productName);
-      this.productName = productName;
-   }
-
-   private void assertNo_(String name) {
-      if (name.indexOf("_") >= 0) {
-         throw new RuntimeException("'_' not allowed in productName (reporting relies on that)");
-      }
-   }
-
-   public String getConfigName() {
-      return configName;
-   }
-
-   public void setConfigName(String configName) {
-      configName = Utils.fileName2Config(configName);
-      assertNo_(configName);
-      this.configName = configName;
-   }
-
-   public void setConfigAttributes(TypedProperties typedProperties) {
-      this.configAttributes = typedProperties;
-   }
-
-   public TypedProperties getConfigAttributes() {
-      return configAttributes;
-   }
+    private TypedProperties configAttributes;
 
 
-   public void validate() {
-      if (productName == null) throw new RuntimeException("Name must be set!");
-   }
+    //protected int stIterator = 0;
+    protected ThreadLocal<Integer> stIterator = new ThreadLocal<Integer>() {
+        protected Integer initialValue() {
+            return new Integer(0);
+        }
+    };
 
-   public void setSize(int size) {
-      this.size = size;
-   }
+    /**
+     * Mandatory max number of slaves
+     */
+    private int maxSize = -1;
 
-   @Override
-   public FixedSizeBenchmarkConfig clone() {
-      FixedSizeBenchmarkConfig clone;
-      try {
-         clone = (FixedSizeBenchmarkConfig) super.clone();
-      } catch (CloneNotSupportedException e) {
-         throw new RuntimeException("Impossible!!!");
-      }
-      clone.stages = cloneStages(this.stages);
-      return clone;
-   }
+    public int getMaxSize() {
+        return maxSize;
+    }
 
-   public boolean hasNextStage() {
-      return stIterator < stages.size();
-   }
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
+    }
 
-   public Stage nextStage() {
-      Stage stage = stages.get(stIterator);
-      stIterator++;
-      if (stage instanceof DistStage) {
-         DistStage distStage = (DistStage) stage;
-         if (!distStage.isRunOnAllSlaves()) {
-            distStage.setActiveSlavesCount(size);
-         } else {
-            if (maxSize <= 0) throw new IllegalStateException("Make sure you set the maxSize first!");
-            distStage.setActiveSlavesCount(maxSize);
-         }
-      }
-      return stage;
-   }
+    public FixedSizeBenchmarkConfig() {
+    }
 
-   public void errorOnCurrentBenchmark() {
-      log.trace("Issues in current benchmark, skipping remaining stages");
-      stIterator = stages.size();
-   }
+    public String getProductName() {
+        return productName;
+    }
 
-   protected List<Stage> cloneStages(List<Stage> stages) {
-      List<Stage> clone = new ArrayList<Stage>();
-      for (Stage st : stages) {
-         clone.add(st.clone());
-      }
-      return clone;
-   }
+    public void setProductName(String productName) {
+        assertNo_(productName);
+        this.productName = productName;
+    }
+
+    private void assertNo_(String name) {
+        if (name.indexOf("_") >= 0) {
+            throw new RuntimeException("'_' not allowed in productName (reporting relies on that)");
+        }
+    }
+
+    public String getConfigName() {
+        return configName;
+    }
+
+    public void setConfigName(String configName) {
+        configName = Utils.fileName2Config(configName);
+        assertNo_(configName);
+        this.configName = configName;
+    }
+
+    public void setConfigAttributes(TypedProperties typedProperties) {
+        this.configAttributes = typedProperties;
+    }
+
+    public TypedProperties getConfigAttributes() {
+        return configAttributes;
+    }
+
+
+    public void validate() {
+        if (productName == null) throw new RuntimeException("Name must be set!");
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    @Override
+    public FixedSizeBenchmarkConfig clone() {
+        FixedSizeBenchmarkConfig clone;
+        try {
+            clone = (FixedSizeBenchmarkConfig) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Impossible!!!");
+        }
+        clone.stages.set(cloneStages(this.stages.get()));
+        return clone;
+    }
+
+    /**
+     * Returns true if there is a next stage to execute <br>
+     * ATTENTION: the stage stack is saved using a ThreadLocal
+     * @return Stage
+     */
+    public boolean hasNextStage() {
+        return stIterator.get() < stages.get().size();
+    }
+
+    /**
+     * Returns next stage<br>
+     * ATTENTION: the stage stack is saved using a ThreadLocal
+     * @return Stage
+     */
+    public Stage nextStage() {
+        Stage stage = stages.get().get(stIterator.get());
+        stIterator.set(stIterator.get()+1);
+        if (stage instanceof DistStage) {
+            DistStage distStage = (DistStage) stage;
+            if (!distStage.isRunOnAllSlaves()) {
+                //log.debug("size for this fixed benchmark is: " + size);
+                distStage.setActiveSlavesCount(size);
+            } else {
+                if (maxSize <= 0) throw new IllegalStateException("Make sure you set the maxSize first!");
+                distStage.setActiveSlavesCount(maxSize);
+            }
+        }
+        return stage;
+    }
+
+    public void errorOnCurrentBenchmark() {
+        log.trace("Issues in current benchmark, skipping remaining stages");
+        stIterator.set(stages.get().size());
+    }
+
+    protected List<Stage> cloneStages(List<Stage> stages) {
+        List<Stage> clone = new ArrayList<Stage>();
+        for (Stage st : stages) {
+            clone.add(st.clone());
+        }
+        return clone;
+    }
 }

@@ -7,7 +7,7 @@ if [ "x$RADARGUN_HOME" = "x" ]; then DIRNAME=`dirname $0`; RADARGUN_HOME=`cd $DI
 
 CP=${RADARGUN_HOME}/lib/radargun-*.jar
 JAVA="org.radargun.WorkloadJmxRequest"
-OP="-high"
+#OP="-high"
 OBJ="TpccBenchmark"
 
 help_and_exit() {
@@ -20,8 +20,8 @@ case $1 in
   -high) OP="-high"; shift 1;;
   -low) OP="-low"; shift 1;;
   -random) OP="-random"; shift 1;;
-  -order) READ_PERCENT=$2; shift 2;;
-  -payment) WRITE_PERCENT=$2; shift 2;;
+  -order) READ_PERCENT="-order-percent $2" shift 2;;
+  -payment) WRITE_PERCENT="-payment-percent $2"; shift 2;;
   -jmx-mbean) OBJ=$2; shift 2;;
   -nr-threads) NR_THREADS="-nr-thread "$2; shift 2;;
   -h) help_and_exit;;
@@ -33,14 +33,6 @@ done
 if [ -z "$SLAVES" ]; then
 echo "No slaves found!";
 help_and_exit;
-fi
-
-if [ -n "$WRITE_PERCENT" ]; then
-WRITE_PERCENT="-payment-percent ${WRITE_PERCENT}";
-fi
-
-if [ -n "READ_PERCENT" ]; then
-READ_PERCENT="-order-percent ${READ_PERCENT}";
 fi
 
 for slave in ${SLAVES}; do

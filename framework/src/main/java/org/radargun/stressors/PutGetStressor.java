@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * On multiple threads executes put and get operations against the CacheWrapper, and returns the result as an Map.
  *
+ * TODO: ACCERTARSI CHE ALL'INIZIO DELLO STAGE E DOPO IL JOIN LE STATISTICHE VENGANO RESETTATE
+ *
  * @author Mircea.Markus@jboss.com
  */
 public class PutGetStressor extends AbstractCacheWrapperStressor {
@@ -163,7 +165,12 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       return nodeIndex == -1;
    }
 
-   protected class Stressor extends Thread {
+    @Override
+    public void update(Observable o, Object arg) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    protected class Stressor extends Thread {
 
       private ArrayList<Object> pooledKeys = new ArrayList<Object>(numberOfKeys);
 
@@ -438,6 +445,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       this.durationMillis = durationMillis;
    }
 
+   @Deprecated
    public void setDuration(String duration) {
       this.durationMillis = Utils.string2Millis(duration);
    }

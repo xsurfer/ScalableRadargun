@@ -19,14 +19,14 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    // For Apache/commons/logging Log doesn't need to be static.
    protected Log log = LogFactory.getLog(ScalingBenchmarkConfig.class);
 
-   private boolean initialized = false;
+    private boolean initialized = false;
 
    List<FixedSizeBenchmarkConfig> fixedBenchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
+
    private int fixedBenchmarkIt = 0;
 
    //mandatory
    private int initSize = -1;
-
 
    //optional
    private int increment = 1;
@@ -60,7 +60,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    public boolean hasNextStage() {
       initialize();
       log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
-      if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
+       if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
       return currentFixedBenchmark().hasNextStage();
    }
 
@@ -71,13 +71,15 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
             log.info("Initializing configuration with " + i + " nodes");
             FixedSizeBenchmarkConfig conf = new FixedSizeBenchmarkConfig();
             conf.setMaxSize(getMaxSize());
-            conf.stages = cloneStages(this.stages);
+            log.warn("Should not be necessary to initialize stages. It should takes the original stack.");
+            conf.originalStackStages = getOriginalStages();
+            conf.stages.set(getOriginalStages());
             conf.setSize(i);
             conf.setConfigName(super.configName);
             conf.setProductName(super.productName);
             fixedBenchmarks.add(conf);
          }
-         initialized = true;
+         initialized = new Boolean(true);
          log.info("Number of cluster topologies on which benchmark will be executed is " + fixedBenchmarks.size());
       }
    }
@@ -85,13 +87,15 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    @Override
    public Stage nextStage() {
       initialize();
+
       if (!currentFixedBenchmark().hasNextStage()) {
          fixedBenchmarkIt++;
+          log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
       }
       return currentFixedBenchmark().nextStage();
    }
 
-   private FixedSizeBenchmarkConfig currentFixedBenchmark() {
+   public FixedSizeBenchmarkConfig currentFixedBenchmark() {
       return fixedBenchmarks.get(fixedBenchmarkIt);
    }
 
@@ -102,7 +106,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    @Override
    public ScalingBenchmarkConfig clone() {
       ScalingBenchmarkConfig clone = (ScalingBenchmarkConfig) super.clone();
-      clone.fixedBenchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
+      clone.fixedBenchmarks= new ArrayList<FixedSizeBenchmarkConfig>();
       for (FixedSizeBenchmarkConfig fbc : fixedBenchmarks) {
          clone.fixedBenchmarks.add(fbc.clone());
       }

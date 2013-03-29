@@ -12,7 +12,7 @@ import org.radargun.utils.Utils;
 public class ClearClusterStage extends AbstractDistStage {
 
    public DistStageAck executeOnSlave() {
-      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck();
+      DefaultDistStageAck defaultDistStageAck = newDefaultStageAck(this.getClass().getName());
       CacheWrapper cacheWrapper = slaveState.getCacheWrapper();
       for (int i = 0; i < 5; i++) {
          try {

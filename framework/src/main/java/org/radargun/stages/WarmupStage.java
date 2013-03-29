@@ -29,7 +29,7 @@ public class WarmupStage extends AbstractDistStage {
 
    public DistStageAck executeOnSlave() {
       log.warn("**** DEPRECATED. This warmup is likely to not properly warm up your JIT compiler, giving you false results. Please see the javadoc of WarmupStage.java for more details.");
-      DefaultDistStageAck ack = newDefaultStageAck();
+      DefaultDistStageAck ack = newDefaultStageAck(this.getClass().getName());
       CacheWrapper wrapper = slaveState.getCacheWrapper();
       if (wrapper == null) {
          log.info("Not executing any test as the wrapper is not set up on this slave ");

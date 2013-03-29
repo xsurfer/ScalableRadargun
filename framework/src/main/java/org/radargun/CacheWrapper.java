@@ -4,6 +4,8 @@ package org.radargun;
 import org.radargun.utils.TypedProperties;
 
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * CacheWrappers wrap caching products tp provide RadarGun with a standard way of
@@ -14,6 +16,9 @@ import java.util.Map;
  * @author Diego Didona (didona@gsd.inesc-id.pt)
  */
 public interface CacheWrapper {
+
+    public static final int VIEW_CHANGED = 1000;
+
    /**
     * Initialises the cache.  Typically this step will configure the
     * caching product with various params passed in, described in
@@ -146,5 +151,7 @@ public interface CacheWrapper {
    void put(String bucket, Object key, Object value, int threadId) throws Exception;
 
    void endTransaction(boolean successful, int threadId) throws Exception;
+
+   void addObserver(Observer o);
 
 }

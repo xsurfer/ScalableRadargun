@@ -1,0 +1,100 @@
+index 2f1d6f5..f711bfc 100644
+--- a/framework/src/main/java/org/radargun/stages/CsvReportGenerationStage.java
++++ b/framework/src/main/java/org/radargun/stages/CsvReportGenerationStage.java
+@@ -22,25 +22,37 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+ 
+     private static Log log = LogFactory.getLog(CsvReportGenerationStage.class);
+ 
+-    private String targetDir = "reports";
+-    private String separator = ",";
++    protected String targetDir = "reports";
++    protected String separator = ",";
+ 
+-    private File outputFile;
+-    private FileWriter fileWriter;
++    protected File outputFile;
++    protected FileWriter fileWriter;
+ 
+     public boolean execute() {
+         Map<Integer, Map<String, Object>> results = (Map<Integer, Map<String, Object>>) masterState.get("results");
++        Map<Integer, Long> timeStampResults = (Map<Integer, Long>) masterState.get("timeStamps");
++
+         if (results == null) {
+             log.error("Could not find reports('results') on the master. Master's state is  " + masterState);
+             return false;
+         }
++        if(timeStampResults == null) {
++            log.error("Could not find reports('timeStampResults') on the master. Master's state is  " + masterState);
++            return false;
++        }
++
+         try {
+             if (results.size() == 0) {
+-                log.warn("Nothing to report!");
++                log.warn("Nothing to report ('results')!");
++                return false;
++            }
++            if (timeStampResults.size() == 0) {
++                log.warn("Nothing to report ('timeStampResults')!");
+                 return false;
+             }
+ 
+             joinCacheSizes(results, (List<CacheSizeValues>) masterState.get("CacheSizeResults"));
++
+             prepareOutputFile(results.size());
+             writeData(results);
+         } catch (Exception e) {
+@@ -50,7 +62,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+         return true;
+     }
+ 
+-    private void joinCacheSizes(Map<Integer, Map<String, Object>> results, List<CacheSizeValues> cacheSizeValues) {
++    protected void joinCacheSizes(Map<Integer, Map<String, Object>> results, List<CacheSizeValues> cacheSizeValues) {
+         if (cacheSizeValues == null || cacheSizeValues.size() == 0) {
+             log.info("Cache size values not collected. Skip join to results");
+             return;
+@@ -61,6 +73,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+             Map<String, Object> slaveResults = entry.getValue();
+ 
+             try {
++                /** TODO: why iterate on a single value List? **/
+                 for (CacheSizeValues values : cacheSizeValues) {
+                     slaveResults.put(values.getStatName(), values.getCacheSize(slaveIdx));
+                 }
+@@ -70,7 +83,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+         }
+     }
+ 
+-    private void writeData(Map<Integer, Map<String, Object>> results) throws Exception {
++    protected void writeData(Map<Integer, Map<String, Object>> results) throws Exception {
+ 
+         openFile();
+ 
+@@ -103,15 +116,15 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+         closeFile();
+     }
+ 
+-    private void closeFile() throws IOException {
++    protected void closeFile() throws IOException {
+         fileWriter.close();
+     }
+ 
+-    private void openFile() throws IOException {
++    protected void openFile() throws IOException {
+         fileWriter = new FileWriter(outputFile);
+     }
+ 
+-    private void writeRowToFile(List<String> row) throws IOException {
++    protected void writeRowToFile(List<String> row) throws IOException {
+         for (int i = 0; i < row.size(); i++) {
+             fileWriter.write(row.get(i));
+             if (i == row.size() - 1) {
+@@ -122,7 +135,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
+         }
+     }
+ 
+-    private void prepareOutputFile(int clusterSize) throws IOException {
++    protected void prepareOutputFile(int clusterSize) throws IOException {
+         File parentDir;
+         if (targetDir == null) {
+             log.trace("Defaulting to local dir");

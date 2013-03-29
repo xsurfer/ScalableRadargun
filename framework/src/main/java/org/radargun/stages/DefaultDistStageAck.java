@@ -18,15 +18,27 @@ public class DefaultDistStageAck implements DistStageAck {
    private String errorMessage;
    private Object payload;
 
+   private long initialTs;
    private long duration;
 
    private String remoteExceptionString;
 
+   private String stageName;
 
-   public DefaultDistStageAck(int slaveIndex, InetAddress slaveAddress) {
+   public DefaultDistStageAck(int slaveIndex, InetAddress slaveAddress, String stageName) {
       this.slaveIndex = slaveIndex;
       this.slaveAddress = slaveAddress;
+      this.stageName = stageName;
    }
+
+    /* Aggiunto da fabio in modo che quando il master aspetta degli ack, controlla se gli ack ricevuti fanno parte
+    * dello stage corrente
+    */
+    @Override
+    public String getStageName() {
+        return stageName;
+    }
+    /* fine */
 
    public int getSlaveIndex() {
       return slaveIndex;
@@ -93,4 +105,13 @@ public class DefaultDistStageAck implements DistStageAck {
    public long getDuration() {
       return duration;
    }
+
+    public void setInitialTs(long ts) {
+        this.initialTs = ts;
+    }
+
+    public long getInitialTs() {
+        return initialTs;
+    }
+
 }

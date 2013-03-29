@@ -1,5 +1,7 @@
 package org.radargun.producer;
 
+import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
+
 /**
  * Classes that know how to create producers at the desire rate
  *
@@ -12,6 +14,7 @@ public class GroupProducerRateFactory {
    private final int numberOfNodes;
    private final int nodeIndex;
    private final int avgSleepTime;
+   private final AbstractWorkloadGenerator.RateDistribution rateDistribution;
 
    /**
     * @param globalLambda  the global system lambda (a.k.a arrival rate) in transactions per seconds
@@ -19,7 +22,7 @@ public class GroupProducerRateFactory {
     * @param nodeIndex     the node index [0..numberOfNodes - 1]
     * @param avgSleepTime  The average sleeping time desire for a producer
     */
-   public GroupProducerRateFactory(double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
+   public GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution rateDistribution, double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
       if (numberOfNodes < 1) {
          throw new IllegalArgumentException("Number of nodes must be higher or equals than 1");
       }
@@ -30,6 +33,7 @@ public class GroupProducerRateFactory {
       this.numberOfNodes = numberOfNodes;
       this.nodeIndex = nodeIndex;
       this.avgSleepTime = avgSleepTime;
+      this.rateDistribution = rateDistribution;
    }
 
    /**
@@ -64,12 +68,20 @@ public class GroupProducerRateFactory {
       ProducerRate[] producers = new ProducerRate[numberOfNormalProducers + (slowProducerRate != 0 ? 1 : 0)];
 
       for (int i = 0; i < numberOfNormalProducers; ++i) {
-         producers[i] = new ProducerRate(normalProducerRate);
+          try {
+              producers[i] = ProducerRate.createInstance(rateDistribution, normalProducerRate);
+          } catch (ProducerRate.ProducerRateException e) {
+              throw new RuntimeException(e);
+          }
       }
 
       //the slower producer
       if (slowProducerRate != 0) {
-         producers[producers.length - 1] = new ProducerRate(slowProducerRate);
+          try {
+              producers[producers.length - 1] = ProducerRate.createInstance(rateDistribution, slowProducerRate);
+          } catch (ProducerRate.ProducerRateException e) {
+              throw new RuntimeException(e);
+          }
       }
       return producers;
    }

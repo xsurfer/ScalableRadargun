@@ -4,10 +4,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Master;
 import org.radargun.config.jaxb.*;
+import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +49,7 @@ public class JaxbConfigParser extends ConfigParser {
          sbc.setIncrement(toInt(sb.getIncrement()));
 
          List<Stage> benchmarkStagesFromXml = sb.getBenchmarkStages().getStage();
-         sbc.setStages(processStages(benchmarkStagesFromXml));
+         sbc.setOriginalStages(processStages(benchmarkStagesFromXml));
 
 
          sbc.validate();
@@ -58,7 +61,7 @@ public class JaxbConfigParser extends ConfigParser {
          fbc.setConfigName(fb.getConfigName());
          fbc.setSize(toInt(fb.getSize()));
          List<Stage> stagesFromXml = fb.getStage();
-         fbc.setStages(processStages(stagesFromXml));
+         fbc.setOriginalStages(processStages(stagesFromXml));
          fbc.validate();
          masterConfig.addBenchmark(fbc);
       }
@@ -112,6 +115,21 @@ public class JaxbConfigParser extends ConfigParser {
       }
    }
 
+    public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName, AbstractBenchmarkStage stage) {
+        if (workloadGeneratorName.indexOf('.') < 0) {
+            workloadGeneratorName = "org.radargun.workloadGenerator." + workloadGeneratorName;
+        }
+        try {
+            AbstractWorkloadGenerator obj;
+            Constructor c = Class.forName(workloadGeneratorName).getConstructor(AbstractBenchmarkStage.class);
+            obj = (AbstractWorkloadGenerator) c.newInstance(stage);
+            return obj;
+        } catch (Exception e) {
+            String s = "Could not create stage of type: " + workloadGeneratorName;
+            log.error(s);
+            throw new RuntimeException(e);
+        }
+    }
 
    public static org.radargun.Stage getStage(String stageName) {
       if (stageName.indexOf('.') < 0) {
