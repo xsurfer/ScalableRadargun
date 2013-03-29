@@ -22,7 +22,6 @@ public class SinWorkloadGenerator extends AbstractWorkloadGenerator {
     @Override
     public int getCurrentArrivalRate() {
         int eval = (int) Math.abs(Math.ceil(amplitude * Math.sin(getTime())));
-        log.trace("Time: "+getTime()+"s, ArrivalRate: " + eval);
         return eval;
     }
 

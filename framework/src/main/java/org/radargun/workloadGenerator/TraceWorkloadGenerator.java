@@ -51,7 +51,6 @@ public class TraceWorkloadGenerator extends AbstractWorkloadGenerator {
     public int getCurrentArrivalRate() {
         int t = ((int) Math.floor(getTime())) % arrivalRates.size();
         int eval = (arrivalRates.get(t).intValue());
-        log.trace("Time: " + getTime() + "s, ArrivalRate: " + eval);
         return eval;
     }
 

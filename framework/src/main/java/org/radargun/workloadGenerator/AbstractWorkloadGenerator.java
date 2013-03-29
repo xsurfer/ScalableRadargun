@@ -5,10 +5,12 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.state.MasterState;
 import org.radargun.utils.Utils;
+import org.radargun.utils.WorkerThreadFactory;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,6 +31,8 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /***************************/
 
     private static Log log = LogFactory.getLog(AbstractWorkloadGenerator.class);
+
+    public static final int ARRIVAL_RATE_CHANGED = 2000;
 
     private AbstractBenchmarkStage stage;
 
@@ -64,7 +68,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
      */
     private int maxArrivalRate = -1;
 
-    private volatile boolean running = true;
+    private AtomicBoolean running = new AtomicBoolean(false);
 
 
 
@@ -201,15 +205,21 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
 
     public void start(){
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.execute(new Starter());
-        executor.shutdown();
+        if (running.compareAndSet(false, true)) {
+            log.trace("Starting workload generator");
+            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor( new WorkerThreadFactory("WorkloadGenerator", true) );
+            executor.execute(new Starter());
+            executor.shutdown();
+        }
     }
 
     public void stop(){
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.execute(new Stopper());
-        executor.shutdown();
+        if (running.compareAndSet(true, false)) {
+            log.trace("Stopping workload generator");
+            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+            executor.execute(new Stopper());
+            executor.shutdown();
+        }
     }
 
     /**
@@ -228,9 +238,6 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         }
         return getCurrentArrivalRate();
     }
-
-
-
 
 
     public AbstractWorkloadGenerator clone() {
@@ -252,13 +259,10 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         @Override
         public void run() {
             BlockingQueue<Double> queue = new LinkedBlockingQueue<Double>();
-
             t = initTime - ( ( (double) granularity ) /1000 );
-            log.info("Scheduling timer");
-            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+            ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor( new WorkerThreadFactory("TimerIncrementer", true) );
             executor.scheduleAtFixedRate(new TimeIncrementer(queue), granularity, granularity, TimeUnit.MILLISECONDS);
-            while (running){
-                log.info("waiting for producer");
+            while (running.get()){
                 try {
                     queue.take();
                 } catch (InterruptedException e) {
@@ -266,7 +270,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
                 }
                 outputData.add(new TimeArrivalRate(t,getCurrentArrivalRate()));
                 setChanged();
-                notifyObservers();
+                notifyObservers( new Integer(AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED) );
             }
             executor.shutdown();
 
@@ -293,7 +297,6 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         @Override
         public void run() {
             log.info("Stopping workload generator");
-            running = false;
         }
     }
 
@@ -313,9 +316,8 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
         @Override
         public void run() {
-            log.info("Incrementing timer");
             t+=  ( ( (double) granularity ) /1000 );
-            log.info("t=" + t);
+            log.trace("Time: "+getTime()+"s, ArrivalRate: " + getCurrentArrivalRate());
             try {
                 queue.put(t);
             } catch (InterruptedException e) {

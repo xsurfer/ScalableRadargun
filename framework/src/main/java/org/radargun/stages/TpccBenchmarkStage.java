@@ -165,13 +165,14 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage {
 
       try {
          Map<String, String> results = tpccStressor.stress(cacheWrapper);
-         String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+         if( results != null ){
+            String sizeInfo = "size info: " + cacheWrapper.getInfo() +
                  ", clusterSize:" + super.getActiveSlaveCount() +
                  ", nodeIndex:" + super.getSlaveIndex() +
                  ", cacheSize: " + cacheWrapper.getCacheSize();
-
-         log.info(sizeInfo);
-         results.put(SIZE_INFO, sizeInfo);
+            log.info(sizeInfo);
+            results.put(SIZE_INFO, sizeInfo);
+         }
          result.setPayload(results);
          return result;
       } catch (Exception e) {

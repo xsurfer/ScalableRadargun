@@ -69,7 +69,7 @@
     </category>
 
     <category name="org.radargun.stressors">
-        <priority value="OFF"/>
+        <priority value="INFO"/>
     </category>
     <category name="org.radargun.tpcc.TpccPopulation">
         <priority value="INFO"/>

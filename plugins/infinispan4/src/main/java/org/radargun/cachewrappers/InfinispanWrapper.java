@@ -12,6 +12,9 @@ import org.infinispan.distribution.DistributionManager;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.notifications.Listener;
+import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
+import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.rpc.RpcManager;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
@@ -47,6 +50,7 @@ public class InfinispanWrapper implements CacheWrapper {
    private boolean trackNewKeys = false;
    private boolean perThreadTrackNewKeys = false;
    private static final int maxSleep = 2000;
+   private InfinispanListener listener;
 
    static {
       // Set up transactional stores for JBoss TS
@@ -92,6 +96,8 @@ public class InfinispanWrapper implements CacheWrapper {
             //just ignore
             isPassiveReplicationMethod = null;
          }
+          this.listener = new InfinispanListener();
+          cache.addListener( listener );
       }
       log.debug("Loading JGroups from: " + org.jgroups.Version.class.getProtectionDomain().getCodeSource().getLocation());
       log.info("JGroups version: " + org.jgroups.Version.printDescription());
@@ -579,5 +585,20 @@ public class InfinispanWrapper implements CacheWrapper {
          }
       }
    }
+
+    public void addObserver(Observer o){
+        listener.addObserver(o);
+    }
+
+    @Listener
+    public class InfinispanListener extends Observable {
+        @ViewChanged
+        public void viewChanged(ViewChangedEvent e) {
+            // reconfiguration is needed
+            log.trace("View Changed! New size: " + InfinispanWrapper.this.getNumMembers() );
+            setChanged();
+            notifyObservers( new Integer(CacheWrapper.VIEW_CHANGED) );
+        }
+    }
 
 }

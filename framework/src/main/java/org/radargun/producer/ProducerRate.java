@@ -55,7 +55,7 @@ public abstract class ProducerRate {
     * it sleeps to a determined rate, in order to achieve the lambda (arrival rate) desired
     */
    public final long sleep() {
-      log.trace("Using " + this.getClass().toString());
+      //log.trace("Using " + this.getClass().toString());
       long sleepTime = (long) timeToSleep(lambda);
       try {
          Thread.sleep(sleepTime);

@@ -191,7 +191,7 @@ public class DomConfigParser extends ConfigParser {
                         }
                     }
                     if (((AbstractBenchmarkStage) st).getWorkloadGenerator() == null) {
-                        AbstractWorkloadGenerator wg = new ClosedWorkloadGenerator();
+                        AbstractWorkloadGenerator wg = new ClosedWorkloadGenerator( ((AbstractBenchmarkStage) st) );
                         ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
                     }
                 }
