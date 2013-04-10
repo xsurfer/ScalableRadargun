@@ -34,17 +34,14 @@
            This will average to 10000 requests per thread, although a work-stealing pattern is used so some threads may
            do more work than others.
          -->
-        <SyntheticBenchmark
-                id="e"
-                sizeOfAnAttribute="10"
-                keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator"
-                numberOfAttributes="100"
-                numOfThreads="1"
-                updateXactWrites="1"
-                updateXactReads="9"
-                readOnlyXactSize="10"
-                writePercentage="20"
-                duration="30000"/>
+        <VacationBenchmark
+                clients="1"
+                localThreads="1"
+                number="4"
+                relations="1024"
+                time="2000"
+                readOnly="50"
+                user="98"/>
 
     </benchmark>
 

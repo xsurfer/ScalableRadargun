@@ -34,11 +34,11 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
     public static final int ARRIVAL_RATE_CHANGED = 2000;
 
-    private AbstractBenchmarkStage stage;
+    private final AbstractBenchmarkStage stage;
 
-    private String targetDir = "workloads";
+    private final String targetDir = "workloads";
 
-    private String separator = ",";
+    private final String separator = ",";
 
     private File outputFile;
 
@@ -103,19 +103,13 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
      */
     public double getTime(){ return this.t; }
 
-    public boolean isOpenSystem(){ return true; }
-
-
-
-
-
     /***************************/
     /*** TO OVERRIDE METHODS ***/
     /***************************/
 
     protected abstract int getCurrentArrivalRate();
 
-
+    public abstract SystemType getSystemType();
 
 
 
@@ -341,7 +335,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
 
     /******************************/
-    /*** RATE SISTRIBUTION ENUM ***/
+    /*** RATE DISTRIBUTION ENUM ***/
     /******************************/
 
     public enum RateDistribution {
@@ -353,6 +347,22 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         }
 
         public String getDistributionRateName(){ return this.value; }
+
+    }
+
+    /************************/
+    /*** SYSTEM TYPE ENUM ***/
+    /************************/
+
+    public enum SystemType {
+        OPEN("open"), CLOSED("closed"), MULE("mule");
+        private String value;
+
+        SystemType(String value) {
+            this.value = value;
+        }
+
+        public String getSystemTipe(){ return this.value; }
 
     }
 

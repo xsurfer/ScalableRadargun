@@ -71,7 +71,7 @@
     <category name="org.radargun.stressors">
         <priority value="INFO"/>
     </category>
-    <category name="org.radargun.tpcc.TpccPopulation">
+    <category name="org.radargun.portings.tpcc.TpccPopulation">
         <priority value="INFO"/>
     </category>
     <category name="org.jgroups">
@@ -88,7 +88,7 @@
     <category name="org.radargun.cachewrappers.InfinispanWrapper">
         <priority value="WARN"/>
     </category>
-    <category name="org.radargun.tpcc.domain">
+    <category name="org.radargun.portings.tpcc.domain">
         <priority value="OFF"/>
     </category>
     <!-- Here goes the root -->

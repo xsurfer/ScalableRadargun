@@ -17,12 +17,14 @@ public class GroupProducerRateFactory {
    private final AbstractWorkloadGenerator.RateDistribution rateDistribution;
 
    /**
+    * @param rateDistribution the rateDistribution type (exponential, uniform)
     * @param globalLambda  the global system lambda (a.k.a arrival rate) in transactions per seconds
     * @param numberOfNodes the number of nodes in the system (>= 1)
     * @param nodeIndex     the node index [0..numberOfNodes - 1]
     * @param avgSleepTime  The average sleeping time desire for a producer
     */
-   public GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution rateDistribution, double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
+   public GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution rateDistribution,
+                                   double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
       if (numberOfNodes < 1) {
          throw new IllegalArgumentException("Number of nodes must be higher or equals than 1");
       }

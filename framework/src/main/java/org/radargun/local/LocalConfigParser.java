@@ -44,7 +44,7 @@ public class LocalConfigParser {
          Node node = benchmark.getChildNodes().item(i);
          if (node instanceof Element) {
             Element nodeEl = (Element) node;
-            String stressorName = "org.radargun.stressors." + nodeEl.getNodeName() + "Stressor";
+            String stressorName = "org.radargun.consumers." + nodeEl.getNodeName() + "Stressor";
             CacheWrapperStressor stressor = (CacheWrapperStressor) Class.forName(stressorName).newInstance();
             Map<String, String> attrValues = new HashMap<String, String>();
             for (int j = 0; j < nodeEl.getAttributes().getLength(); j++) {

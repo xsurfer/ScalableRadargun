@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.microbenchmark.MicrobenchmarkStressor;
+import org.radargun.stressors.microbenchmark.MicrobenchmarkStressor;
 import org.radargun.state.MasterState;
 
 public class MicrobenchmarkStage extends AbstractDistStage {
@@ -25,7 +25,7 @@ public class MicrobenchmarkStage extends AbstractDistStage {
     
     @Override
     public DistStageAck executeOnSlave() {
-	DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress());
+	DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName() );
 	this.cacheWrapper = slaveState.getCacheWrapper();
 	if (cacheWrapper == null) {
 	    log.info("Not running test on this slave as the wrapper hasn't been configured.");

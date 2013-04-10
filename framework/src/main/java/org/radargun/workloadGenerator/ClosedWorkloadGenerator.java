@@ -19,7 +19,7 @@ public class ClosedWorkloadGenerator extends AbstractWorkloadGenerator {
     }
 
     @Override
-    public boolean isOpenSystem(){ return false; }
+    public boolean getSystemType(){ return false; }
 
     @Override
     public ClosedWorkloadGenerator clone(){

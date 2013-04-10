@@ -229,7 +229,7 @@ public class GenerateChartStage extends AbstractMasterStage {
       private double putsPerSec, getsPerSec;
 
       public String toString() {
-         return "Stats{" +
+         return "StressorStats{" +
                  "avgPut=" + putsPerSec +
                  ", avgGet=" + getsPerSec +
                  '}';

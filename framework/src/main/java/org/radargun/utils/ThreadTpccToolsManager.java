@@ -1,6 +1,6 @@
 package org.radargun.utils;
 
-import org.radargun.tpcc.TpccTools;
+import org.radargun.portings.tpcc.TpccTools;
 
 /**
  * // TODO: Document this

@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.microbenchmark.MicrobenchmarkPopulationStressor;
+import org.radargun.stressors.microbenchmark.MicrobenchmarkPopulationStressor;
 
 public class MicrobenchmarkPopulationStage extends AbstractDistStage {
 
@@ -16,7 +16,7 @@ public class MicrobenchmarkPopulationStage extends AbstractDistStage {
     
     @Override
     public DistStageAck executeOnSlave() {
-        DefaultDistStageAck ack = newDefaultStageAck();
+        DefaultDistStageAck ack = newDefaultStageAck( this.getClass().getName() );
         CacheWrapper wrapper = slaveState.getCacheWrapper();
         if (wrapper == null) {
             log.info("Not executing any test as the wrapper is not set up on this slave ");

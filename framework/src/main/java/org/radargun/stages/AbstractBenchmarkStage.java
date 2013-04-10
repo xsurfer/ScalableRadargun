@@ -35,7 +35,7 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
     /**
      * the workload generator
      */
-    AbstractWorkloadGenerator workloadGenerator;
+    protected AbstractWorkloadGenerator workloadGenerator;
 
 
 

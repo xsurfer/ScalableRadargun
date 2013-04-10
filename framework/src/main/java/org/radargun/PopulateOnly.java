@@ -2,8 +2,8 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.tpcc.ThreadParallelTpccPopulation;
-import org.radargun.tpcc.TpccPopulation;
+import org.radargun.portings.tpcc.ThreadParallelTpccPopulation;
+import org.radargun.portings.tpcc.TpccPopulation;
 import org.radargun.utils.TypedProperties;
 import org.radargun.utils.Utils;
 
