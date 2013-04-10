@@ -6,112 +6,169 @@ package org.radargun.stressors.commons;
  * Date: 4/2/13
  */
 public class StressorStats {
-    private int nrFailures = 0;
-    public void incrementNrFailures(){ nrFailures++; }
 
-    private int nrWrFailures = 0;
-    public void incrementNrWrFailures(){ nrWrFailures++; }
+    protected long reads = 0L;
+    public long getReads() {
+        return reads;
+    }
+    public void incReads(){ reads++; }
 
-    private int nrWrFailuresOnCommit = 0;
-    public void incrementNrWrFailuresOnCommit(){ nrWrFailuresOnCommit++; }
+    protected long writes = 0L;
+    public long getWrites() {
+        return writes;
+    }
+    public void incWrites(){ writes++; }
 
-    private int nrRdFailures = 0;
-    public void incrementNrRdFailures(){ nrRdFailures++; }
+    protected int nrFailures = 0;
+    public int getNrFailures() {
+        return nrFailures;
+    }
+    public void incNrFailures(){ nrFailures++; }
 
-    private int nrNewOrderFailures = 0;
-    public void incrementNrNewOrderFailures(){ nrNewOrderFailures++; }
+    protected int nrWrFailures = 0;
+    public int getNrWrFailures() {
+        return nrWrFailures;
+    }
+    public void incNrWrFailures(){ nrWrFailures++; }
 
-    private int nrPaymentFailures = 0;
-    public void incrementNrPaymentFailures(){ nrPaymentFailures++; }
+    protected int nrRdFailures = 0;
+    public int getNrRdFailures() {
+        return nrRdFailures;
+    }
+    public void incNrRdFailures(){ nrRdFailures++; }
 
-    private int appFailures = 0;
-    public void incrementAppFailures(){ appFailures++; }
 
-    private long readDuration = 0L;
-    public void incrementReadDuration(){ readDuration++; }
 
-    private long writeDuration = 0L;
-    public void incrementWriteDuration(){ writeDuration++; }
+    protected int nrWrFailuresOnCommit = 0;
+    public int getNrWrFailuresOnCommit() {
+        return nrWrFailuresOnCommit;
+    }
+    public void incNrWrFailuresOnCommit(){ nrWrFailuresOnCommit++; }
 
-    private long newOrderDuration = 0L;
-    public void incrementNewOrderDuration(){ newOrderDuration++; }
+    protected int appFailures = 0;
+    public int getAppFailures() {
+        return appFailures;
+    }
+    public void incAppFailures(){ appFailures++; }
 
-    private long paymentDuration = 0L;
-    public void incrementPaymentDuration(){ paymentDuration++; }
 
-    private long successfulCommitWriteDuration = 0L;
-    public void incrementSuccessfulCommitWriteDuration(){ successfulCommitWriteDuration++; }
 
-    private long abortedCommitWriteDuration = 0L;
-    public void incrementAbortedCommitWriteDuration(){ abortedCommitWriteDuration++; }
+    protected long readDuration = 0L;
+    public long getReadDuration() {
+        return readDuration;
+    }
+    public void incReadDuration(long amount){ readDuration+=amount; }
 
-    private long commitWriteDuration = 0L;
-    public void incrementCommitWriteDuration(){ commitWriteDuration++; }
+    protected long writeDuration = 0L;
+    public long getWriteDuration() {
+        return writeDuration;
+    }
+    public void incWriteDuration(long amount){ writeDuration+=amount; }
 
-    private long writeServiceTime = 0L;
-    public void incrementWriteServiceTime(){ writeServiceTime++; }
 
-    private long newOrderServiceTime = 0L;
-    public void incrementNewOrderServiceTime(){ newOrderServiceTime++; }
+    protected long successfulCommitWriteDuration = 0L;
+    public long getSuccessfulCommitWriteDuration() {
+        return successfulCommitWriteDuration;
+    }
+    public void incSuccessfulCommitWriteDuration(long amount){ successfulCommitWriteDuration += amount; }
 
-    private long paymentServiceTime = 0L;
-    public void incrementPaymentServiceTime(){ paymentServiceTime++; }
+    protected long abortedCommitWriteDuration = 0L;
+    public long getAbortedCommitWriteDuration() {
+        return abortedCommitWriteDuration;
+    }
+    public void incAbortedCommitWriteDuration(long amount){ abortedCommitWriteDuration += amount; }
 
-    private long readServiceTime = 0L;
-    public void incrementReadServiceTime(){ readServiceTime++; }
+    protected long commitWriteDuration = 0L;
+    public long getCommitWriteDuration() {
+        return commitWriteDuration;
+    }
+    public void incCommitWriteDuration(long amount){ commitWriteDuration += amount; }
 
-    private long successfulWriteDuration = 0L;
-    public void incrementSuccessfulWriteDuration(){ successfulWriteDuration++; }
 
-    private long successfulReadDuration = 0L;
-    public void incrementSuccessfulReadDuration(){ successfulReadDuration++; }
 
-    private long reads = 0L;
-    public void incrementReads(){ reads++; }
+    protected long writeServiceTime = 0L;
+    public long getWriteServiceTime() {
+        return writeServiceTime;
+    }
+    public void incWriteServiceTime(long amount){ writeServiceTime+=amount; }
 
-    private long writes = 0L;
-    public void incrementWrites(){ writes++; }
+    protected long readServiceTime = 0L;
+    public long getReadServiceTime() {
+        return readServiceTime;
+    }
+    public void incReadServiceTime(long amount){ readServiceTime+= amount; }
 
-    private long payment = 0L;
-    public void incrementPayment(){ payment++; }
 
-    private long newOrder = 0L;
-    public void incrementNewOrder(){ newOrder++; }
 
-    private long numWriteDequeued = 0L;
-    public void incrementNumWriteDequeued(){ numWriteDequeued++; }
+    protected long successfulWriteDuration = 0L;
+    public long getSuccessfulWriteDuration() {
+        return successfulWriteDuration;
+    }
+    public void incSuccessfulWriteDuration(long amount){ successfulWriteDuration+=amount; }
 
-    private long numReadDequeued = 0L;
-    public void incrementNumReadDequeued(){ numReadDequeued++; }
+    protected long successfulReadDuration = 0L;
+    public long getSuccessfulReadDuration() {
+        return successfulReadDuration;
+    }
+    public void incSuccessfulReadDuration(long amount){ successfulReadDuration+=amount; }
 
-    private long numNewOrderDequeued = 0L;
-    public void incrementNumNewOrderDequeued(){ numNewOrderDequeued++; }
 
-    private long numPaymentDequeued = 0L;
-    public void incrementNumPaymentDequeued(){ numPaymentDequeued++; }
 
-    private long writeInQueueTime = 0L;
-    public void incrementWriteInQueueTime(){ writeInQueueTime++; }
+    /* ******************* */
+    /* *** QUEUE STATS *** */
+    /* ******************* */
 
-    private long readInQueueTime = 0L;
-    public void incrementReadInQueueTime(){ readInQueueTime++; }
+    protected long numWriteDequeued = 0L;
+    public long getNumWriteDequeued() {
+        return numWriteDequeued;
+    }
+    public void incNumWriteDequeued(){ numWriteDequeued++; }
 
-    private long newOrderInQueueTime = 0L;
-    public void incrementNewOrderInQueueTime(){ newOrderInQueueTime++; }
+    protected long numReadDequeued = 0L;
+    public long getNumReadDequeued() {
+        return numReadDequeued;
+    }
+    public void incNumReadDequeued(){ numReadDequeued++; }
 
-    private long paymentInQueueTime = 0L;
-    public void incrementPaymentInQueueTime(){ paymentInQueueTime++; }
+    /* tempo di attesa in coda per le write */
+    protected long writeInQueueTime = 0L;
+    public long getWriteInQueueTime() {
+        return writeInQueueTime;
+    }
+    public void incWriteInQueueTime(long amount){ writeInQueueTime+=amount; }
 
-    private long localTimeout = 0L;
-    public void incrementLocalTimeout(){ localTimeout++; }
+    /* tempo di attesa in coda per le read */
+    protected long readInQueueTime = 0L;
+    public long getReadInQueueTime() {
+        return readInQueueTime;
+    }
+    public void incReadInQueueTime(long amount){ readInQueueTime+= amount; }
 
-    private long remoteTimeout = 0L;
-    public void incrementRemoteTimeout(){ remoteTimeout++; }
 
-    private long numBackOffs = 0L;
-    public void incrementNumBackOffs(){ numBackOffs++; }
 
-    private long backedOffTime = 0L;
-    public void incrementBackedOffTime(){ backedOffTime++; }
+
+    protected long localTimeout = 0L;
+    public long getLocalTimeout() {
+        return localTimeout;
+    }
+    public void incLocalTimeout(){ localTimeout++; }
+
+    protected long remoteTimeout = 0L;
+    public long getRemoteTimeout() {
+        return remoteTimeout;
+    }
+    public void incRemoteTimeout(){ remoteTimeout++; }
+
+    protected long numBackOffs = 0L;
+    public long getNumBackOffs() {
+        return numBackOffs;
+    }
+    public void incNumBackOffs(){ numBackOffs++; }
+
+    protected long backedOffTime = 0L;
+    public long getBackedOffTime() {
+        return backedOffTime;
+    }
+    public void incBackedOffTime(long amount){ backedOffTime+= amount; }
 
 }

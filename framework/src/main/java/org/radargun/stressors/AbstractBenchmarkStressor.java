@@ -4,9 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.Transaction;
-import org.radargun.portings.tpcc.ElementNotFoundException;
-import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
-import org.radargun.portings.tpcc.transaction.PaymentTransaction;
 import org.radargun.producer.GroupProducerRateFactory;
 import org.radargun.producer.ProducerRate;
 import org.radargun.stages.AbstractBenchmarkStage;
@@ -63,7 +60,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
     protected StatSampler statSampler;
 
-    private final Timer finishBenchmarkTimer = new Timer("Finish-Benchmark-Timer");
+    protected final Timer finishBenchmarkTimer = new Timer("Finish-Benchmark-Timer");
 
     protected long startTime;
 
@@ -134,21 +131,25 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
     /* *** TO OVERRIDE *** */
     /* ******************* */
 
-    protected abstract void validateTransactionsWeight();
-
     protected abstract void initialization();
 
     protected abstract RequestType nextTransaction();
 
-    protected abstract Transaction generateTransaction(RequestType type, int threadIndex, StressorStats stats);
+    protected abstract Transaction generateTransaction(RequestType type, int threadIndex);
 
-    public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
     protected abstract Map<String, String> processResults(List<Consumer> stressors);
 
     protected abstract double getWriteWeight();
 
     protected abstract double getReadWeight();
+
+    protected abstract void validateTransactionsWeight();
+
+    protected abstract Consumer createConsumer(int threadIndex);
+
+
 
 
     /* ****************** */
@@ -200,7 +201,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         }
 
 
-        if (workloadGenerator.getSystemType()) {
+        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
             log.trace("Workload generator started");
             workloadGenerator.start();
         }
@@ -226,7 +227,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
         startPoint = new CountDownLatch(1);
         for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
-            Consumer consumer = new Consumer(threadIndex);
+            Consumer consumer = createConsumer(threadIndex);
             consumers.add(consumer);
             consumer.start();
         }
@@ -255,10 +256,10 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         }
     }
 
-    private final synchronized void finishBenchmark() {
+    protected final synchronized void finishBenchmark() {
         if (running.compareAndSet(true, false)) {
             stopStressor();
-            if (workloadGenerator.getSystemType()) {
+            if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
                 log.trace("Stopping producers");
                 stopProducers();
             }
@@ -339,7 +340,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
      */
     private void createProducers(int arrivalRate) {
 
-        if (!this.workloadGenerator.getSystemType()) {
+        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) != 0) {
             return;
         } // Closed System
 
@@ -375,6 +376,72 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
                 producers.add(i, new Producer(producerRates[i], i));
                 //producers[i] = new Producer(producerRates[i], i);
             }
+        }
+    }
+
+    public final synchronized int getNumberOfActiveThreads() {
+        int count = 0;
+        for (Consumer stressor : consumers) {
+            if (stressor.isActive()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public final synchronized int getNumberOfThreads() {
+        return consumers.size();
+    }
+
+    public final synchronized void setNumberOfRunningThreads(int numOfThreads) {
+        if (numOfThreads < 1 || !running.get()) {
+            return;
+        }
+        Iterator<Consumer> iterator = consumers.iterator();
+        while (numOfThreads > 0 && iterator.hasNext()) {
+            Consumer consumer = iterator.next();
+            if (!consumer.isActive()) {
+                consumer.active();
+            }
+            numOfThreads--;
+        }
+
+        if (numOfThreads > 0) {
+            int threadIdx = consumers.size();
+            while (numOfThreads-- > 0) {
+                Consumer consumer = createConsumer(threadIdx++);
+                consumer.start();
+                consumers.add(consumer);
+            }
+        } else {
+            while (iterator.hasNext()) {
+                iterator.next().inactive();
+            }
+        }
+    }
+
+    protected void saveSamples() {
+        if (statSampler == null) {
+            return;
+        }
+        log.info("Saving samples in the file sample-" + nodeIndex);
+        File f = new File("sample-" + nodeIndex);
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+            List<Long> mem = statSampler.getMemoryUsageHistory();
+            List<Double> cpu = statSampler.getCpuUsageHistory();
+
+            int size = Math.min(mem.size(), cpu.size());
+            bw.write("#Time (milliseconds)\tCPU(%)\tMemory(bytes)");
+            bw.newLine();
+            for (int i = 0; i < size; ++i) {
+                bw.write((i * statsSamplingInterval) + "\t" + cpu.get(i) + "\t" + mem.get(i));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            log.warn("IOException caught while saving sampling: " + e.getMessage());
         }
     }
 
@@ -430,23 +497,32 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
     }
 
 
-
-
    /* ************************** */
    /* ***** CONSUMER CLASS ***** */
    /* ************************** */
 
-    protected class Consumer extends Thread {
-        private int threadIndex;
+    protected abstract class Consumer extends Thread {
+        protected int threadIndex;
         //private double arrivalRate;
+
+        public long commit_start = 0L;
 
         private boolean running = true;
 
         private boolean active = true;
 
+        boolean measureCommitTime = false;
+
+        boolean takeStats;
+
         private ProducerRate backOffSleeper;
 
-        private StressorStats stats;
+        public StressorStats stats;
+
+
+        /* ******************* */
+        /* *** CONSTRUCTOR *** */
+        /* ******************* */
 
         public Consumer(int threadIndex) {
             super("Stressor-" + threadIndex);
@@ -460,11 +536,15 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
                 }
         }
 
+        /* *************** */
+        /* *** METHODS *** */
+        /* *************** */
+
         private Transaction regenerate(Transaction oldTransaction, int threadIndex, boolean lastSuccessful) {
 
             if (!lastSuccessful && !retrySameXact) {
                 this.backoffIfNecessary();
-                Transaction newTransaction = generateTransaction(oldTransaction.getType(), threadIndex);
+                Transaction newTransaction = generateTransaction(new RequestType(System.currentTimeMillis(), oldTransaction.getType()), threadIndex);
                 log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +
                         " into a transaction of type " + newTransaction.getType());
                 return newTransaction;
@@ -473,8 +553,111 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
             return oldTransaction;
         }
 
+        protected boolean processTransaction(CacheWrapper wrapper, Transaction tx) {
+            boolean successful = true;
+
+            tx = regenerate(tx, threadIndex, successful);
+
+            /* Start execution */
+            cacheWrapper.startTransaction();
+            try {
+                tx.executeTransaction(cacheWrapper);
+                log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " +
+                        tx.getType() + " btw, successful is " + successful);
+            } catch (Throwable e) {
+                successful = false;
+                if (log.isDebugEnabled()) {
+                    log.debug("Exception while executing transaction.", e);
+                } else {
+                    log.warn("Exception while executing transaction of type: " + tx.getType() + " " + e.getMessage());
+                }
+                /**         TODO spostalo nel consumer del tpcc
+                 if (e instanceof ElementNotFoundException) {
+                 stats.incAppFailures();
+                 elementNotFoundExceptionThrown = true;
+                 }
+                 **/
+                if (cacheWrapper.isTimeoutException(e)) {
+                    stats.incLocalTimeout();
+                }
+            }
+            //here we try to finalize the transaction
+            //if any read/write has failed we abort
+
+            /* In our tests we are interested in the commit time spent for write txs */
+            if (successful && !tx.isReadOnly()) {
+                commit_start = System.nanoTime();
+                measureCommitTime = true;
+            }
+            try {
+                cacheWrapper.endTransaction(successful, threadIndex);
+                if (successful) {
+                    log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
+                            tx.getType() + " Btw, successful is " + successful);
+                } else {
+                    stats.incNrFailures();
+                    if (!tx.isReadOnly()) {
+                        stats.incNrWrFailures();
+                        /**    TODO spostalo nel consumer del tpcc
+                         if (transaction instanceof NewOrderTransaction) {
+                         nrNewOrderFailures++;
+                         } else if (transaction instanceof PaymentTransaction) {
+                         nrPaymentFailures++;
+                         }
+                         **/
+                    } else {
+                        stats.incNrRdFailures();
+                    }
+
+                }
+            } catch (Throwable rb) {
+                stats.incNrFailures();
+                stats.incRemoteTimeout();
+                successful = false;
+                if (!tx.isReadOnly()) {
+                    stats.incNrWrFailures();
+                    stats.incNrWrFailuresOnCommit();
+                    /**     TODO spostalo nel consumer del tpcc
+                     if (transaction instanceof NewOrderTransaction) {
+                     nrNewOrderFailures++;
+                     } else if (transaction instanceof PaymentTransaction) {
+                     nrPaymentFailures++;
+                     }
+                     **/
+                } else {
+                    stats.incNrRdFailures();
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Error while committing", rb);
+                } else {
+                    log.warn("Error while committing: " + rb.getMessage());
+                }
+            }
+
+            log.info("Successful = " + successful);
+            return successful;
+        }
+
+        protected void queueStats(RequestType r, Transaction t) {
+
+            if (t.isReadOnly()) {
+                stats.incNumReadDequeued();
+                stats.incReadInQueueTime(r.dequeueTimestamp - r.timestamp);
+
+            } else {
+                stats.incNumWriteDequeued();
+                stats.incWriteInQueueTime(r.dequeueTimestamp - r.timestamp);
+            }
+        }
+
         @Override
         public void run() {
+            long startService = System.nanoTime();      /* timestamp prima dell'esecuzione della tx */
+            long start = -1;                            /* timestamp dopo la generazione della tx */
+            long end;                                   /* timestamp dopo l'esecuzione della tx */
+            boolean successful = true;
+
+            Transaction tx;
 
             try {
                 startPoint.await();
@@ -483,129 +666,57 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
                 log.warn("Interrupted while waiting for starting in " + getName());
             }
 
-            long end, endInQueueTime, commit_start = 0L;
-            boolean isReadOnly, successful, measureCommitTime = false, takeStats;
-            Transaction transaction;
-
-
             while (assertRunning()) {
-                transaction = null;
-                long start = -1;
-                if (workloadGenerator.getSystemType()) {  //Open system
+                tx = null;
+                start = -1;
+                if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {  //Open system
                     try {
                         RequestType request = queue.take();
-                        transaction = generateTransaction(request, threadIndex, stats);
+                        request.dequeueTimestamp = System.nanoTime();
+
+                        tx = generateTransaction(request, threadIndex);
 
                         // if PassiveReplication so skip whether:
                         // a) master node && readOnly transaction
                         // b) slave node && write transaction
-                        boolean masterAndReadOnlyTx = cacheWrapper.isTheMaster() && transaction.isReadOnly();
-                        boolean slaveAndWriteTx = (!cacheWrapper.isTheMaster() && !transaction.isReadOnly());
+                        boolean masterAndReadOnlyTx = cacheWrapper.isTheMaster() && tx.isReadOnly();
+                        boolean slaveAndWriteTx = (!cacheWrapper.isTheMaster() && !tx.isReadOnly());
 
                         if (cacheWrapper.isPassiveReplication() && (masterAndReadOnlyTx || slaveAndWriteTx)) {
                             continue;
                         }
                         start = request.timestamp;
+
+                        /* updating queue stats */
+                        queueStats(request, tx);
                     } catch (InterruptedException ir) {
                         log.error("»»»»»»»THREAD INTERRUPTED WHILE TRYING GETTING AN OBJECT FROM THE QUEUE«««««««");
                     }
                 } else {
-                    transaction = choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
-                    log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
+                    tx = choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
+                    log.info("Closed system: starting a brand new transaction of type " + tx.getType());
                 }
-                isReadOnly = transaction.isReadOnly();
 
-                long startService = System.nanoTime();
-                boolean elementNotFoundExceptionThrown = false;
-                successful = true; //so that backOffIfNecessary returns false the first time we run an xact
+
+                startService = System.nanoTime();
+
                 do {
-                    transaction = regenerate(transaction, threadIndex, successful);
-                    successful = true;
-                    cacheWrapper.startTransaction();
-                    try {
-                        transaction.executeTransaction(cacheWrapper);
-                        log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " +
-                                transaction.getType() + " btw, successful is " + successful);
-                    } catch (Throwable e) {
-                        successful = false;
-                        if (log.isDebugEnabled()) {
-                            log.debug("Exception while executing transaction.", e);
-                        } else {
-                            log.warn("Exception while executing transaction of type: " + transaction.getType() + " " + e.getMessage());
-                        }
-                        if (e instanceof ElementNotFoundException) {
-                            this.appFailures++;
-                            elementNotFoundExceptionThrown = true;
-                        } else if (cacheWrapper.isTimeoutException(e))
-                            localTimeout++;
-
-                    }
-
-                    //here we try to finalize the transaction
-                    //if any read/write has failed we abort
-
-                    try {
-
-                        /* In our tests we are interested in the commit time spent for write txs */
-                        if (successful && !isReadOnly) {
-                            commit_start = System.nanoTime();
-                            measureCommitTime = true;
-                        }
-                        cacheWrapper.endTransaction(successful, threadIndex);
-                        if (successful) {
-                            log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
-                                    transaction.getType() + " Btw, successful is " + successful);
-                        } else {
-                            nrFailures++;
-                            if (!isReadOnly) {
-                                nrWrFailures++;
-                                if (transaction instanceof NewOrderTransaction) {
-                                    nrNewOrderFailures++;
-                                } else if (transaction instanceof PaymentTransaction) {
-                                    nrPaymentFailures++;
-                                }
-                            } else {
-                                nrRdFailures++;
-                            }
-
-                        }
-                    } catch (Throwable rb) {
-                        nrFailures++;
-                        //if (cacheWrapper.isTimeoutException(rb))
-                        remoteTimeout++;
-                        successful = false;
-                        if (!isReadOnly) {
-                            nrWrFailures++;
-                            nrWrFailuresOnCommit++;
-                            if (transaction instanceof NewOrderTransaction) {
-                                nrNewOrderFailures++;
-                            } else if (transaction instanceof PaymentTransaction) {
-                                nrPaymentFailures++;
-                            }
-                        } else {
-                            nrRdFailures++;
-                        }
-                        if (log.isDebugEnabled()) {
-                            log.debug("Error while committing", rb);
-                        } else {
-                            log.warn("Error while committing: " + rb.getMessage());
-                        }
-                    }
-                    log.info("Successful = " + successful + " elementNotFoundException " + elementNotFoundExceptionThrown);
+                    successful = processTransaction(cacheWrapper, tx);
                 }
                 //If we experience an elementNotFoundException we do not want to restart the very same xact!!
                 //If a xact is not progressing at the end of the test, we kill it. Some stats will be slightly affected by this
-                while (assertRunning() && retryOnAbort && !successful && !elementNotFoundExceptionThrown);
+                while (assertRunning() && retryOnAbort && !successful);
 
                 end = System.nanoTime();
 
-                if (!workloadGenerator.getSystemType()) {  //Closed system   --> no queueing time
+                if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.MULE) == 0) {  //Closed system   --> no queueing time
                     start = startService;
                 }
 
-                if (!isReadOnly) {
-                    writeDuration += end - start;
-                    writeServiceTime += end - startService;
+                if (!tx.isReadOnly()) {
+                    stats.incWriteDuration(end - start);
+                    stats.incWriteServiceTime(end - startService);
+                    /*       TODO sposta in tpcc stressor
                     if (transaction instanceof NewOrderTransaction) {
                         newOrderDuration += end - start;
                         newOrderServiceTime += end - startService;
@@ -613,31 +724,34 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
                         paymentDuration += end - start;
                         paymentServiceTime += end - startService;
                     }
+                    */
                     if (successful) {
-                        successful_writeDuration += end - startService;
-                        writes++;
+                        stats.incSuccessfulWriteDuration(end - startService);
+                        stats.incWrites();
+                        /*      TODO sposta in tpcc stressor
                         if (transaction instanceof PaymentTransaction) {
-                            payment++;
+                            stats.incPayment();
                         } else if (transaction instanceof NewOrderTransaction) {
                             newOrder++;
                         }
+                        */
                     }
                 } else {
-                    readDuration += end - start;
-                    readServiceTime += end - startService;
+                    stats.incReadDuration(end - start);
+                    stats.incReadServiceTime(end - startService);
                     if (successful) {
-                        reads++;
-                        successful_readDuration += end - startService;
+                        stats.incReads();
+                        stats.incSuccessfulReadDuration(end - startService);
                     }
                 }
 
                 if (measureCommitTime) {    //We sample just the last commit time, i.e., the successful one
                     if (successful) {
-                        this.successful_commitWriteDuration += end - commit_start;
+                        stats.incSuccessfulCommitWriteDuration(end - commit_start);
                     } else {
-                        this.aborted_commitWriteDuration += end - commit_start;
+                        stats.incAbortedCommitWriteDuration(end - commit_start);
                     }
-                    this.commitWriteDuration += end - commit_start;
+                    stats.incCommitWriteDuration(end - commit_start);
                 }
 
                 blockIfInactive();
@@ -647,10 +761,10 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
         private void backoffIfNecessary() {
             if (backOffTime != 0) {
-                this.numBackOffs++;
+                stats.incNumBackOffs();
                 long backedOff = backOffSleeper.sleep();
                 log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
-                this.backedOffTime += backedOff;
+                stats.incBackedOffTime(backedOff);
             }
         }
 
@@ -658,9 +772,11 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
             return !retryOnAbort || lastXactSuccessul;
         }
 
+        /*
         public long totalDuration() {
             return readDuration + writeDuration;
         }
+        */
 
         private synchronized boolean assertRunning() {
             return running;
@@ -696,31 +812,6 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         }
     }
 
-    private void saveSamples() {
-        if (statSampler == null) {
-            return;
-        }
-        log.info("Saving samples in the file sample-" + nodeIndex);
-        File f = new File("sample-" + nodeIndex);
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
-            List<Long> mem = statSampler.getMemoryUsageHistory();
-            List<Double> cpu = statSampler.getCpuUsageHistory();
-
-            int size = Math.min(mem.size(), cpu.size());
-            bw.write("#Time (milliseconds)\tCPU(%)\tMemory(bytes)");
-            bw.newLine();
-            for (int i = 0; i < size; ++i) {
-                bw.write((i * statsSamplingInterval) + "\t" + cpu.get(i) + "\t" + mem.get(i));
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException e) {
-            log.warn("IOException caught while saving sampling: " + e.getMessage());
-        }
-    }
-
 
 
     /* ************************ */
@@ -730,6 +821,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
     protected class RequestType {
 
         public long timestamp;
+        public long dequeueTimestamp;
         public int transactionType;
 
         public RequestType(long timestamp, int transactionType) {

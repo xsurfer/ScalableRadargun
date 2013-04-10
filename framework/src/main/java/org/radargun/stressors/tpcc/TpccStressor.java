@@ -2,7 +2,11 @@ package org.radargun.stressors.tpcc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.CacheWrapper;
 import org.radargun.Transaction;
+import org.radargun.portings.tpcc.ElementNotFoundException;
+import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
+import org.radargun.portings.tpcc.transaction.PaymentTransaction;
 import org.radargun.producer.ProducerRate;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
@@ -63,6 +67,7 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     protected void initialization(){
         updateNumberOfItemsInterval();
         initializeToolsParameters();
+        calculateLocalWarehouses();
     }
 
     @Override
@@ -71,27 +76,7 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     }
 
     @Override
-    protected Transaction generateTransaction(RequestType request, int threadIndex, StressorStats stats) {
-
-        long endInQueueTime = System.nanoTime();
-
-        TpccStats tpccStats = (TpccStats) stats;
-        if (request.transactionType == TpccTerminal.NEW_ORDER) {
-            tpccStats.numWriteDequeued++;
-            tpccStats.numNewOrderDequeued++;
-            tpccStats.writeInQueueTime += endInQueueTime - request.timestamp;
-            tpccStats.newOrderInQueueTime += endInQueueTime - request.timestamp;
-        } else if (request.transactionType == TpccTerminal.PAYMENT) {
-            tpccStats.numWriteDequeued++;
-            tpccStats.numPaymentDequeued++;
-            tpccStats.writeInQueueTime += endInQueueTime - request.timestamp;
-            tpccStats.paymentInQueueTime += endInQueueTime - request.timestamp;
-        } else if (request.transactionType == TpccTerminal.ORDER_STATUS) {
-            tpccStats.numReadDequeued++;
-            tpccStats.readInQueueTime += endInQueueTime - request.timestamp;
-        }
-
-
+    protected Transaction generateTransaction(RequestType type, int threadIndex) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -100,11 +85,10 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-
-    public void destroy() throws Exception {
-        log.warn("Attention: going to destroy the wrapper");
-        cacheWrapper.empty();
-        cacheWrapper = null;
+    @Override
+    protected Consumer createConsumer(int threadIndex) {
+        int localWarehouse = getWarehouseForThread(threadIndex);
+        return new TpccConsumer(localWarehouse, threadIndex, nodeIndex, paymentWeight, orderStatusWeight);
     }
 
     @Override
@@ -116,46 +100,21 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         }
     }
 
-    private void updateNumberOfItemsInterval() {
-        if (numberOfItemsInterval == null) {
-            return;
-        }
-        String[] split = numberOfItemsInterval.split(",");
-
-        if (split.length != 2) {
-            log.info("Cannot update the min and max values for the number of items in new order transactions. " +
-                    "Using the default values");
-            return;
-        }
-
-        try {
-            TpccTools.NUMBER_OF_ITEMS_INTERVAL[0] = Integer.parseInt(split[0]);
-        } catch (NumberFormatException nfe) {
-            log.warn("Min value is not a number. " + nfe.getLocalizedMessage());
-        }
-
-        try {
-            TpccTools.NUMBER_OF_ITEMS_INTERVAL[1] = Integer.parseInt(split[1]);
-        } catch (NumberFormatException nfe) {
-            log.warn("Max value is not a number. " + nfe.getLocalizedMessage());
-        }
-    }
-
-    private void initializeToolsParameters() {
-        try {
-            TpccTools.C_C_LAST = (Long) cacheWrapper.get(null, "C_C_LAST");
-
-            TpccTools.C_C_ID = (Long) cacheWrapper.get(null, "C_C_ID");
-
-            TpccTools.C_OL_I_ID = (Long) cacheWrapper.get(null, "C_OL_ID");
-
-        } catch (Exception e) {
-            log.error("Error", e);
-        }
+    @Override
+    protected double getWriteWeight() {
+        double writeWeight = Math.max(100 - orderStatusWeight, paymentWeight) / 100D;
+        return writeWeight;
     }
 
     @Override
-    protected Map<String, String> processResults(List<Consumer> stressors) {
+    protected double getReadWeight() {
+        double readWeight = orderStatusWeight / 100D;
+        return readWeight;
+    }
+
+
+    @Override
+    protected Map<String, String> processResults(List<Consumer> consumers) {
 
         long duration = 0;
 
@@ -201,49 +160,53 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         double backOffTime = 0D;
         double backOffs = 0D;
 
-        for (Stressor stressor : stressors) {
+        for (Consumer tpccConsumer : consumers) {
+            if(! ( tpccConsumer instanceof TpccConsumer ) )
+                throw new IllegalStateException();
+            TpccStats tpccStats = (TpccStats) tpccConsumer.stats;
+
             //duration += stressor.totalDuration(); //in nanosec
             //readsDurations += stressor.readDuration; //in nanosec
             //writesDurations += stressor.writeDuration; //in nanosec
-            newOrderDurations += stressor.newOrderDuration; //in nanosec
-            paymentDurations += stressor.paymentDuration; //in nanosec
-            successful_writesDurations += stressor.successful_writeDuration; //in nanosec
-            successful_readsDurations += stressor.successful_readDuration; //in nanosec
+            newOrderDurations += tpccStats.getNewOrderDuration(); //in nanosec
+            paymentDurations += tpccStats.getPaymentDuration(); //in nanosec
+            successful_writesDurations += tpccStats.getSuccessfulWriteDuration(); //in nanosec
+            successful_readsDurations += tpccStats.getSuccessfulReadDuration(); //in nanosec
 
-            successful_commitWriteDurations += stressor.successful_commitWriteDuration; //in nanosec
-            aborted_commitWriteDurations += stressor.aborted_commitWriteDuration; //in nanosec
-            commitWriteDurations += stressor.commitWriteDuration; //in nanosec;
+            successful_commitWriteDurations += tpccStats.getSuccessfulCommitWriteDuration(); //in nanosec
+            aborted_commitWriteDurations += tpccStats.getAbortedCommitWriteDuration(); //in nanosec
+            commitWriteDurations += tpccStats.getCommitWriteDuration(); //in nanosec;
 
-            writeServiceTimes += stressor.writeServiceTime;
-            readServiceTimes += stressor.readServiceTime;
-            newOrderServiceTimes += stressor.newOrderServiceTime;
-            paymentServiceTimes += stressor.paymentServiceTime;
+            writeServiceTimes += tpccStats.getWriteServiceTime();
+            readServiceTimes += tpccStats.getReadServiceTime();
+            newOrderServiceTimes += tpccStats.getNewOrderServiceTime();
+            paymentServiceTimes += tpccStats.getPaymentServiceTime();
 
-            reads += stressor.reads;
-            writes += stressor.writes;
-            newOrderTransactions += stressor.newOrder;
-            paymentTransactions += stressor.payment;
+            reads += tpccStats.getReads();
+            writes += tpccStats.getWrites();
+            newOrderTransactions += tpccStats.getNewOrder();
+            paymentTransactions += tpccStats.getPayment();
 
-            failures += stressor.nrFailures;
-            rdFailures += stressor.nrRdFailures;
-            wrFailures += stressor.nrWrFailures;
-            nrWrFailuresOnCommit += stressor.nrWrFailuresOnCommit;
-            newOrderFailures += stressor.nrNewOrderFailures;
-            paymentFailures += stressor.nrPaymentFailures;
-            appFailures += stressor.appFailures;
+            failures += tpccStats.getNrFailures();
+            rdFailures += tpccStats.getNrRdFailures();
+            wrFailures += tpccStats.getNrWrFailures();
+            nrWrFailuresOnCommit += tpccStats.getNrWrFailuresOnCommit();
+            newOrderFailures += tpccStats.getNrNewOrderFailures();
+            paymentFailures += tpccStats.getNrPaymentFailures();
+            appFailures += tpccStats.getAppFailures();
 
-            writeInQueueTimes += stressor.writeInQueueTime;
-            readInQueueTimes += stressor.readInQueueTime;
-            newOrderInQueueTimes += stressor.newOrderInQueueTime;
-            paymentInQueueTimes += stressor.paymentInQueueTime;
-            numWritesDequeued += stressor.numWriteDequeued;
-            numReadsDequeued += stressor.numReadDequeued;
-            numNewOrderDequeued += stressor.numNewOrderDequeued;
-            numPaymentDequeued += stressor.numPaymentDequeued;
-            numLocalTimeout += stressor.localTimeout;
-            numRemoteTimeout += stressor.remoteTimeout;
-            backOffs += stressor.numBackOffs;
-            backOffTime += stressor.backedOffTime;
+            writeInQueueTimes += tpccStats.getWriteInQueueTime();
+            readInQueueTimes += tpccStats.getReadInQueueTime();
+            newOrderInQueueTimes += tpccStats.getNewOrderInQueueTime();
+            paymentInQueueTimes += tpccStats.getPaymentInQueueTime();
+            numWritesDequeued += tpccStats.getNumWriteDequeued();
+            numReadsDequeued += tpccStats.getNumReadDequeued();
+            numNewOrderDequeued += tpccStats.getNumNewOrderDequeued();
+            numPaymentDequeued += tpccStats.getNumPaymentDequeued();
+            numLocalTimeout += tpccStats.getLocalTimeout();
+            numRemoteTimeout += tpccStats.getRemoteTimeout();
+            backOffs += tpccStats.getNumBackOffs();
+            backOffTime += tpccStats.getBackedOffTime();
         }
 
         //duration = duration / 1000000; // nanosec to millisec
@@ -424,88 +387,49 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return results;
     }
 
-    @Override
-    protected double getWriteWeight() {
-        double writeWeight = Math.max(100 - orderStatusWeight, paymentWeight) / 100D;
-        return writeWeight;
+    public void destroy() throws Exception {
+        log.warn("Attention: going to destroy the wrapper");
+        cacheWrapper.empty();
+        cacheWrapper = null;
     }
 
-    @Override
-    protected double getReadWeight() {
-        double readWeight = orderStatusWeight / 100D;
-        return readWeight;
-    }
-
-    protected List<Consumer> executeOperations() throws Exception {
-        calculateLocalWarehouses();
-
-        startPoint = new CountDownLatch(1);
-        for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
-            Consumer consumer = createStressor(threadIndex);
-            consumers.add(consumer);
-            consumer.start();
+    private void updateNumberOfItemsInterval() {
+        if (numberOfItemsInterval == null) {
+            return;
         }
-        log.info("Cache wrapper info is: " + cacheWrapper.getInfo());
-        startPoint.countDown();
-        blockWhileRunning();
-        for (Consumer consumer : consumers) {
-            consumer.join();
-        }
-        log.info("Fine ExecuteOperations");
-        endTime = System.currentTimeMillis();
-        return consumers;
-    }
+        String[] split = numberOfItemsInterval.split(",");
 
-
-
-   /* ************************** */
-   /* ***** PRODUCER CLASS ***** */
-   /* ************************** */
-
-    private class Producer extends Thread {
-        private final ProducerRate rate;
-        private final TpccTerminal terminal;
-        private boolean running = false;
-
-        public Producer(ProducerRate rate, int id) {
-            super("Producer-" + id);
-            setDaemon(true);
-            this.rate = rate;
-            this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
+        if (split.length != 2) {
+            log.info("Cannot update the min and max values for the number of items in new order transactions. " +
+                    "Using the default values");
+            return;
         }
 
-        public void run() {
-            if (log.isDebugEnabled()) {
-                log.debug("Starting " + getName() + " with rate of " + rate.getLambda());
-            }
-            while (assertRunning()) {
-                queue.offer(new RequestType(System.nanoTime(), terminal.chooseTransactionType(
-                        cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster()
-                )));
-                countJobs.incrementAndGet();
-                rate.sleep();
-            }
+        try {
+            TpccTools.NUMBER_OF_ITEMS_INTERVAL[0] = Integer.parseInt(split[0]);
+        } catch (NumberFormatException nfe) {
+            log.warn("Min value is not a number. " + nfe.getLocalizedMessage());
         }
 
-        private synchronized boolean assertRunning() {
-            return running;
-        }
-
-        @Override
-        public synchronized void start() {
-            if (running) return;
-            running = true;
-            super.start();
-        }
-
-        @Override
-        public synchronized void interrupt() {
-            if (!running) return;
-            running = false;
-            super.interrupt();
+        try {
+            TpccTools.NUMBER_OF_ITEMS_INTERVAL[1] = Integer.parseInt(split[1]);
+        } catch (NumberFormatException nfe) {
+            log.warn("Max value is not a number. " + nfe.getLocalizedMessage());
         }
     }
 
+    private void initializeToolsParameters() {
+        try {
+            TpccTools.C_C_LAST = (Long) cacheWrapper.get(null, "C_C_LAST");
+
+            TpccTools.C_C_ID = (Long) cacheWrapper.get(null, "C_C_ID");
+
+            TpccTools.C_OL_I_ID = (Long) cacheWrapper.get(null, "C_OL_ID");
+
+        } catch (Exception e) {
+            log.error("Error", e);
+        }
+    }
 
     private String str(Object o) {
         return String.valueOf(o);
@@ -576,55 +500,6 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     }
 
 
-
-
-
-    public final synchronized void setNumberOfRunningThreads(int numOfThreads) {
-        if (numOfThreads < 1 || !running.get()) {
-            return;
-        }
-        Iterator<Stressor> iterator = consumers.iterator();
-        while (numOfThreads > 0 && iterator.hasNext()) {
-            Stressor stressor = iterator.next();
-            if (!stressor.isActive()) {
-                stressor.active();
-            }
-            numOfThreads--;
-        }
-
-        if (numOfThreads > 0) {
-            int threadIdx = consumers.size();
-            while (numOfThreads-- > 0) {
-                Stressor stressor = createStressor(threadIdx++);
-                stressor.start();
-                consumers.add(stressor);
-            }
-        } else {
-            while (iterator.hasNext()) {
-                iterator.next().inactive();
-            }
-        }
-    }
-
-    public final synchronized int getNumberOfThreads() {
-        return consumers.size();
-    }
-
-    public final synchronized int getNumberOfActiveThreads() {
-        int count = 0;
-        for (Stressor stressor : consumers) {
-            if (stressor.isActive()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private Stressor createStressor(int threadIndex) {
-        int localWarehouse = getWarehouseForThread(threadIndex);
-        return new Stressor(localWarehouse, threadIndex, nodeIndex, paymentWeight, orderStatusWeight);
-    }
-
     private void calculateLocalWarehouses() {
         if (accessSameWarehouse) {
             TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
@@ -639,8 +514,6 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         }
     }
 
-
-
    /*
     * For the review, the workload is the following:
     * 
@@ -648,63 +521,63 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     * low contention: change(nodeIndex + 1, 45, 50); 
     */
 
-    public synchronized final void highContention(int payment, int order) {
-        if (!running.get()) {
-            return;
-        }
-        paymentWeight = payment;
-        orderStatusWeight = order;
+//    public synchronized final void highContention(int payment, int order) {
+//        if (!running.get()) {
+//            return;
+//        }
+//        paymentWeight = payment;
+//        orderStatusWeight = order;
+//
+//        log.info("Change to high contention workload:");
+//        for (Stressor stressor : consumers) {
+//            stressor.terminal.change(1, paymentWeight, orderStatusWeight);
+//            log.info(stressor.getName() + " terminal is " + stressor.terminal);
+//        }
+//        for (Producer producer : producers) {
+//            producer.terminal.change(1, paymentWeight, orderStatusWeight);
+//            log.info(producer.getName() + " terminal is " + producer.terminal);
+//        }
+//    }
 
-        log.info("Change to high contention workload:");
-        for (Stressor stressor : consumers) {
-            stressor.terminal.change(1, paymentWeight, orderStatusWeight);
-            log.info(stressor.getName() + " terminal is " + stressor.terminal);
-        }
-        for (Producer producer : producers) {
-            producer.terminal.change(1, paymentWeight, orderStatusWeight);
-            log.info(producer.getName() + " terminal is " + producer.terminal);
-        }
-    }
+//    public synchronized final void lowContention(int payment, int order) {
+//        if (!running.get()) {
+//            return;
+//        }
+//        if (listLocalWarehouses.isEmpty()) {
+//            TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
+//        }
+//        paymentWeight = payment;
+//        orderStatusWeight = order;
+//
+//        log.info("Change to low contention workload:");
+//        for (Stressor stressor : consumers) {
+//            stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
+//            log.info(stressor.getName() + " terminal is " + stressor.terminal);
+//        }
+//        for (Producer producer : producers) {
+//            //in the producers, the warehouse is not needed
+//            producer.terminal.change(-1, paymentWeight, orderStatusWeight);
+//            log.info(producer.getName() + " terminal is " + producer.terminal);
+//        }
+//    }
 
-    public synchronized final void lowContention(int payment, int order) {
-        if (!running.get()) {
-            return;
-        }
-        if (listLocalWarehouses.isEmpty()) {
-            TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
-        }
-        paymentWeight = payment;
-        orderStatusWeight = order;
-
-        log.info("Change to low contention workload:");
-        for (Stressor stressor : consumers) {
-            stressor.terminal.change(getWarehouseForThread(stressor.threadIndex), paymentWeight, orderStatusWeight);
-            log.info(stressor.getName() + " terminal is " + stressor.terminal);
-        }
-        for (Producer producer : producers) {
-            //in the producers, the warehouse is not needed
-            producer.terminal.change(-1, paymentWeight, orderStatusWeight);
-            log.info(producer.getName() + " terminal is " + producer.terminal);
-        }
-    }
-
-    public synchronized final void randomContention(int payment, int order) {
-        if (!running.get()) {
-            return;
-        }
-        paymentWeight = payment;
-        orderStatusWeight = order;
-
-        log.info("Change to random contention workload:");
-        for (Stressor stressor : consumers) {
-            stressor.terminal.change(-1, paymentWeight, orderStatusWeight);
-            log.info(stressor.getName() + " terminal is " + stressor.terminal);
-        }
-        for (Producer producer : producers) {
-            producer.terminal.change(-1, paymentWeight, orderStatusWeight);
-            log.info(producer.getName() + " terminal is " + producer.terminal);
-        }
-    }
+//    public synchronized final void randomContention(int payment, int order) {
+//        if (!running.get()) {
+//            return;
+//        }
+//        paymentWeight = payment;
+//        orderStatusWeight = order;
+//
+//        log.info("Change to random contention workload:");
+//        for (Stressor stressor : consumers) {
+//            stressor.terminal.change(-1, paymentWeight, orderStatusWeight);
+//            log.info(stressor.getName() + " terminal is " + stressor.terminal);
+//        }
+//        for (Producer producer : producers) {
+//            producer.terminal.change(-1, paymentWeight, orderStatusWeight);
+//            log.info(producer.getName() + " terminal is " + producer.terminal);
+//        }
+//    }
 
     private int getWarehouseForThread(int threadIdx) {
         return listLocalWarehouses.isEmpty() ? -1 : listLocalWarehouses.get(threadIdx % listLocalWarehouses.size());
@@ -731,5 +604,71 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     private String testIdString(long payment, long orderStatus, long threads) {
         return threads + "T_" + payment + "PA_" + orderStatus + "OS";
     }
+
+
+    /* ************************** */
+    /* *** TpccConsumer CLASS *** */
+    /* ************************** */
+
+    protected class TpccConsumer extends Consumer {
+
+        private final TpccTerminal terminal;
+
+        public TpccConsumer(int localWarehouseID, int threadIndex, int nodeIndex, double paymentWeight, double orderStatusWeight) {
+            super(threadIndex);
+            this.threadIndex = threadIndex;
+            this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
+        }
+
+    }
+
+
+   /* ************************** */
+   /* ***** PRODUCER CLASS ***** */
+   /* ************************** */
+
+//    private class Producer extends Thread {
+//        private final ProducerRate rate;
+//        private final TpccTerminal terminal;
+//        private boolean running = false;
+//
+//        public Producer(ProducerRate rate, int id) {
+//            super("Producer-" + id);
+//            setDaemon(true);
+//            this.rate = rate;
+//            this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
+//        }
+//
+//        public void run() {
+//            if (log.isDebugEnabled()) {
+//                log.debug("Starting " + getName() + " with rate of " + rate.getLambda());
+//            }
+//            while (assertRunning()) {
+//                queue.offer(new RequestType(System.nanoTime(), terminal.chooseTransactionType(
+//                        cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster()
+//                )));
+//                countJobs.incrementAndGet();
+//                rate.sleep();
+//            }
+//        }
+//
+//        private synchronized boolean assertRunning() {
+//            return running;
+//        }
+//
+//        @Override
+//        public synchronized void start() {
+//            if (running) return;
+//            running = true;
+//            super.start();
+//        }
+//
+//        @Override
+//        public synchronized void interrupt() {
+//            if (!running) return;
+//            running = false;
+//            super.interrupt();
+//        }
+//    }
 
 }
