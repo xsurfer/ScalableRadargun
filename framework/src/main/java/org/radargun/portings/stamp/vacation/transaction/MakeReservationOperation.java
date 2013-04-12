@@ -94,7 +94,7 @@ public class MakeReservationOperation implements Transaction {
 
     @Override
     public int getType() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        return Definitions.ACTION_MAKE_RESERVATION;
     }
 
 }

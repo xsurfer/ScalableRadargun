@@ -16,22 +16,23 @@ import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
-public class VacationStressor extends AbstractBenchmarkStressor {
+public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmarkStressor.Consumer> {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 
-    public static final int TEST_PHASE = 2;
-    public static final int SHUTDOWN_PHASE = 3;
-
-    volatile protected int m_phase = TEST_PHASE;
-
-    private long restarts = 0;
-    private long throughput = 0;
     private Random randomPtr;
-    private int percentUser;
+
     private int queryPerTx;
+
+    /* percentUser is the percentage of MakeReservationOperation */
+    private int percentUser;
+
+    /* queryRange defines which part of the data can possibly be touched by the transactions */
     private int queryRange;
+
+    /* readOnlyPerc is what percentage of MakeReservationOperation are read-only */
     private int readOnlyPerc;
+
     private int relations;
 
 
@@ -60,15 +61,15 @@ public class VacationStressor extends AbstractBenchmarkStressor {
 
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, percentUser);
-        RequestType requestType = new RequestType(System.currentTimeMillis())
+        RequestType requestType = new RequestType(System.nanoTime(),action);
 
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return requestType;
     }
 
     @Override
     protected Transaction generateTransaction(RequestType type, int threadIndex) {
 
-
+        int action = type.transactionType;
         Transaction result = null;
 
         if (action == Definitions.ACTION_MAKE_RESERVATION) {
@@ -86,7 +87,11 @@ public class VacationStressor extends AbstractBenchmarkStressor {
 
     @Override
     protected Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        int r = randomPtr.posrandom_generate() % 100;
+        int action = selectAction(r, percentUser);
+        RequestType requestType = new RequestType(System.nanoTime(),action);
+
+        return generateTransaction(requestType, threadId);
     }
 
     @Override
@@ -130,20 +135,19 @@ public class VacationStressor extends AbstractBenchmarkStressor {
         }
     }
 
-    @Override
-    public Map<String, String> stress(CacheWrapper wrapper) {
-        this.cacheWrapper = wrapper;
+//    @Override
+//    public Map<String, String> stress(CacheWrapper wrapper) {
+//        //while (m_phase == TEST_PHASE) {
+//            processTransaction(wrapper, generateTransaction());
+//            this.throughput++;
+//        }
+//
+//        Map<String, String> results = new LinkedHashMap<String, String>();
+//
+//        return results;
+//    }
 
-        while (m_phase == TEST_PHASE) {
-            processTransaction(wrapper, generateTransaction());
-            this.throughput++;
-        }
-
-        Map<String, String> results = new LinkedHashMap<String, String>();
-
-        return results;
-    }
-
+    /*
     private void processTransaction(CacheWrapper wrapper, VacationTransaction transaction) {
         boolean successful = true;
 
@@ -177,12 +181,9 @@ public class VacationStressor extends AbstractBenchmarkStressor {
             }
         }
     }
+    */
 
-    @Override
-    public void destroy() throws Exception {
-        cacheWrapper.empty();
-        cacheWrapper = null;
-    }
+
 
 
     /* ********************* */
@@ -201,11 +202,11 @@ public class VacationStressor extends AbstractBenchmarkStressor {
 
     public void setCacheWrapper(CacheWrapper cacheWrapper) { this.cacheWrapper = cacheWrapper; }
 
-    public long getThroughput() { return this.throughput; }
+//    public long getThroughput() { return this.throughput; }
 
-    public long getRestarts() { return restarts; }
-    public void setRestarts(long restarts) { this.restarts = restarts; }
+//    public long getRestarts() { return restarts; }
+//    public void setRestarts(long restarts) { this.restarts = restarts; }
 
-    public void setPhase(int shutdownPhase) { this.m_phase = shutdownPhase; }
+    //public void setPhase(int shutdownPhase) { this.m_phase = shutdownPhase; }
 
 }

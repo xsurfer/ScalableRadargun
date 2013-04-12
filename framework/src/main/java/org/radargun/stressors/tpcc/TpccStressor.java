@@ -26,9 +26,10 @@ import java.util.concurrent.CountDownLatch;
  *
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  * @author Pedro Ruivo
+ * @author Fabio Perfetti (refactored)
  */
 
-public class TpccStressor extends AbstractBenchmarkStressor {
+public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccConsumer> {
 
 
     private static Log log = LogFactory.getLog(TpccStressor.class);
@@ -58,10 +59,17 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     private final List<Integer> listLocalWarehouses = new LinkedList<Integer>();
 
 
+    /* ******************* */
+    /* *** CONSTRUCTOR *** */
+    /* ******************* */
+
     public TpccStressor(AbstractWorkloadGenerator loadGenerator) {
         super(loadGenerator);
     }
 
+    /* ****************** */
+    /* *** OVERRIDING *** */
+    /* ****************** */
 
     @Override
     protected void initialization(){
@@ -86,7 +94,7 @@ public class TpccStressor extends AbstractBenchmarkStressor {
     }
 
     @Override
-    protected Consumer createConsumer(int threadIndex) {
+    protected TpccConsumer createConsumer(int threadIndex) {
         int localWarehouse = getWarehouseForThread(threadIndex);
         return new TpccConsumer(localWarehouse, threadIndex, nodeIndex, paymentWeight, orderStatusWeight);
     }
@@ -112,9 +120,8 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return readWeight;
     }
 
-
     @Override
-    protected Map<String, String> processResults(List<Consumer> consumers) {
+    protected Map<String, String> processResults(List<TpccConsumer> consumers) {
 
         long duration = 0;
 
@@ -387,11 +394,12 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return results;
     }
 
-    public void destroy() throws Exception {
-        log.warn("Attention: going to destroy the wrapper");
-        cacheWrapper.empty();
-        cacheWrapper = null;
-    }
+
+
+    /* *************** */
+    /* *** METHODS *** */
+    /* *************** */
+
 
     private void updateNumberOfItemsInterval() {
         if (numberOfItemsInterval == null) {
@@ -435,34 +443,12 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return String.valueOf(o);
     }
 
-    public void setNumOfThreads(int numOfThreads) {
-        this.numOfThreads = numOfThreads;
-    }
 
-    public void setNodeIndex(int nodeIndex) {
-        this.nodeIndex = nodeIndex;
-    }
 
-    public void setNumSlaves(int value) {
-        this.numSlaves = value;
-    }
 
-    public void setPerThreadSimulTime(long perThreadSimulTime) {
-        this.perThreadSimulTime = perThreadSimulTime;
-    }
-
-    public void setRetryOnAbort(boolean retryOnAbort) {
-        this.retryOnAbort = retryOnAbort;
-    }
-
-    public void setRetrySameXact(boolean b) {
-        this.retrySameXact = b;
-    }
-
-    public void setBackOffTime(long backOffTime) {
-        this.backOffTime = backOffTime;
-
-    }
+    /* ********************* */
+    /* *** GETTER/SETTER *** */
+    /* ********************* */
 
     public void setPaymentWeight(int paymentWeight) {
         this.paymentWeight = paymentWeight;
@@ -480,9 +466,7 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         this.numberOfItemsInterval = numberOfItemsInterval;
     }
 
-    public void setStatsSamplingInterval(long statsSamplingInterval) {
-        this.statsSamplingInterval = statsSamplingInterval;
-    }
+
 
     @Override
     public String toString() {
@@ -595,11 +579,7 @@ public class TpccStressor extends AbstractBenchmarkStressor {
         return orderStatusWeight;
     }
 
-    public synchronized final void stopBenchmark() {
-        this.stoppedByJmx = true;
-        finishBenchmarkTimer.cancel();
-        finishBenchmark();
-    }
+
 
     private String testIdString(long payment, long orderStatus, long threads) {
         return threads + "T_" + payment + "PA_" + orderStatus + "OS";

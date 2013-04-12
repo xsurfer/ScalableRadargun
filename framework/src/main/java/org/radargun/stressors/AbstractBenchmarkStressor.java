@@ -23,11 +23,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Created by: Fabio Perfetti
+ * @author Fabio Perfetti
  * E-mail: perfabio87@gmail.com
  * Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer> extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -108,7 +108,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
     protected final List<Producer> producers = Collections.synchronizedList(new ArrayList<Producer>());
 
-    protected final List<Consumer> consumers = Collections.synchronizedList(new LinkedList<Consumer>());
+    protected final List<T> consumers = Collections.synchronizedList(new LinkedList<T>());
 
     protected AbstractWorkloadGenerator workloadGenerator;
 
@@ -139,7 +139,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
     protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
-    protected abstract Map<String, String> processResults(List<Consumer> stressors);
+    protected abstract Map<String, String> processResults(List<T> stressors);
 
     protected abstract double getWriteWeight();
 
@@ -147,7 +147,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
     protected abstract void validateTransactionsWeight();
 
-    protected abstract Consumer createConsumer(int threadIndex);
+    protected abstract T createConsumer(int threadIndex);
 
 
 
@@ -223,11 +223,11 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         return processResults(consumers);
     }
 
-    protected List<Consumer> executeOperations() {
+    protected List<T> executeOperations() {
 
         startPoint = new CountDownLatch(1);
         for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
-            Consumer consumer = createConsumer(threadIndex);
+            T consumer = createConsumer(threadIndex);
             consumers.add(consumer);
             consumer.start();
         }
@@ -397,7 +397,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         if (numOfThreads < 1 || !running.get()) {
             return;
         }
-        Iterator<Consumer> iterator = consumers.iterator();
+        Iterator<T> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
             Consumer consumer = iterator.next();
             if (!consumer.isActive()) {
@@ -409,7 +409,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         if (numOfThreads > 0) {
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
-                Consumer consumer = createConsumer(threadIdx++);
+                T consumer = createConsumer(threadIdx++);
                 consumer.start();
                 consumers.add(consumer);
             }
@@ -445,10 +445,47 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
         }
     }
 
+    public void destroy() throws Exception {
+        log.warn("Attention: going to destroy the wrapper");
+        cacheWrapper.empty();
+        cacheWrapper = null;
+    }
+
+    public synchronized final void stopBenchmark() {
+        this.stoppedByJmx = true;
+        finishBenchmarkTimer.cancel();
+        finishBenchmark();
+    }
+
+
 
     /* ******************** */
     /* *** GETTER/SETTER ** */
     /* ******************** */
+
+    public void setNodeIndex(int nodeIndex) { this.nodeIndex = nodeIndex; }
+
+    public void setNumOfThreads(int numOfThreads) { this.numOfThreads = numOfThreads; }
+
+    public void setNumSlaves(int value) { this.numSlaves = value; }
+
+    public void setPerThreadSimulTime(long perThreadSimulTime) { this.perThreadSimulTime = perThreadSimulTime; }
+
+    public void setRetryOnAbort(boolean retryOnAbort) { this.retryOnAbort = retryOnAbort; }
+
+    public void setRetrySameXact(boolean b) { this.retrySameXact = b; }
+
+    public void setBackOffTime(long backOffTime) { this.backOffTime = backOffTime; }
+
+    public void setStatsSamplingInterval(long statsSamplingInterval) {
+        this.statsSamplingInterval = statsSamplingInterval;
+    }
+
+
+
+   /* ************************************************************************************************************* */
+   /* ********************************************** INNER CLASSES ************************************************ */
+   /* ************************************************************************************************************* */
 
 
    /* ************************** */
@@ -501,7 +538,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
    /* ***** CONSUMER CLASS ***** */
    /* ************************** */
 
-    protected abstract class Consumer extends Thread {
+    protected class Consumer extends Thread {
         protected int threadIndex;
         //private double arrivalRate;
 
@@ -544,7 +581,7 @@ public abstract class AbstractBenchmarkStressor extends AbstractCacheWrapperStre
 
             if (!lastSuccessful && !retrySameXact) {
                 this.backoffIfNecessary();
-                Transaction newTransaction = generateTransaction(new RequestType(System.currentTimeMillis(), oldTransaction.getType()), threadIndex);
+                Transaction newTransaction = generateTransaction(new RequestType(System.nanoTime(), oldTransaction.getType()), threadIndex);
                 log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +
                         " into a transaction of type " + newTransaction.getType());
                 return newTransaction;

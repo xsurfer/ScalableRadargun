@@ -1,9 +1,12 @@
 package org.radargun.stages;
 
+import org.radargun.CacheWrapper;
 import org.radargun.DistStage;
 import org.radargun.DistStageAck;
+import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.state.MasterState;
+import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.nio.channels.SocketChannel;
@@ -16,11 +19,16 @@ import java.util.Map;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
-public abstract class AbstractBenchmarkStage extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor> extends AbstractDistStage {
 
-    /***************************/
-    /***      ATTRIBUTES     ***/
-    /***************************/
+    /* ***************** */
+    /* ** ATTRIBUTES *** */
+    /* ***************** */
+
+    /**
+     * the number of threads that will work on this slave
+     */
+    protected int numOfThreads = 10;
 
     /**
      * total time (in seconds) of simulation for each stressor thread
@@ -30,44 +38,47 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
     /**
      * timestamps (in ms) when this stage was starting
      */
-    private long initTimeStamp = 0L;
+    protected long initTimeStamp = 0L;
+
+    /**
+     * specify the interval period (in milliseconds) of the memory and cpu usage is collected
+     */
+    protected long statsSamplingInterval = 0;
 
     /**
      * the workload generator
      */
     protected AbstractWorkloadGenerator workloadGenerator;
 
+    /* istanza di AbstractBenchmarkStressor */
+    protected transient T stressor;
 
+    protected transient CacheWrapper cacheWrapper;
 
-    /***************************/
-    /***    GETTER/SETTER    ***/
-    /***************************/
+    /**
+     * If true, a transaction t is regenerated until it commits, unless it throws a "NotSuchElementException"
+     * In this case, the transaction is aborted for good.
+     */
+    protected boolean retryOnAbort = false;
 
-    public void setWorkloadGenerator(AbstractWorkloadGenerator wg){ this.workloadGenerator = wg; }
-    public AbstractWorkloadGenerator getWorkloadGenerator(){ return this.workloadGenerator; }
+    protected boolean retrySameXact = false;
 
-    public long getPerThreadSimulTime(){ return this.perThreadSimulTime; }
-    public void setPerThreadSimulTime(long perThreadSimulTime){ this.perThreadSimulTime = perThreadSimulTime; }
-
-    public long getInitTimeStamp() { return this.initTimeStamp; }
-    public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
-
-
-
-    /***************************/
-    /*** TO OVERRIDE METHODS ***/
-    /***************************/
-
-    @ManagedOperation(description = "Stop the current benchmark")
-    public abstract void stopBenchmark();
+    /**
+     * Specifies the msec a transaction spends in backoff after aborting
+     */
+    protected long backOffTime = 0;
 
 
 
+    /* ****************** */
+    /* ** TO OVERRIDE *** */
+    /* ****************** */
 
 
-    /***************************/
-    /***       METHODS       ***/
-    /***************************/
+
+    /* *************** */
+    /* *** METHODS *** */
+    /* *************** */
 
     public void initOnMaster(MasterState masterState, int slaveIndex) {
         super.initOnMaster(masterState, slaveIndex);
@@ -76,7 +87,6 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
 
     public void updateTimes(DistStage currentMainStage) {
-
         log.info("Updating perThreadSimulTime");
 
         long totalSimulTime = ((AbstractBenchmarkStage) currentMainStage).getPerThreadSimulTime();
@@ -137,4 +147,66 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
         return clone;
     }
+
+
+
+
+    /* ******************************* */
+    /* *** MANAGED METHODS VIA JMX *** */
+    /* ******************************* */
+
+    @ManagedAttribute(description = "Returns the number of threads created", writable = false)
+    public final int getNumOfThreads() {
+        return stressor.getNumberOfThreads();
+    }
+
+    @ManagedAttribute(description = "Returns the number of threads actually running", writable = false)
+    public final int getNumberOfActiveThreads() {
+        return stressor.getNumberOfActiveThreads();
+    }
+
+    @ManagedOperation(description = "Change the number of threads running, creating more threads if needed")
+    public final void setNumberOfActiveThreads(int numberOfActiveThreads) {
+        stressor.setNumberOfRunningThreads(numberOfActiveThreads);
+    }
+
+    @ManagedOperation(description = "Stop the current benchmark")
+    public final void stopBenchmark() {
+        stressor.stopBenchmark();
+    }
+
+
+
+
+    /* ***********************/
+    /* *** GETTER/SETTER *** */
+    /* ********************* */
+
+    public void setNumOfThreads(int numOfThreads) { this.numOfThreads = numOfThreads; }
+
+    public void setBackOffTime(long backOffTime) {
+        this.backOffTime = backOffTime;
+    }
+
+    public void setRetryOnAbort(boolean retryOnAbort) {
+        this.retryOnAbort = retryOnAbort;
+    }
+
+    public void setRetrySameXact(boolean b){
+        this.retrySameXact = b;
+    }
+
+    public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
+
+    public void setWorkloadGenerator(AbstractWorkloadGenerator wg){ this.workloadGenerator = wg; }
+    public AbstractWorkloadGenerator getWorkloadGenerator(){ return this.workloadGenerator; }
+
+    public long getPerThreadSimulTime(){ return this.perThreadSimulTime; }
+    public void setPerThreadSimulTime(long perThreadSimulTime){ this.perThreadSimulTime = perThreadSimulTime; }
+
+    public long getInitTimeStamp() { return this.initTimeStamp; }
+    public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
+
+
+
 }

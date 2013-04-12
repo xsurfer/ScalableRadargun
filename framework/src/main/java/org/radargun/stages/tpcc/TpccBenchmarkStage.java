@@ -34,301 +34,249 @@ import static org.radargun.utils.Utils.numberFormat;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
+
+    private static final String SIZE_INFO = "SIZE_INFO";
+
+    private static final String SCRIPT_LAUNCH = "_script_launch_";
+
+    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
 
 
-   private static final String SIZE_INFO = "SIZE_INFO";
-   private static final String SCRIPT_LAUNCH = "_script_launch_";
-   private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
+    /**
+     * percentage of Payment transactions
+     */
+    private int paymentWeight = 45;
+
+    /**
+     * percentage of Order Status transactions
+     */
+    private int orderStatusWeight = 5;
+
+    /**
+     * if true, each node will pick a warehouse and all transactions will work over that warehouse. The warehouses are
+     * picked by order, i.e., slave 0 gets warehouse 1,N+1, 2N+1,[...]; ... slave N-1 gets warehouse N, 2N, [...].
+     */
+    private boolean accessSameWarehouse = false;
+
+    /**
+     * specify the min and the max number of items created by a New Order Transaction.
+     * format: min,max
+     */
+    private String numberOfItemsInterval = null;
+
+    /*
+    If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
+     */
+    private boolean avoidMiss = true;
+
+    /*
+    If true, new keys are tracked so that they can be erased in the end of the stage
+     */
+    private boolean trackNewKeys = false;
+
+    private boolean perThreadTrackNewKeys = false;
 
 
-   /**
-    * the number of threads that will work on this slave
-    */
-   private int numOfThreads = 10;
 
-   /**
-    * average arrival rate of the transactions to the system
-    */
-   private int arrivalRate = 0;
-
-   /**
-    * percentage of Payment transactions
-    */
-   private int paymentWeight = 45;
-
-   /**
-    * percentage of Order Status transactions
-    */
-   private int orderStatusWeight = 5;
-
-   /**
-    * if true, each node will pick a warehouse and all transactions will work over that warehouse. The warehouses are
-    * picked by order, i.e., slave 0 gets warehouse 1,N+1, 2N+1,[...]; ... slave N-1 gets warehouse N, 2N, [...].
-    */
-   private boolean accessSameWarehouse = false;
-
-   /**
-    * specify the min and the max number of items created by a New Order Transaction.
-    * format: min,max
-    */
-   private String numberOfItemsInterval = null;
-
-   /**
-    * specify the interval period (in milliseconds) of the memory and cpu usage is collected
-    */
-   private long statsSamplingInterval = 0;
-
-   /**
-    * Specifies the msec a transaction spends in backoff after aborting
-    */
-   private long backOffTime = 0;
-
-   /**
-    * If true, a transaction t is regenerated until it commits, unless it throws a "NotSuchElementException"
-    * In this case, the transaction is aborted for good.
-    */
-   private boolean retryOnAbort = false;
-
-   private boolean retrySameXact = false;
-
-   /*
-   If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
-    */
-   private boolean avoidMiss = true;
-
-   /*
-   If true, new keys are tracked so that they can be erased in the end of the stage
-    */
-   private boolean trackNewKeys = false;
-   private boolean perThreadTrackNewKeys = false;
-
-   private transient CacheWrapper cacheWrapper;
-
-   private transient TpccStressor tpccStressor;
-
+    /* ****************** */
+    /* *** OVERRIDING *** */
+    /* ****************** */
 
     @Override
-   public void initOnMaster(MasterState masterState, int slaveIndex) {
-      super.initOnMaster(masterState, slaveIndex);
-      Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
-      if (started == null || !started) {
-         masterState.put(SCRIPT_LAUNCH, startScript());
-      }
-   }
+    public void initOnMaster(MasterState masterState, int slaveIndex) {
+        super.initOnMaster(masterState, slaveIndex);
+        Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
+        if (started == null || !started) {
+            masterState.put(SCRIPT_LAUNCH, startScript());
+        }
+    }
 
-   private Boolean startScript() {
-      try {
-         Runtime.getRuntime().exec(SCRIPT_PATH);
-         log.info("Script " + SCRIPT_PATH + " started successfully");
-         return Boolean.TRUE;
-      } catch (Exception e) {
-         log.warn("Error starting script " + SCRIPT_PATH + ". " + e.getMessage());
-         return Boolean.FALSE;
-      }
-   }
+    @Override
+    public DistStageAck executeOnSlave() {
+        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
+        this.cacheWrapper = slaveState.getCacheWrapper();
+        if (cacheWrapper == null) {
+            log.info("Not running test on this slave as the wrapper hasn't been configured.");
+            return result;
+        }
 
-   //If in subsequent runs I want to sue different methods, I have to ensure that only one is active
-   private void trackNewKeys() {
-      if (trackNewKeys && perThreadTrackNewKeys)
-         throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
-      this.cacheWrapper.setPerThreadTrackNewKeys(false);
-      this.cacheWrapper.setTrackNewKeys(false);
-      cacheWrapper.setTrackNewKeys(trackNewKeys);
-      cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
-   }
+        log.info("Starting TpccBenchmarkStage: " + this.toString());
 
-   public DistStageAck executeOnSlave() {
-      DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
-      this.cacheWrapper = slaveState.getCacheWrapper();
-      if (cacheWrapper == null) {
-         log.info("Not running test on this slave as the wrapper hasn't been configured.");
-         return result;
-      }
+        trackNewKeys();
 
-      log.info("Starting TpccBenchmarkStage: " + this.toString());
+        stressor = new TpccStressor(this.workloadGenerator);
+        stressor.setNodeIndex(getSlaveIndex());
+        stressor.setNumSlaves(getActiveSlaveCount());
+        stressor.setNumOfThreads(this.numOfThreads);
+        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+        stressor.setStatsSamplingInterval(statsSamplingInterval);
+        stressor.setBackOffTime(backOffTime);
+        stressor.setRetryOnAbort(retryOnAbort);
+        stressor.setRetrySameXact(retrySameXact);
+        stressor.setPaymentWeight(this.paymentWeight);
+        stressor.setOrderStatusWeight(this.orderStatusWeight);
+        stressor.setAccessSameWarehouse(accessSameWarehouse);
+        stressor.setNumberOfItemsInterval(numberOfItemsInterval);
 
-      trackNewKeys();
-      tpccStressor = new TpccStressor(this.workloadGenerator);
-      tpccStressor.setNodeIndex(getSlaveIndex());
-      tpccStressor.setNumSlaves(getActiveSlaveCount());
-      tpccStressor.setNumOfThreads(this.numOfThreads);
-      tpccStressor.setPerThreadSimulTime(this.perThreadSimulTime);
-      tpccStressor.setPaymentWeight(this.paymentWeight);
-      tpccStressor.setOrderStatusWeight(this.orderStatusWeight);
-      tpccStressor.setAccessSameWarehouse(accessSameWarehouse);
-      tpccStressor.setNumberOfItemsInterval(numberOfItemsInterval);
-      tpccStressor.setStatsSamplingInterval(statsSamplingInterval);
-      tpccStressor.setBackOffTime(backOffTime);
-      tpccStressor.setRetryOnAbort(retryOnAbort);
-      tpccStressor.setRetrySameXact(retrySameXact);
 
-      AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
+        AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
-      try {
-         Map<String, String> results = tpccStressor.stress(cacheWrapper);
-         if( results != null ){
-            String sizeInfo = "size info: " + cacheWrapper.getInfo() +
-                 ", clusterSize:" + super.getActiveSlaveCount() +
-                 ", nodeIndex:" + super.getSlaveIndex() +
-                 ", cacheSize: " + cacheWrapper.getCacheSize();
-            log.info(sizeInfo);
-            results.put(SIZE_INFO, sizeInfo);
-         }
-         result.setPayload(results);
-         return result;
-      } catch (Exception e) {
-         log.warn("Exception while initializing the test", e);
-         result.setError(true);
-         result.setRemoteException(e);
-         return result;
-      }
-   }
-
-   public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
-      logDurationInfo(acks);
-      boolean success = true;
-      Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
-      masterState.put("results", results);
-      for (DistStageAck ack : acks) {
-         DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
-         if (wAck.isError()) {
-            success = false;
-            log.warn("Received error ack: " + wAck);
-         } else {
-            if (log.isTraceEnabled())
-               log.trace(wAck);
-         }
-         Map<String, Object> benchResult = (Map<String, Object>) wAck.getPayload();
-         if (benchResult != null) {
-            results.put(ack.getSlaveIndex(), benchResult);
-            Object reqPerSes = benchResult.get("REQ_PER_SEC");
-            if (reqPerSes == null) {
-               throw new IllegalStateException("This should be there!");
+        try {
+            Map<String, String> results = stressor.stress(cacheWrapper);
+            if (results != null) {
+                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+                        ", clusterSize:" + super.getActiveSlaveCount() +
+                        ", nodeIndex:" + super.getSlaveIndex() +
+                        ", cacheSize: " + cacheWrapper.getCacheSize();
+                log.info(sizeInfo);
+                results.put(SIZE_INFO, sizeInfo);
             }
-            log.info("On slave " + ack.getSlaveIndex() + " we had " + numberFormat(parseDouble(reqPerSes.toString())) + " requests per second");
-            log.info("Received " + benchResult.remove(SIZE_INFO));
-         } else {
-            log.trace("No report received from slave: " + ack.getSlaveIndex());
-         }
-      }
-      return success;
-   }
+            result.setPayload(results);
+            return result;
+        } catch (Exception e) {
+            log.warn("Exception while initializing the test", e);
+            result.setError(true);
+            result.setRemoteException(e);
+            return result;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "TpccBenchmarkStage {" +
+                "numOfThreads=" + numOfThreads +
+                ", updateTimes=" + perThreadSimulTime +
+                ", paymentWeight=" + paymentWeight +
+                ", orderStatusWeight=" + orderStatusWeight +
+                ", accessSameWarehouse=" + accessSameWarehouse +
+                ", numberOfItemsInterval=" + numberOfItemsInterval +
+                ", statsSamplingInterval=" + statsSamplingInterval +
+                ", cacheWrapper=" + cacheWrapper +
+                ", " + super.toString();
+    }
 
 
 
-    public void setNumOfThreads(int numOfThreads) {
-      this.numOfThreads = numOfThreads;
-   }
+    /* *************** */
+    /* *** METHODS *** */
+    /* *************** */
 
-   public void setPaymentWeight(int paymentWeight) {
-      this.paymentWeight = paymentWeight;
-   }
+    private Boolean startScript() {
+        try {
+            Runtime.getRuntime().exec(SCRIPT_PATH);
+            log.info("Script " + SCRIPT_PATH + " started successfully");
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.warn("Error starting script " + SCRIPT_PATH + ". " + e.getMessage());
+            return Boolean.FALSE;
+        }
+    }
 
-   public void setOrderStatusWeight(int orderStatusWeight) {
-      this.orderStatusWeight = orderStatusWeight;
-   }
+    //If in subsequent runs I want to sue different methods, I have to ensure that only one is active
+    private void trackNewKeys() {
+        if (trackNewKeys && perThreadTrackNewKeys)
+            throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
+        this.cacheWrapper.setPerThreadTrackNewKeys(false);
+        this.cacheWrapper.setTrackNewKeys(false);
+        cacheWrapper.setTrackNewKeys(trackNewKeys);
+        cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
+    }
 
-   public void setAccessSameWarehouse(boolean accessSameWarehouse) {
-      this.accessSameWarehouse = accessSameWarehouse;
-   }
+    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
+        logDurationInfo(acks);
+        boolean success = true;
+        Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
+        masterState.put("results", results);
+        for (DistStageAck ack : acks) {
+            DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
+            if (wAck.isError()) {
+                success = false;
+                log.warn("Received error ack: " + wAck);
+            } else {
+                if (log.isTraceEnabled())
+                    log.trace(wAck);
+            }
+            Map<String, Object> benchResult = (Map<String, Object>) wAck.getPayload();
+            if (benchResult != null) {
+                results.put(ack.getSlaveIndex(), benchResult);
+                Object reqPerSes = benchResult.get("REQ_PER_SEC");
+                if (reqPerSes == null) {
+                    throw new IllegalStateException("This should be there!");
+                }
+                log.info("On slave " + ack.getSlaveIndex() + " we had " + numberFormat(parseDouble(reqPerSes.toString())) + " requests per second");
+                log.info("Received " + benchResult.remove(SIZE_INFO));
+            } else {
+                log.trace("No report received from slave: " + ack.getSlaveIndex());
+            }
+        }
+        return success;
+    }
 
-   public void setNumberOfItemsInterval(String numberOfItemsInterval) {
-      this.numberOfItemsInterval = numberOfItemsInterval;
-   }
 
-   public void setStatsSamplingInterval(long statsSamplingInterval) {
-      this.statsSamplingInterval = statsSamplingInterval;
-   }
+    /* ***********************/
+    /* *** GETTER/SETTER *** */
+    /* ********************* */
 
-   public void setBackOffTime(long backOffTime) {
-      this.backOffTime = backOffTime;
-   }
 
-   public void setRetryOnAbort(boolean retryOnAbort) {
-      this.retryOnAbort = retryOnAbort;
-   }
+    public void setPaymentWeight(int paymentWeight) {
+        this.paymentWeight = paymentWeight;
+    }
 
-   public void setAvoidMiss(boolean avoidMiss) {
-      this.avoidMiss = avoidMiss;
-   }
+    public void setOrderStatusWeight(int orderStatusWeight) {
+        this.orderStatusWeight = orderStatusWeight;
+    }
 
-   public void setTrackNewKeys(boolean trackNewKeys) {
-      this.trackNewKeys = trackNewKeys;
-   }
+    public void setAccessSameWarehouse(boolean accessSameWarehouse) {
+        this.accessSameWarehouse = accessSameWarehouse;
+    }
 
-   public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
-      this.perThreadTrackNewKeys = trackNewKeys;
-   }
+    public void setNumberOfItemsInterval(String numberOfItemsInterval) {
+        this.numberOfItemsInterval = numberOfItemsInterval;
+    }
 
-   public void setRetrySameXact(boolean b){
-      this.retrySameXact = b;
-   }
+    public void setAvoidMiss(boolean avoidMiss) {
+        this.avoidMiss = avoidMiss;
+    }
 
-   @Override
-   public String toString() {
-      return "TpccBenchmarkStage {" +
-              "numOfThreads=" + numOfThreads +
-              ", updateTimes=" + perThreadSimulTime +
-              ", paymentWeight=" + paymentWeight +
-              ", orderStatusWeight=" + orderStatusWeight +
-              ", accessSameWarehouse=" + accessSameWarehouse +
-              ", numberOfItemsInterval=" + numberOfItemsInterval +
-              ", statsSamplingInterval=" + statsSamplingInterval +
-              ", cacheWrapper=" + cacheWrapper +
-              ", " + super.toString();
-   }
+    public void setTrackNewKeys(boolean trackNewKeys) {
+        this.trackNewKeys = trackNewKeys;
+    }
 
-   @ManagedOperation(description = "Change the workload to decrease contention between transactions")
-   public void lowContention(int payment, int order) {
-      tpccStressor.lowContention(payment, order);
-   }
+    public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
+        this.perThreadTrackNewKeys = trackNewKeys;
+    }
 
-   @ManagedOperation(description = "Change the workload to increase contention between transactions")
-   public void highContention(int payment, int order) {
-      tpccStressor.highContention(payment, order);
-   }
 
-   @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
-   public void randomContention(int payment, int order) {
-      tpccStressor.randomContention(payment, order);
-   }
+//   @ManagedOperation(description = "Change the workload to decrease contention between transactions")
+//   public void lowContention(int payment, int order) {
+//      tpccStressor.lowContention(payment, order);
+//   }
+//
+//   @ManagedOperation(description = "Change the workload to increase contention between transactions")
+//   public void highContention(int payment, int order) {
+//      tpccStressor.highContention(payment, order);
+//   }
+//
+//   @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
+//   public void randomContention(int payment, int order) {
+//      tpccStressor.randomContention(payment, order);
+//   }
 
-   @ManagedAttribute(description = "Returns the number of threads created", writable = false)
-   public final int getNumOfThreads() {
-      return tpccStressor.getNumberOfThreads();
-   }
+    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
+    public final double getExpectedWritePercentage() {
+        return stressor.getExpectedWritePercentage();
+    }
 
-   @ManagedAttribute(description = "Returns the number of threads actually running", writable = false)
-   public final int getNumberOfActiveThreads() {
-      return tpccStressor.getNumberOfActiveThreads();
-   }
+    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
+    public final int getPaymentWeight() {
+        return stressor.getPaymentWeight();
+    }
 
-   @ManagedOperation(description = "Change the number of threads running, creating more threads if needed")
-   public final void setNumberOfActiveThreads(int numberOfActiveThreads) {
-      tpccStressor.setNumberOfRunningThreads(numberOfActiveThreads);
-   }
-
-   @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
-   public final double getExpectedWritePercentage() {
-      return tpccStressor.getExpectedWritePercentage();
-   }
-
-   @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
-   public final int getPaymentWeight() {
-      return tpccStressor.getPaymentWeight();
-   }
-
-   @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
-   public final int getOrderStatusWeight() {
-      return tpccStressor.getOrderStatusWeight();
-   }
-
-   @Override
-   @ManagedOperation(description = "Stop the current benchmark")
-   public final void stopBenchmark() {
-      tpccStressor.stopBenchmark();
-   }
+    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
+    public final int getOrderStatusWeight() {
+        return stressor.getOrderStatusWeight();
+    }
 
     public TpccBenchmarkStage clone() {
         return (TpccBenchmarkStage) super.clone();
