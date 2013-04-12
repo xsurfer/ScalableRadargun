@@ -96,6 +96,11 @@ public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmar
 
     @Override
     protected Map<String, String> processResults(List<Consumer> stressors) {
+
+        for (Consumer tpccConsumer : consumers) {
+
+        }
+
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 

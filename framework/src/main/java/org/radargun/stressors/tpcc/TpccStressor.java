@@ -11,7 +11,7 @@ import org.radargun.producer.ProducerRate;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
-import org.radargun.stressors.commons.StressorStats;
+import org.radargun.stressors.tpcc.TpccStats;
 import org.radargun.utils.Utils;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
@@ -80,16 +80,27 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
 
     @Override
     protected RequestType nextTransaction() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        TpccTerminal terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
+        return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
+                                                                                  cacheWrapper.isPassiveReplication(),
+                                                                                  cacheWrapper.isTheMaster()
+                                                                                ) );
     }
 
     @Override
     protected Transaction generateTransaction(RequestType type, int threadIndex) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+
+        TpccConsumer consumer = this.consumers.get(threadIndex);
+        Transaction transaction = consumer.getTerminal().createTransaction(type.transactionType, threadIndex);
+        return transaction;
     }
 
     @Override
     public Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+        TpccConsumer consumer = this.consumers.get(threadId);
+        Transaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
+        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
+
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -167,10 +178,9 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
         double backOffTime = 0D;
         double backOffs = 0D;
 
-        for (Consumer tpccConsumer : consumers) {
-            if(! ( tpccConsumer instanceof TpccConsumer ) )
-                throw new IllegalStateException();
-            TpccStats tpccStats = (TpccStats) tpccConsumer.stats;
+        for (TpccConsumer tpccConsumer : consumers) {
+
+            TpccStats tpccStats = tpccConsumer.stats;
 
             //duration += stressor.totalDuration(); //in nanosec
             //readsDurations += stressor.readDuration; //in nanosec
@@ -400,7 +410,6 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     /* *** METHODS *** */
     /* *************** */
 
-
     private void updateNumberOfItemsInterval() {
         if (numberOfItemsInterval == null) {
             return;
@@ -590,15 +599,19 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     /* *** TpccConsumer CLASS *** */
     /* ************************** */
 
-    protected class TpccConsumer extends Consumer {
+    protected class TpccConsumer extends Consumer<TpccStats> {
 
         private final TpccTerminal terminal;
 
         public TpccConsumer(int localWarehouseID, int threadIndex, int nodeIndex, double paymentWeight, double orderStatusWeight) {
             super(threadIndex);
+
+            stats = new TpccStats();
             this.threadIndex = threadIndex;
             this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
         }
+
+        public TpccTerminal getTerminal(){ return terminal; }
 
     }
 

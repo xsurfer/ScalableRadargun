@@ -57,5 +57,4 @@ public class TpccStats extends StressorStats {
     public long getPaymentDuration() { return paymentDuration; }
     public void incPaymentDuration(){ paymentDuration++; }
 
-
 }

@@ -538,7 +538,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
    /* ***** CONSUMER CLASS ***** */
    /* ************************** */
 
-    protected class Consumer extends Thread {
+    protected abstract class Consumer<T extends StressorStats> extends Thread {
         protected int threadIndex;
         //private double arrivalRate;
 
@@ -554,7 +554,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
         private ProducerRate backOffSleeper;
 
-        public StressorStats stats;
+        public T stats;
 
 
         /* ******************* */
