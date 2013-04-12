@@ -1,6 +1,7 @@
 package org.radargun.stressors.stamp.vacation;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -15,7 +16,7 @@ import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
-public class VacationStressor extends AbstractBenchmarkStressor implements Runnable {
+public class VacationStressor extends AbstractBenchmarkStressor {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 
@@ -23,7 +24,6 @@ public class VacationStressor extends AbstractBenchmarkStressor implements Runna
     public static final int SHUTDOWN_PHASE = 3;
 
     volatile protected int m_phase = TEST_PHASE;
-
 
     private long restarts = 0;
     private long throughput = 0;
@@ -34,9 +34,10 @@ public class VacationStressor extends AbstractBenchmarkStressor implements Runna
     private int readOnlyPerc;
     private int relations;
 
-    public void setRelations(int relations) {
-        this.relations = relations;
-    }
+
+    /* ****************** */
+    /* *** CONSTRUCTOR *** */
+    /* ****************** */
 
     public VacationStressor(AbstractWorkloadGenerator loadGenerator) {
         super(loadGenerator);
@@ -44,34 +45,30 @@ public class VacationStressor extends AbstractBenchmarkStressor implements Runna
         randomPtr.random_alloc();
     }
 
-    public void setPercentUser(int percentUser) {
-        this.percentUser = percentUser;
-    }
 
-    public void setQueryPerTx(int queryPerTx) {
-        this.queryPerTx = queryPerTx;
-    }
+    /* ****************** */
+    /* *** OVERRIDING *** */
+    /* ****************** */
 
-    public void setQueryRange(int queryRange) {
-        this.queryRange = queryRange;
-    }
-
-    public void setReadOnlyPerc(int readOnlyPerc) {
-        this.readOnlyPerc = readOnlyPerc;
-    }
-
-    public void setCacheWrapper(CacheWrapper cacheWrapper) {
-        this.cacheWrapper = cacheWrapper;
+    @Override
+    protected void initialization() {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public void run() {
-        stress(cacheWrapper);
-    }
+    protected RequestType nextTransaction() {
 
-    protected Transaction generateTransaction() {
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, percentUser);
+        RequestType requestType = new RequestType(System.currentTimeMillis())
+
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected Transaction generateTransaction(RequestType type, int threadIndex) {
+
+
         Transaction result = null;
 
         if (action == Definitions.ACTION_MAKE_RESERVATION) {
@@ -86,6 +83,42 @@ public class VacationStressor extends AbstractBenchmarkStressor implements Runna
 
         return result;
     }
+
+    @Override
+    protected Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected Map<String, String> processResults(List<Consumer> stressors) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected double getWriteWeight() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected double getReadWeight() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected void validateTransactionsWeight() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    protected Consumer createConsumer(int threadIndex) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+
+
+    /* *************** */
+    /* *** METHODS *** */
+    /* *************** */
 
     public int selectAction(int r, int percentUser) {
         if (r < percentUser) {
@@ -151,25 +184,28 @@ public class VacationStressor extends AbstractBenchmarkStressor implements Runna
         cacheWrapper = null;
     }
 
-    public long getRestarts() {
-        return restarts;
-    }
 
-    public long getThroughput() {
-        return this.throughput;
-    }
+    /* ********************* */
+    /* *** GETTER/SETTER *** */
+    /* ********************* */
 
-    public void setRestarts(long restarts) {
-        this.restarts = restarts;
-    }
+    public void setRelations(int relations) { this.relations = relations; }
 
-    public void setPhase(int shutdownPhase) {
-        this.m_phase = shutdownPhase;
-    }
+    public void setPercentUser(int percentUser) { this.percentUser = percentUser; }
 
-    @Override
-    protected void updateProducer() {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void setQueryPerTx(int queryPerTx) { this.queryPerTx = queryPerTx; }
+
+    public void setQueryRange(int queryRange) { this.queryRange = queryRange; }
+
+    public void setReadOnlyPerc(int readOnlyPerc) { this.readOnlyPerc = readOnlyPerc; }
+
+    public void setCacheWrapper(CacheWrapper cacheWrapper) { this.cacheWrapper = cacheWrapper; }
+
+    public long getThroughput() { return this.throughput; }
+
+    public long getRestarts() { return restarts; }
+    public void setRestarts(long restarts) { this.restarts = restarts; }
+
+    public void setPhase(int shutdownPhase) { this.m_phase = shutdownPhase; }
 
 }
