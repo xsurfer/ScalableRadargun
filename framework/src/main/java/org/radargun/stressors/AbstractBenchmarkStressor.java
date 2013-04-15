@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * E-mail: perfabio87@gmail.com
  * Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer> extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats > extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -223,7 +223,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         return processResults(consumers);
     }
 
-    protected List<T> executeOperations() {
+    protected void executeOperations() {
 
         startPoint = new CountDownLatch(1);
         for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
@@ -243,7 +243,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         }
 
         endTime = System.currentTimeMillis();
-        return consumers;
+        //return consumers;
     }
 
     private synchronized void blockWhileRunning() {
@@ -536,7 +536,9 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
    /* ***** CONSUMER CLASS ***** */
    /* ************************** */
 
-    protected abstract class Consumer<T extends StressorStats> extends Thread {
+
+
+    public class Consumer extends Thread {
         protected int threadIndex;
         //private double arrivalRate;
 
@@ -552,7 +554,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
         private ProducerRate backOffSleeper;
 
-        public T stats;
+        public S stats;
 
 
         /* ******************* */

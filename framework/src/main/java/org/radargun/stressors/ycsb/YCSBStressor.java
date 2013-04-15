@@ -141,8 +141,4 @@ public class YCSBStressor extends AbstractCacheWrapperStressor implements Runnab
 	this.m_phase = shutdownPhase;
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-
-    }
 }

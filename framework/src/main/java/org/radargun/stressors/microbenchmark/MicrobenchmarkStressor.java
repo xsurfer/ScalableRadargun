@@ -181,8 +181,4 @@ public class MicrobenchmarkStressor extends AbstractCacheWrapperStressor impleme
         this.m_phase = m_phase;
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
 }

@@ -25,6 +25,11 @@ public class SinWorkloadGenerator extends AbstractWorkloadGenerator {
         return eval;
     }
 
+    @Override
+    public SystemType getSystemType() {
+        return SystemType.OPEN;
+    }
+
     public double getAmplitude(){ return this.amplitude; }
     public void setAmplitude(double amplitude){ this.amplitude = amplitude; }
 

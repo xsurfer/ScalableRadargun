@@ -137,8 +137,4 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
       wrapper = null;
    }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
 }

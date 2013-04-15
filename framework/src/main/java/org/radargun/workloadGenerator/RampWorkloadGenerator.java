@@ -27,6 +27,11 @@ public class RampWorkloadGenerator extends AbstractWorkloadGenerator {
         return eval;
     }
 
+    @Override
+    public SystemType getSystemType() {
+        return SystemType.OPEN;
+    }
+
     public double getSlope(){ return this.slope; }
     public void setSlope(double slope){ this.slope = slope; }
 

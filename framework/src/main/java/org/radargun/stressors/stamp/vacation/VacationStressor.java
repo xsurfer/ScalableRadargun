@@ -14,9 +14,10 @@ import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;
 import org.radargun.portings.stamp.vacation.transaction.MakeReservationOperation;
 import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
 import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.commons.StressorStats;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
-public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmarkStressor.Consumer> {
+public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmarkStressor.Consumer, StressorStats> {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 
@@ -95,7 +96,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmar
     }
 
     @Override
-    protected Map<String, String> processResults(List<Consumer> stressors) {
+    protected Map<String, String> processResults(List<AbstractBenchmarkStressor.Consumer> stressors) {
 
         for (Consumer tpccConsumer : consumers) {
 

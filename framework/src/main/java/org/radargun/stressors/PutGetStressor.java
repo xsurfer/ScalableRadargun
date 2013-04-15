@@ -165,11 +165,6 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       return nodeIndex == -1;
    }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     protected class Stressor extends Thread {
 
       private ArrayList<Object> pooledKeys = new ArrayList<Object>(numberOfKeys);
