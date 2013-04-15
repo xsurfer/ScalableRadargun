@@ -477,9 +477,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     public void setBackOffTime(long backOffTime) { this.backOffTime = backOffTime; }
 
-    public void setStatsSamplingInterval(long statsSamplingInterval) {
-        this.statsSamplingInterval = statsSamplingInterval;
-    }
+    public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
 
 
 
