@@ -11,8 +11,12 @@ import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Double.parseDouble;
+import static org.radargun.utils.Utils.numberFormat;
 
 /**
  * Created by: Fabio Perfetti
@@ -67,6 +71,8 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
      * Specifies the msec a transaction spends in backoff after aborting
      */
     protected long backOffTime = 0;
+
+    protected static final String SIZE_INFO = "SIZE_INFO";
 
 
 
@@ -148,7 +154,36 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         return clone;
     }
 
-
+    @Override
+    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
+        logDurationInfo(acks);
+        boolean success = true;
+        Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
+        masterState.put("results", results);
+        for (DistStageAck ack : acks) {
+            DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
+            if (wAck.isError()) {
+                success = false;
+                log.warn("Received error ack: " + wAck);
+            } else {
+                if (log.isTraceEnabled())
+                    log.trace(wAck);
+            }
+            Map<String, Object> benchResult = (Map<String, Object>) wAck.getPayload();
+            if (benchResult != null) {
+                results.put(ack.getSlaveIndex(), benchResult);
+                Object reqPerSes = benchResult.get("REQ_PER_SEC");
+                if (reqPerSes == null) {
+                    throw new IllegalStateException("This should be there!");
+                }
+                log.info("On slave " + ack.getSlaveIndex() + " we had " + numberFormat(parseDouble(reqPerSes.toString())) + " requests per second");
+                log.info("Received " + benchResult.remove(SIZE_INFO));
+            } else {
+                log.trace("No report received from slave: " + ack.getSlaveIndex());
+            }
+        }
+        return success;
+    }
 
 
     /* ******************************* */

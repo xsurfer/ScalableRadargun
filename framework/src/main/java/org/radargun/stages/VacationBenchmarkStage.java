@@ -1,4 +1,4 @@
-package org.radargun.stages.stamp.vacation;
+package org.radargun.stages;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -13,6 +13,9 @@ import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.stressors.stamp.vacation.VacationStressor;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.tpcc.TpccStressor;
+
+import static java.lang.Double.parseDouble;
+import static org.radargun.utils.Utils.numberFormat;
 
 
 public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor> {
@@ -99,36 +102,7 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
         }
     }
 
-    @Override
-    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
-        logDurationInfo(acks);
-        boolean success = true;
-        Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
-        masterState.put("results", results);
-        for (DistStageAck ack : acks) {
-            DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
-            if (wAck.isError()) {
-                success = false;
-                log.warn("Received error ack: " + wAck);
-            } else {
-                if (log.isTraceEnabled())
-                    log.trace(wAck);
-            }
-            Map<String, Object> benchResult = (Map<String, Object>) wAck.getPayload();
-            if (benchResult != null) {
-                results.put(ack.getSlaveIndex(), benchResult);
-                Object reqPerSes = benchResult.get("THROUGHPUT");
-                if (reqPerSes == null) {
-                    throw new IllegalStateException("This should be there!");
-                }
-                log.info("On slave " + ack.getSlaveIndex() + " it took " + (Double.parseDouble(reqPerSes.toString()) / 1000.0) + " seconds");
-                log.info("Received " + benchResult.remove(SIZE_INFO));
-            } else {
-                log.trace("No report received from slave: " + ack.getSlaveIndex());
-            }
-        }
-        return success;
-    }
+
 
 
 

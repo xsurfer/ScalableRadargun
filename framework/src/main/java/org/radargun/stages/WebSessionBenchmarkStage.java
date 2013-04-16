@@ -1,4 +1,4 @@
-package org.radargun.stages.webSession;
+package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;

@@ -21,7 +21,6 @@ package org.radargun.stages;/*
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import org.radargun.stages.webSession.WebSessionBenchmarkStage;
 import org.radargun.stressors.SyntheticPutGetStressor;
 
 import java.util.Map;

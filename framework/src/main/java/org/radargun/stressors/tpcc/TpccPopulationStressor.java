@@ -3,16 +3,14 @@ package org.radargun.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.stages.tpcc.TpccPopulationStage;
+import org.radargun.stages.TpccPopulationStage;
 import org.radargun.stressors.AbstractCacheWrapperStressor;
 import org.radargun.portings.tpcc.PassiveReplicationTpccPopulation;
 import org.radargun.portings.tpcc.ThreadParallelTpccPopulation;
 import org.radargun.portings.tpcc.TpccPopulation;
 import org.radargun.portings.tpcc.TpccTools;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.util.Map;
-import java.util.Observable;
 
 /**
  * Populate <code>numWarehouses</code> Warehouses in cache.

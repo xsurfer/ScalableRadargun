@@ -1,12 +1,8 @@
-package org.radargun.stages.tpcc;
+package org.radargun.stages;
 
-import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
-import org.radargun.jmx.annotations.ManagedOperation;
-import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.tpcc.TpccStressor;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
@@ -36,7 +32,7 @@ import static org.radargun.utils.Utils.numberFormat;
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
 public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
 
-    private static final String SIZE_INFO = "SIZE_INFO";
+
 
     private static final String SCRIPT_LAUNCH = "_script_launch_";
 
@@ -179,36 +175,6 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
         this.cacheWrapper.setTrackNewKeys(false);
         cacheWrapper.setTrackNewKeys(trackNewKeys);
         cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
-    }
-
-    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
-        logDurationInfo(acks);
-        boolean success = true;
-        Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
-        masterState.put("results", results);
-        for (DistStageAck ack : acks) {
-            DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
-            if (wAck.isError()) {
-                success = false;
-                log.warn("Received error ack: " + wAck);
-            } else {
-                if (log.isTraceEnabled())
-                    log.trace(wAck);
-            }
-            Map<String, Object> benchResult = (Map<String, Object>) wAck.getPayload();
-            if (benchResult != null) {
-                results.put(ack.getSlaveIndex(), benchResult);
-                Object reqPerSes = benchResult.get("REQ_PER_SEC");
-                if (reqPerSes == null) {
-                    throw new IllegalStateException("This should be there!");
-                }
-                log.info("On slave " + ack.getSlaveIndex() + " we had " + numberFormat(parseDouble(reqPerSes.toString())) + " requests per second");
-                log.info("Received " + benchResult.remove(SIZE_INFO));
-            } else {
-                log.trace("No report received from slave: " + ack.getSlaveIndex());
-            }
-        }
-        return success;
     }
 
 

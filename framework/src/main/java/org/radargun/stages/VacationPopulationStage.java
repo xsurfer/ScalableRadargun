@@ -1,4 +1,4 @@
-package org.radargun.stages.stamp.vacation;
+package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;

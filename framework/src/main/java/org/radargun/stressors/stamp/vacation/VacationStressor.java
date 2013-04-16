@@ -96,44 +96,36 @@ public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmar
     }
 
     @Override
-    protected Map<String, String> processResults(List<AbstractBenchmarkStressor.Consumer> stressors) {
-
-        for (Consumer tpccConsumer : consumers) {
-
-        }
-
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
     protected double getWriteWeight() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        double writeWeight = 1 - getReadWeight();
+        return writeWeight;
     }
 
     @Override
     protected double getReadWeight() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        double readWeight = (percentUser*readOnlyPerc) / 100D;
+        return readWeight;
     }
 
     @Override
     protected void validateTransactionsWeight() {
-        //To change body of implemented methods use File | Settings | File Templates.
+        int sum = percentUser;
+        if (sum < 0 || sum > 100) {
+            throw new IllegalArgumentException("The sum of the transactions weights must be higher or equals than zero " +
+                    "and less or equals than one hundred");
+        }
     }
 
     @Override
     protected Consumer createConsumer(int threadIndex) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new Consumer(threadIndex);
     }
 
     @Override
-    protected void extractExtraStats(StressorStats totalStats, StressorStats singleStats) {
-
-    }
+    protected void extractExtraStats(StressorStats totalStats, StressorStats singleStats) { }
 
     @Override
-    protected void fillMapWithExtraStats(StressorStats totalStats, Map<String, String> results) {
-
-    }
+    protected void fillMapWithExtraStats(StressorStats totalStats, Map<String, String> results) { }
 
     @Override
     public StressorStats createStatsContainer() {

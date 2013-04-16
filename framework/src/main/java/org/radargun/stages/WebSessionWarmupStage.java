@@ -1,7 +1,8 @@
-package org.radargun.stages.webSession;
+package org.radargun.stages;
 
 import org.radargun.DistStageAck;
 import org.radargun.stages.DefaultDistStageAck;
+import org.radargun.stages.WebSessionBenchmarkStage;
 import org.radargun.state.MasterState;
 
 import java.util.HashSet;

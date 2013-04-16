@@ -7,7 +7,7 @@ import org.radargun.Stage;
 
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
-import org.radargun.stages.commons.StartClusterStage;
+import org.radargun.stages.StartClusterStage;
 import org.radargun.utils.TypedProperties;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 import org.radargun.workloadGenerator.ClosedWorkloadGenerator;

@@ -21,8 +21,6 @@ package org.radargun.stages;/*
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-import org.radargun.stages.webSession.WebSessionBenchmarkStage;
-
 /**
  * @author Diego Didona, didona@gsd.inesc-id.pt
  *         Date: 20/03/13

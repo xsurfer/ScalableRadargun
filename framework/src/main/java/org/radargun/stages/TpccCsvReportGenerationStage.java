@@ -1,4 +1,4 @@
-package org.radargun.stages.tpcc;
+package org.radargun.stages;
 
 import org.radargun.stages.CsvReportGenerationStage;
 import org.radargun.state.MasterState;
