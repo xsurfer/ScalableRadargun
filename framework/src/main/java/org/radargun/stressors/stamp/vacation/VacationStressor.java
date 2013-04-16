@@ -125,6 +125,21 @@ public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmar
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    @Override
+    protected void extractExtraStats(StressorStats totalStats, StressorStats singleStats) {
+
+    }
+
+    @Override
+    protected void fillMapWithExtraStats(StressorStats totalStats, Map<String, String> results) {
+
+    }
+
+    @Override
+    public StressorStats createStatsContainer() {
+        return new StressorStats();  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
 
 
     /* *************** */

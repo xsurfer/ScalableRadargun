@@ -9,6 +9,7 @@ import org.radargun.producer.ProducerRate;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.commons.StressorStats;
 import org.radargun.utils.StatSampler;
+import org.radargun.utils.Utils;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.io.BufferedWriter;
@@ -27,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * E-mail: perfabio87@gmail.com
  * Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats > extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats> extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -114,6 +115,8 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     protected AbstractBenchmarkStage benchmarkStage;
 
+    protected S totalStats;
+
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
@@ -139,7 +142,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
-    protected abstract Map<String, String> processResults(List<T> stressors);
+    //protected abstract Map<String, String> processResults(List<T> stressors);
 
     protected abstract double getWriteWeight();
 
@@ -149,6 +152,9 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     protected abstract T createConsumer(int threadIndex);
 
+    protected abstract void extractExtraStats(S totalStats, S singleStats);
+
+    protected abstract void fillMapWithExtraStats(S totalStats, Map<String, String> results);
 
 
 
@@ -305,6 +311,118 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
             }
         }
     }
+
+
+    public abstract S createStatsContainer();
+
+    protected Map<String, String> processResults(List<T> consumers) {
+
+        long duration = 0;
+        totalStats = createStatsContainer();
+
+        /* 1) Extracting per consumer stats */
+        for (T consumer : consumers) {
+
+            S singleStats = (S) consumer.stats;
+
+            //readsDurations += stressor.readDuration; //in nanosec
+            //writesDurations += stressor.writeDuration; //in nanosec
+
+            totalStats.inc(StressorStats.WRITE_DURATION, singleStats.get(StressorStats.SUCCESSFUL_WRITE_DURATION)); // in nanosec
+            totalStats.inc(StressorStats.READ_DURATION, singleStats.get(StressorStats.SUCCESSFUL_READ_DURATION)); // in nanosec
+            totalStats.inc(StressorStats.SUCCESSFUL_COMMIT_WRITE_DURATION, singleStats.get(StressorStats.SUCCESSFUL_COMMIT_WRITE_DURATION)); // in nanosec
+            totalStats.inc(StressorStats.ABORTED_COMMIT_WRITE_DURATION, singleStats.get(StressorStats.ABORTED_COMMIT_WRITE_DURATION)); // in nanosec
+            totalStats.inc(StressorStats.COMMIT_WRITE_DURATION, singleStats.get(StressorStats.COMMIT_WRITE_DURATION)); // in nanosec
+            totalStats.inc(StressorStats.WRITE_SERVICE_TIME, singleStats.get(StressorStats.WRITE_SERVICE_TIME));
+            totalStats.inc(StressorStats.READ_SERVICE_TIME, singleStats.get(StressorStats.READ_SERVICE_TIME));
+            totalStats.inc(StressorStats.READS, singleStats.get(StressorStats.READS));
+            totalStats.inc(StressorStats.WRITES, singleStats.get(StressorStats.WRITES));
+            totalStats.inc(StressorStats.NR_FAILURES, singleStats.get(StressorStats.NR_FAILURES));
+            totalStats.inc(StressorStats.NR_RD_FAILURES, singleStats.get(StressorStats.NR_RD_FAILURES));
+            totalStats.inc(StressorStats.NR_WR_FAILURES, singleStats.get(StressorStats.NR_WR_FAILURES));
+            totalStats.inc(StressorStats.NR_WR_FAILURES_ON_COMMIT, singleStats.get(StressorStats.NR_WR_FAILURES_ON_COMMIT));
+            totalStats.inc(StressorStats.APP_FAILURES, singleStats.get(StressorStats.APP_FAILURES));
+            totalStats.inc(StressorStats.WRITE_IN_QUEUE_TIME, singleStats.get(StressorStats.WRITE_IN_QUEUE_TIME));
+            totalStats.inc(StressorStats.READ_IN_QUEUE_TIME, singleStats.get(StressorStats.READ_IN_QUEUE_TIME));
+            totalStats.inc(StressorStats.NUM_WRITE_DEQUEUED, singleStats.get(StressorStats.NUM_WRITE_DEQUEUED));
+            totalStats.inc(StressorStats.NUM_READ_DEQUEUED, singleStats.get(StressorStats.NUM_READ_DEQUEUED));
+            totalStats.inc(StressorStats.LOCAL_TIMEOUT, singleStats.get(StressorStats.LOCAL_TIMEOUT));
+            totalStats.inc(StressorStats.REMOTE_TIMEOUT, singleStats.get(StressorStats.REMOTE_TIMEOUT));
+            totalStats.inc(StressorStats.NUM_BACK_OFFS, singleStats.get(StressorStats.NUM_BACK_OFFS));
+            totalStats.inc(StressorStats.BACKED_OFF_TIME, singleStats.get(StressorStats.BACKED_OFF_TIME));
+
+            extractExtraStats(totalStats, singleStats);
+
+        }
+
+        //readsDurations = readsDurations / 1000; //nanosec to microsec
+        //writesDurations = writesDurations / 1000; //nanosec to microsec
+
+        /* 2) Converting from nanoseconds to milliseconds && filling the stats obj */
+        totalStats.put(StressorStats.READ_DURATION, totalStats.get(StressorStats.READ_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.WRITE_DURATION, totalStats.get(StressorStats.WRITE_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.COMMIT_WRITE_DURATION, totalStats.get(StressorStats.COMMIT_WRITE_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.ABORTED_COMMIT_WRITE_DURATION, totalStats.get(StressorStats.ABORTED_COMMIT_WRITE_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.WRITE_SERVICE_TIME, totalStats.get(StressorStats.WRITE_SERVICE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.READ_SERVICE_TIME, totalStats.get(StressorStats.READ_SERVICE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.WRITE_IN_QUEUE_TIME, totalStats.get(StressorStats.WRITE_IN_QUEUE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(StressorStats.READ_IN_QUEUE_TIME, totalStats.get(StressorStats.READ_IN_QUEUE_TIME) / 1000); //nanosec to microsec
+
+        totalStats.put(StressorStats.DURATION, endTime - startTime);
+
+
+        /* 3) Filling the map */
+        Map<String, String> results = new LinkedHashMap<String, String>();
+
+        results.put("STOPPED", str(this.stoppedByJmx));
+        results.put("DURATION (msec)", str(totalStats.get(StressorStats.DURATION) ));
+        results.put("REQ_PER_SEC", str( totalStats.evalRequestPerSec() ));
+        results.put("READS_PER_SEC", str( totalStats.evalRdPerSec() ));
+        results.put("WRITES_PER_SEC", str( totalStats.evalWrtPerSec() ));
+        results.put("READ_COUNT", str( totalStats.get( StressorStats.READS ) ) );
+        results.put("WRITE_COUNT", str( totalStats.get( StressorStats.WRITES ) ) );
+        results.put("FAILURES", str( totalStats.get(StressorStats.NR_FAILURES) ) );
+        results.put("APPLICATION_FAILURES", str( totalStats.get(StressorStats.APP_FAILURES) ) );
+        results.put("WRITE_FAILURES", str( totalStats.get(StressorStats.NR_WR_FAILURES) ) );
+        results.put("READ_FAILURES", str( totalStats.get(StressorStats.NR_RD_FAILURES) ) );
+        results.put("AVG_SUCCESSFUL_DURATION (usec)", str( totalStats.evalAvgSuccessfulDuration() ) );
+        results.put("AVG_SUCCESSFUL_READ_DURATION (usec)", str( totalStats.evalAvgSuccessfulReadDuration() ) );
+        results.put("AVG_SUCCESSFUL_WRITE_DURATION (usec)", str( totalStats.evalAvgSuccessfulWriteDuration() ) );
+        results.put("AVG_SUCCESSFUL_COMMIT_WRITE_DURATION (usec)", str( totalStats.evalAvgSuccessfulCommitWriteDuration() ) );
+        results.put("AVG_ABORTED_COMMIT_WRITE_DURATION (usec)", str( totalStats.evalAvgAbortedCommitWriteDuration() ) );
+        results.put("AVG_COMMIT_WRITE_DURATION (usec)", str( totalStats.evalAvgCommitWriteDuration() ) );
+        results.put("AVG_RD_SERVICE_TIME (usec)", str( totalStats.evalAvgRdServiceTime() ));
+        results.put("AVG_WR_SERVICE_TIME (usec)", str( totalStats.evalAvgWrServiceTime() ));
+        results.put("AVG_WR_INQUEUE_TIME (usec)", str( totalStats.evalAvgWrInQueueTime() ));
+        results.put("AVG_RD_INQUEUE_TIME (usec)", str( totalStats.evalAvgRdInQueueTime() ));
+        results.put("LOCAL_TIMEOUT", str( totalStats.get( StressorStats.LOCAL_TIMEOUT) ));
+        results.put("REMOTE_TIMEOUT", str( totalStats.get( StressorStats.REMOTE_TIMEOUT) ));
+        results.put("AVG_BACKOFF", str( totalStats.evalAvgBackoff() ));
+        results.put("NumThreads", str(numOfThreads));
+
+        fillMapWithExtraStats(totalStats, results);
+
+        double cpu = 0, mem = 0;
+        if (statSampler != null) {
+            cpu = statSampler.getAvgCpuUsage();
+            mem = statSampler.getAvgMemUsage();
+        }
+        results.put("CPU_USAGE", str(cpu));
+        results.put("MEMORY_USAGE", str(mem));
+        results.putAll(cacheWrapper.getAdditionalStats());
+
+        saveSamples();
+
+        log.info("Sending map to master " + results.toString());
+        log.info("Finished generating report. Nr of failed operations on this node is: " + totalStats.get(StressorStats.NR_FAILURES) +
+                ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
+        return results;
+    }
+
+    protected String str(Object o) {
+        return String.valueOf(o);
+    }
+
 
     /**
      * This method is executed each time that the workload wake up
@@ -563,7 +681,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
         public Consumer(int threadIndex) {
             super("Stressor-" + threadIndex);
-
+            stats = createStatsContainer();
             if (backOffTime > 0)
                 try {
                     this.backOffSleeper =
@@ -615,7 +733,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                  }
                  **/
                 if (cacheWrapper.isTimeoutException(e)) {
-                    stats.incLocalTimeout();
+                    stats.inc(StressorStats.LOCAL_TIMEOUT);
                 }
             }
             //here we try to finalize the transaction
@@ -632,9 +750,9 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                     log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
                             tx.getType() + " Btw, successful is " + successful);
                 } else {
-                    stats.incNrFailures();
+                    stats.inc(StressorStats.NR_FAILURES);
                     if (!tx.isReadOnly()) {
-                        stats.incNrWrFailures();
+                        stats.inc(StressorStats.NR_WR_FAILURES);
                         /**    TODO spostalo nel consumer del tpcc
                          if (transaction instanceof NewOrderTransaction) {
                          nrNewOrderFailures++;
@@ -643,17 +761,17 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                          }
                          **/
                     } else {
-                        stats.incNrRdFailures();
+                        stats.inc(StressorStats.NR_RD_FAILURES);
                     }
 
                 }
             } catch (Throwable rb) {
-                stats.incNrFailures();
-                stats.incRemoteTimeout();
+                stats.inc(StressorStats.NR_FAILURES);
+                stats.inc(StressorStats.REMOTE_TIMEOUT);
                 successful = false;
                 if (!tx.isReadOnly()) {
-                    stats.incNrWrFailures();
-                    stats.incNrWrFailuresOnCommit();
+                    stats.inc(StressorStats.NR_WR_FAILURES);
+                    stats.inc(StressorStats.NR_WR_FAILURES_ON_COMMIT);
                     /**     TODO spostalo nel consumer del tpcc
                      if (transaction instanceof NewOrderTransaction) {
                      nrNewOrderFailures++;
@@ -662,7 +780,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                      }
                      **/
                 } else {
-                    stats.incNrRdFailures();
+                    stats.inc(StressorStats.NR_RD_FAILURES);
                 }
                 if (log.isDebugEnabled()) {
                     log.debug("Error while committing", rb);
@@ -678,12 +796,11 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         protected void queueStats(RequestType r, Transaction t) {
 
             if (t.isReadOnly()) {
-                stats.incNumReadDequeued();
-                stats.incReadInQueueTime(r.dequeueTimestamp - r.timestamp);
-
+                stats.inc(StressorStats.NUM_READ_DEQUEUED);
+                stats.put(StressorStats.READ_IN_QUEUE_TIME, r.dequeueTimestamp - r.timestamp);
             } else {
-                stats.incNumWriteDequeued();
-                stats.incWriteInQueueTime(r.dequeueTimestamp - r.timestamp);
+                stats.inc(StressorStats.NUM_WRITE_DEQUEUED);
+                stats.put(StressorStats.WRITE_IN_QUEUE_TIME,r.dequeueTimestamp - r.timestamp);
             }
         }
 
@@ -751,8 +868,8 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                 }
 
                 if (!tx.isReadOnly()) {
-                    stats.incWriteDuration(end - start);
-                    stats.incWriteServiceTime(end - startService);
+                    stats.put(StressorStats.WRITE_DURATION, end-start);
+                    stats.put(StressorStats.WRITE_SERVICE_TIME, end - startService);
                     /*       TODO sposta in tpcc stressor
                     if (transaction instanceof NewOrderTransaction) {
                         newOrderDuration += end - start;
@@ -763,8 +880,8 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                     }
                     */
                     if (successful) {
-                        stats.incSuccessfulWriteDuration(end - startService);
-                        stats.incWrites();
+                        stats.put(StressorStats.SUCCESSFUL_WRITE_DURATION, end-startService);
+                        stats.inc(StressorStats.WRITES);
                         /*      TODO sposta in tpcc stressor
                         if (transaction instanceof PaymentTransaction) {
                             stats.incPayment();
@@ -774,21 +891,23 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
                         */
                     }
                 } else {
-                    stats.incReadDuration(end - start);
-                    stats.incReadServiceTime(end - startService);
+                    stats.put(StressorStats.READ_DURATION, end - start);
+                    stats.put(StressorStats.READ_SERVICE_TIME, end - startService);
+
                     if (successful) {
-                        stats.incReads();
-                        stats.incSuccessfulReadDuration(end - startService);
+                        stats.inc(StressorStats.READS);
+                        stats.put(StressorStats.SUCCESSFUL_READ_DURATION, end - startService);
                     }
                 }
 
                 if (measureCommitTime) {    //We sample just the last commit time, i.e., the successful one
                     if (successful) {
-                        stats.incSuccessfulCommitWriteDuration(end - commit_start);
+                        stats.put(StressorStats.SUCCESSFUL_COMMIT_WRITE_DURATION, end - commit_start);
                     } else {
-                        stats.incAbortedCommitWriteDuration(end - commit_start);
+                        stats.put(StressorStats.ABORTED_COMMIT_WRITE_DURATION, end - commit_start);
+
                     }
-                    stats.incCommitWriteDuration(end - commit_start);
+                    stats.put(StressorStats.COMMIT_WRITE_DURATION, end - commit_start);
                 }
 
                 blockIfInactive();
@@ -798,10 +917,10 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
         private void backoffIfNecessary() {
             if (backOffTime != 0) {
-                stats.incNumBackOffs();
+                stats.inc(StressorStats.NUM_BACK_OFFS);
                 long backedOff = backOffSleeper.sleep();
                 log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
-                stats.incBackedOffTime(backedOff);
+                stats.put(StressorStats.BACKED_OFF_TIME, backedOff);
             }
         }
 

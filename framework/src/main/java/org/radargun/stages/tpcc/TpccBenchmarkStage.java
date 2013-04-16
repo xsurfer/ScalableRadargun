@@ -70,9 +70,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
      */
     private boolean avoidMiss = true;
 
-    /*
-    If true, new keys are tracked so that they can be erased in the end of the stage
-     */
+    /* if true, new keys are tracked so that they can be erased in the end of the stage */
     private boolean trackNewKeys = false;
 
     private boolean perThreadTrackNewKeys = false;

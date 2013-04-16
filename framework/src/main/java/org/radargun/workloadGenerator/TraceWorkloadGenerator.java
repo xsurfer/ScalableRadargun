@@ -55,6 +55,11 @@ public class TraceWorkloadGenerator extends AbstractWorkloadGenerator {
     }
 
     @Override
+    public SystemType getSystemType() {
+        return SystemType.OPEN;
+    }
+
+    @Override
     public TraceWorkloadGenerator clone(){
         return (TraceWorkloadGenerator) super.clone();
     }

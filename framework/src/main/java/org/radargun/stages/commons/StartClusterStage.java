@@ -100,7 +100,7 @@ public class StartClusterStage extends AbstractDistStage {
       } else {//same product and there is a class loader
          classLoader = (URLClassLoader) slaveState.get(CLASS_LOADER);
       }
-      log.info("Creating newInstance " + classFqn + " with classloader " + classLoader);
+      log.info("Creating createStatsContainer " + classFqn + " with classloader " + classLoader);
       Thread.currentThread().setContextClassLoader(classLoader);
        log.info("a, " + classFqn);
       return classLoader.loadClass(classFqn).newInstance();

@@ -21,14 +21,24 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 
     private transient CacheWrapper cacheWrapper;
 
-    public static int THREADS;
+    //public static int THREADS;
 
     private int clients;
+
+    /* number of threads per node */
     private int localThreads;
+
     private int readOnly;
+
+    /* number of operations per transaction */
     private int number;
+
     private int queries;
+
+    /* the size of the tables */
     private int relations;
+
+    /* the percentage of reservations */
     private int user;
 
 //    private int time;
@@ -88,28 +98,6 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
             return result;
         }
     }
-
-
-
-//          TODO: spostare le statistiche qui sotto dentro allo stressor
-//        try {
-//
-//            long aborts = 0L;
-//            long throughput = 0L;
-//
-//            for (int t = 0; t < workers.length; t++) {
-//                aborts += stressor[t].getRestarts();
-//                throughput += stressor[t].getThroughput();
-//            }
-//
-//            results.put("THROUGHPUT", (((throughput + 0.0) * 1000) / time) + "");
-//            results.put("TOTAL_RESTARTS", aborts + "");
-//
-//            log.info(sizeInfo);
-//            result.setPayload(results);
-//            return result;
-//        }
-
 
     @Override
     public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {

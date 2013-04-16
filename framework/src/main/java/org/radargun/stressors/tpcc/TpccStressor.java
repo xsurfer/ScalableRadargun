@@ -71,6 +71,57 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     /* ****************** */
 
     @Override
+    public TpccStats createStatsContainer(){
+        return new TpccStats();
+    }
+
+    @Override
+    protected void extractExtraStats(TpccStats totalStats, TpccStats singleStats){
+
+        totalStats.inc(TpccStats.NEW_ORDER_DURATION, singleStats.get(TpccStats.NEW_ORDER_DURATION)); // in nanosec
+        totalStats.inc(TpccStats.PAYMENT_DURATION, singleStats.get(TpccStats.PAYMENT_DURATION)); // in nanosec
+        totalStats.inc(TpccStats.NEW_ORDER_SERVICE_TIME, singleStats.get(TpccStats.NEW_ORDER_SERVICE_TIME));
+        totalStats.inc(TpccStats.PAYMENT_SERVICE_TIME, singleStats.get(TpccStats.PAYMENT_SERVICE_TIME));
+        totalStats.inc(TpccStats.NEW_ORDER, singleStats.get(TpccStats.NEW_ORDER));
+        totalStats.inc(TpccStats.PAYMENT, singleStats.get(TpccStats.PAYMENT));
+        totalStats.inc(TpccStats.NR_NEW_ORDER_FAILURES, singleStats.get(TpccStats.NR_NEW_ORDER_FAILURES));
+        totalStats.inc(TpccStats.NR_PAYMENT_FAILURES, singleStats.get(TpccStats.NR_PAYMENT_FAILURES));
+        totalStats.inc(TpccStats.NEW_ORDER_IN_QUEUE_TIME, singleStats.get(TpccStats.NEW_ORDER_IN_QUEUE_TIME));
+        totalStats.inc(TpccStats.PAYMENT_IN_QUEUE_TIME, singleStats.get(TpccStats.PAYMENT_IN_QUEUE_TIME));
+        totalStats.inc(TpccStats.NUM_NEW_ORDER_DEQUEUED, singleStats.get(TpccStats.NUM_NEW_ORDER_DEQUEUED));
+        totalStats.inc(TpccStats.NUM_PAYMENT_DEQUEUED, singleStats.get(TpccStats.NUM_PAYMENT_DEQUEUED));
+    }
+
+    @Override
+    protected void fillMapWithExtraStats(TpccStats stats, Map<String, String> results){
+        if( ! (stats instanceof TpccStats) )
+            throw new IllegalStateException();
+        TpccStats totalStats = (TpccStats) stats;
+        /* 1) Converting from nanoseconds to milliseconds && filling the stats obj */
+        totalStats.put(TpccStats.NEW_ORDER_DURATION, totalStats.get(TpccStats.NEW_ORDER_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(TpccStats.PAYMENT_DURATION, totalStats.get(TpccStats.PAYMENT_DURATION) / 1000); //nanosec to microsec
+        totalStats.put(TpccStats.NEW_ORDER_SERVICE_TIME, totalStats.get(TpccStats.NEW_ORDER_SERVICE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(TpccStats.PAYMENT_SERVICE_TIME, totalStats.get(TpccStats.PAYMENT_SERVICE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(TpccStats.NEW_ORDER_IN_QUEUE_TIME, totalStats.get(TpccStats.NEW_ORDER_IN_QUEUE_TIME) / 1000); //nanosec to microsec
+        totalStats.put(TpccStats.PAYMENT_IN_QUEUE_TIME, totalStats.get(TpccStats.PAYMENT_IN_QUEUE_TIME) / 1000); //nanosec to microsec
+
+        /* 2) Filling the map */
+        results.put("NEW_ORDER_PER_SEC", str( totalStats.evalNewOrderPerSec() ) );
+        results.put("PAYMENT_PER_SEC", str( totalStats.evalPaymentPerSec() ) );
+        results.put("NEW_ORDER_COUNT", str( totalStats.get(TpccStats.NEW_ORDER) ));
+        results.put("PAYMENT_COUNT", str( totalStats.get(TpccStats.PAYMENT) ));
+        results.put("NEW_ORDER_FAILURES", str( totalStats.get(TpccStats.NR_NEW_ORDER_FAILURES) ));
+        results.put("PAYMENT_FAILURES", str( totalStats.get(TpccStats.NR_PAYMENT_FAILURES) ));
+        results.put("AVG_NEW_ORDER_SERVICE_TIME (usec)", str( totalStats.evalAvgNewOrderServiceTime() ));
+        results.put("AVG_PAYMENT_SERVICE_TIME (usec)", str( totalStats.evalAvgPaymentServiceTime() ));
+        results.put("AVG_NEW_ORDER_INQUEUE_TIME (usec)", str( totalStats.evalAvgNewOrderInQueueTime() ));
+        results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str( totalStats.evalAvgPaymentInQueueTime() ));
+        results.put("TEST_ID", this.testIdString(paymentWeight, orderStatusWeight, numOfThreads));
+
+    }
+
+
+    @Override
     protected void initialization(){
         updateNumberOfItemsInterval();
         initializeToolsParameters();
@@ -109,6 +160,8 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
         return new TpccConsumer(localWarehouse, threadIndex, nodeIndex, paymentWeight, orderStatusWeight);
     }
 
+
+
     @Override
     protected void validateTransactionsWeight() {
         int sum = orderStatusWeight + paymentWeight;
@@ -130,278 +183,6 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
         return readWeight;
     }
 
-    @Override
-    protected Map<String, String> processResults(List<TpccConsumer> consumers) {
-
-        long duration = 0;
-
-        int reads = 0;
-        int writes = 0;
-        int newOrderTransactions = 0;
-        int paymentTransactions = 0;
-
-        int failures = 0;
-        int rdFailures = 0;
-        int wrFailures = 0;
-        int nrWrFailuresOnCommit = 0;
-        int newOrderFailures = 0;
-        int paymentFailures = 0;
-        int appFailures = 0;
-
-        long readsDurations = 0L;
-        long writesDurations = 0L;
-        long newOrderDurations = 0L;
-        long paymentDurations = 0L;
-        long successful_writesDurations = 0L;
-        long successful_readsDurations = 0L;
-        long writeServiceTimes = 0L;
-        long readServiceTimes = 0L;
-        long newOrderServiceTimes = 0L;
-        long paymentServiceTimes = 0L;
-
-        long successful_commitWriteDurations = 0L;
-        long aborted_commitWriteDurations = 0L;
-        long commitWriteDurations = 0L;
-
-        long writeInQueueTimes = 0L;
-        long readInQueueTimes = 0L;
-        long newOrderInQueueTimes = 0L;
-        long paymentInQueueTimes = 0L;
-        long numWritesDequeued = 0L;
-        long numReadsDequeued = 0L;
-        long numNewOrderDequeued = 0L;
-        long numPaymentDequeued = 0L;
-        long numLocalTimeout = 0L;
-        long numRemoteTimeout = 0L;
-
-        double backOffTime = 0D;
-        double backOffs = 0D;
-
-        for (TpccConsumer tpccConsumer : consumers) {
-
-            TpccStats tpccStats = tpccConsumer.stats;
-
-            //duration += stressor.totalDuration(); //in nanosec
-            //readsDurations += stressor.readDuration; //in nanosec
-            //writesDurations += stressor.writeDuration; //in nanosec
-            newOrderDurations += tpccStats.getNewOrderDuration(); //in nanosec
-            paymentDurations += tpccStats.getPaymentDuration(); //in nanosec
-            successful_writesDurations += tpccStats.getSuccessfulWriteDuration(); //in nanosec
-            successful_readsDurations += tpccStats.getSuccessfulReadDuration(); //in nanosec
-
-            successful_commitWriteDurations += tpccStats.getSuccessfulCommitWriteDuration(); //in nanosec
-            aborted_commitWriteDurations += tpccStats.getAbortedCommitWriteDuration(); //in nanosec
-            commitWriteDurations += tpccStats.getCommitWriteDuration(); //in nanosec;
-
-            writeServiceTimes += tpccStats.getWriteServiceTime();
-            readServiceTimes += tpccStats.getReadServiceTime();
-            newOrderServiceTimes += tpccStats.getNewOrderServiceTime();
-            paymentServiceTimes += tpccStats.getPaymentServiceTime();
-
-            reads += tpccStats.getReads();
-            writes += tpccStats.getWrites();
-            newOrderTransactions += tpccStats.getNewOrder();
-            paymentTransactions += tpccStats.getPayment();
-
-            failures += tpccStats.getNrFailures();
-            rdFailures += tpccStats.getNrRdFailures();
-            wrFailures += tpccStats.getNrWrFailures();
-            nrWrFailuresOnCommit += tpccStats.getNrWrFailuresOnCommit();
-            newOrderFailures += tpccStats.getNrNewOrderFailures();
-            paymentFailures += tpccStats.getNrPaymentFailures();
-            appFailures += tpccStats.getAppFailures();
-
-            writeInQueueTimes += tpccStats.getWriteInQueueTime();
-            readInQueueTimes += tpccStats.getReadInQueueTime();
-            newOrderInQueueTimes += tpccStats.getNewOrderInQueueTime();
-            paymentInQueueTimes += tpccStats.getPaymentInQueueTime();
-            numWritesDequeued += tpccStats.getNumWriteDequeued();
-            numReadsDequeued += tpccStats.getNumReadDequeued();
-            numNewOrderDequeued += tpccStats.getNumNewOrderDequeued();
-            numPaymentDequeued += tpccStats.getNumPaymentDequeued();
-            numLocalTimeout += tpccStats.getLocalTimeout();
-            numRemoteTimeout += tpccStats.getRemoteTimeout();
-            backOffs += tpccStats.getNumBackOffs();
-            backOffTime += tpccStats.getBackedOffTime();
-        }
-
-        //duration = duration / 1000000; // nanosec to millisec
-        //readsDurations = readsDurations / 1000; //nanosec to microsec
-        //writesDurations = writesDurations / 1000; //nanosec to microsec
-        //newOrderDurations = newOrderDurations / 1000; //nanosec to microsec
-        //paymentDurations = paymentDurations / 1000;//nanosec to microsec
-        successful_readsDurations = successful_readsDurations / 1000; //nanosec to microsec
-        successful_writesDurations = successful_writesDurations / 1000; //nanosec to microsec
-        successful_commitWriteDurations = successful_commitWriteDurations / 1000; //nanosec to microsec
-        aborted_commitWriteDurations = aborted_commitWriteDurations / 1000; //nanosec to microsec
-        commitWriteDurations = commitWriteDurations / 1000; //nanosec to microsec
-        writeServiceTimes = writeServiceTimes / 1000; //nanosec to microsec
-        readServiceTimes = readServiceTimes / 1000; //nanosec to microsec
-        newOrderServiceTimes = newOrderServiceTimes / 1000; //nanosec to microsec
-        paymentServiceTimes = paymentServiceTimes / 1000; //nanosec to microsec
-
-        writeInQueueTimes = writeInQueueTimes / 1000;//nanosec to microsec
-        readInQueueTimes = readInQueueTimes / 1000;//nanosec to microsec
-        newOrderInQueueTimes = newOrderInQueueTimes / 1000;//nanosec to microsec
-        paymentInQueueTimes = paymentInQueueTimes / 1000;//nanosec to microsec
-
-        Map<String, String> results = new LinkedHashMap<String, String>();
-
-        duration = endTime - startTime;
-
-        results.put("STOPPED", str(this.stoppedByJmx));
-
-        results.put("DURATION (msec)", str(duration));
-        double requestPerSec = (reads + writes) / (duration / 1000.0);
-        results.put("REQ_PER_SEC", str(requestPerSec));
-
-        double wrtPerSec = 0;
-        double rdPerSec = 0;
-        double newOrderPerSec = 0;
-        double paymentPerSec = 0;
-        double cpu = 0, mem = 0;
-        if (duration == 0)
-            results.put("READS_PER_SEC", str(0));
-        else {
-            rdPerSec = reads / (duration / 1000.0);
-            results.put("READS_PER_SEC", str(rdPerSec));
-        }
-
-        if (duration == 0)
-            results.put("WRITES_PER_SEC", str(0));
-        else {
-            wrtPerSec = writes / (duration / 1000.0);
-            results.put("WRITES_PER_SEC", str(wrtPerSec));
-        }
-
-        if (duration == 0)
-            results.put("NEW_ORDER_PER_SEC", str(0));
-        else {
-            newOrderPerSec = newOrderTransactions / (duration / 1000.0);
-            results.put("NEW_ORDER_PER_SEC", str(newOrderPerSec));
-        }
-        if (duration == 0)
-            results.put("PAYMENT_PER_SEC", str(0));
-        else {
-            paymentPerSec = paymentTransactions / (duration / 1000.0);
-            results.put("PAYMENT_PER_SEC", str(paymentPerSec));
-        }
-
-        results.put("READ_COUNT", str(reads));
-        results.put("WRITE_COUNT", str(writes));
-        results.put("NEW_ORDER_COUNT", str(newOrderTransactions));
-        results.put("PAYMENT_COUNT", str(paymentTransactions));
-        results.put("FAILURES", str(failures));
-        results.put("APPLICATION_FAILURES", str(appFailures));
-        results.put("WRITE_FAILURES", str(wrFailures));
-        results.put("NEW_ORDER_FAILURES", str(newOrderFailures));
-        results.put("PAYMENT_FAILURES", str(paymentFailures));
-        results.put("READ_FAILURES", str(rdFailures));
-
-        if ((reads + writes) != 0)
-            results.put("AVG_SUCCESSFUL_DURATION (usec)", str((successful_writesDurations + successful_readsDurations) / (reads + writes)));
-        else
-            results.put("AVG_SUCCESSFUL_DURATION (usec)", str(0));
-
-
-        if (reads != 0)
-            results.put("AVG_SUCCESSFUL_READ_DURATION (usec)", str(successful_readsDurations / reads));
-        else
-            results.put("AVG_SUCCESSFUL_READ_DURATION (usec)", str(0));
-
-
-        if (writes != 0)
-            results.put("AVG_SUCCESSFUL_WRITE_DURATION (usec)", str(successful_writesDurations / writes));
-        else
-            results.put("AVG_SUCCESSFUL_WRITE_DURATION (usec)", str(0));
-
-
-        if (writes != 0) {
-            results.put("AVG_SUCCESSFUL_COMMIT_WRITE_DURATION (usec)", str((successful_commitWriteDurations / writes)));
-        } else {
-            results.put("AVG_SUCCESSFUL_COMMIT_WRITE_DURATION (usec)", str(0));
-        }
-
-        if (nrWrFailuresOnCommit != 0) {
-            results.put("AVG_ABORTED_COMMIT_WRITE_DURATION (usec)", str((aborted_commitWriteDurations / nrWrFailuresOnCommit)));
-        } else {
-            results.put("AVG_ABORTED_COMMIT_WRITE_DURATION (usec)", str(0));
-        }
-
-
-        if (writes + nrWrFailuresOnCommit != 0) {
-            results.put("AVG_COMMIT_WRITE_DURATION (usec)", str((commitWriteDurations / (writes + nrWrFailuresOnCommit))));
-        } else {
-            results.put("AVG_COMMIT_WRITE_DURATION (usec)", str(0));
-        }
-
-        if ((reads + rdFailures) != 0)
-            results.put("AVG_RD_SERVICE_TIME (usec)", str(readServiceTimes / (reads + rdFailures)));
-        else
-            results.put("AVG_RD_SERVICE_TIME (usec)", str(0));
-
-        if ((writes + wrFailures) != 0)
-            results.put("AVG_WR_SERVICE_TIME (usec)", str(writeServiceTimes / (writes + wrFailures)));
-        else
-            results.put("AVG_WR_SERVICE_TIME (usec)", str(0));
-
-        if ((newOrderTransactions + newOrderFailures) != 0)
-            results.put("AVG_NEW_ORDER_SERVICE_TIME (usec)", str(newOrderServiceTimes / (newOrderTransactions + newOrderFailures)));
-        else
-            results.put("AVG_NEW_ORDER_SERVICE_TIME (usec)", str(0));
-
-        if ((paymentTransactions + paymentFailures) != 0)
-            results.put("AVG_PAYMENT_SERVICE_TIME (usec)", str(paymentServiceTimes / (paymentTransactions + paymentFailures)));
-        else
-            results.put("AVG_PAYMENT_SERVICE_TIME (usec)", str(0));
-
-        if (numWritesDequeued != 0)
-            results.put("AVG_WR_INQUEUE_TIME (usec)", str(writeInQueueTimes / numWritesDequeued));
-        else
-            results.put("AVG_WR_INQUEUE_TIME (usec)", str(0));
-        if (numReadsDequeued != 0)
-            results.put("AVG_RD_INQUEUE_TIME (usec)", str(readInQueueTimes / numReadsDequeued));
-        else
-            results.put("AVG_RD_INQUEUE_TIME (usec)", str(0));
-        if (numNewOrderDequeued != 0)
-            results.put("AVG_NEW_ORDER_INQUEUE_TIME (usec)", str(newOrderInQueueTimes / numNewOrderDequeued));
-        else
-            results.put("AVG_NEW_ORDER_INQUEUE_TIME (usec)", str(0));
-        if (numPaymentDequeued != 0)
-            results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str(paymentInQueueTimes / numPaymentDequeued));
-        else
-            results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str(0));
-        if (numLocalTimeout != 0)
-            results.put("LOCAL_TIMEOUT", str(numLocalTimeout));
-        else
-            results.put("LOCAL_TIMEOUT", str(0));
-        if (numRemoteTimeout != 0)
-            results.put("REMOTE_TIMEOUT", str(numRemoteTimeout));
-        else
-            results.put("REMOTE_TIMEOUT", str(0));
-        if (backOffs != 0)
-            results.put("AVG_BACKOFF", str(backOffTime / backOffs));
-        else
-            results.put("AVG_BACKOFF", str(0));
-
-        results.put("NumThreads", str(numOfThreads));
-
-        if (statSampler != null) {
-            cpu = statSampler.getAvgCpuUsage();
-            mem = statSampler.getAvgMemUsage();
-        }
-        results.put("CPU_USAGE", str(cpu));
-        results.put("MEMORY_USAGE", str(mem));
-        results.putAll(cacheWrapper.getAdditionalStats());
-        results.put("TEST_ID", this.testIdString(paymentWeight, orderStatusWeight, numOfThreads));
-        saveSamples();
-
-        log.info("Sending map to master " + results.toString());
-
-        log.info("Finished generating report. Nr of failed operations on this node is: " + failures +
-                ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
-        return results;
-    }
 
 
 
@@ -447,9 +228,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
         }
     }
 
-    private String str(Object o) {
-        return String.valueOf(o);
-    }
+
 
 
 

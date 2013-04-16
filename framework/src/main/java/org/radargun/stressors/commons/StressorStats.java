@@ -1,5 +1,8 @@
 package org.radargun.stressors.commons;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
@@ -7,108 +10,172 @@ package org.radargun.stressors.commons;
  */
 public class StressorStats {
 
-    protected long reads = 0L;
-    public long getReads() { return reads; }
-    public void incReads(){ reads++; }
+    private Map<String, Long> stats = new HashMap<String, Long>();
 
-    protected long writes = 0L;
-    public long getWrites() { return writes; }
-    public void incWrites(){ writes++; }
+    public void put(String key, Long val){
+        stats.put(key,val);
+    }
 
-    protected int nrFailures = 0;
-    public int getNrFailures() { return nrFailures; }
-    public void incNrFailures(){ nrFailures++; }
+    public long get(String key){
+        Long val = stats.get(key);
+        if( val == null ){
+            val = new Long(0);
+            stats.put(key,val);
+        }
+        return val;
+    }
 
-    protected int nrWrFailures = 0;
-    public int getNrWrFailures() { return nrWrFailures; }
-    public void incNrWrFailures(){ nrWrFailures++; }
+    public Long inc(String key){
+        Long val = get(key);
+        val++;
+        stats.put(key,val);
+        return val;
+    }
 
-    protected int nrRdFailures = 0;
-    public int getNrRdFailures() { return nrRdFailures; }
-    public void incNrRdFailures(){ nrRdFailures++; }
+    public Long inc(String key, Long q){
+        Long val = get(key);
+        val += q;
+        stats.put(key,val);
+        return val;
+    }
 
-    protected int nrWrFailuresOnCommit = 0;
-    public int getNrWrFailuresOnCommit() { return nrWrFailuresOnCommit; }
-    public void incNrWrFailuresOnCommit(){ nrWrFailuresOnCommit++; }
+    /* ********************* */
+    /* *** GENERIC STATS *** */
+    /* ********************* */
 
-    protected int appFailures = 0;
-    public int getAppFailures() { return appFailures; }
-    public void incAppFailures(){ appFailures++; }
-
-    protected long readDuration = 0L;
-    public long getReadDuration() { return readDuration; }
-    public void incReadDuration(long amount){ readDuration+=amount; }
-
-    protected long writeDuration = 0L;
-    public long getWriteDuration() { return writeDuration; }
-    public void incWriteDuration(long amount){ writeDuration+=amount; }
-
-    protected long successfulCommitWriteDuration = 0L;
-    public long getSuccessfulCommitWriteDuration() { return successfulCommitWriteDuration; }
-    public void incSuccessfulCommitWriteDuration(long amount){ successfulCommitWriteDuration += amount; }
-
-    protected long abortedCommitWriteDuration = 0L;
-    public long getAbortedCommitWriteDuration() { return abortedCommitWriteDuration; }
-    public void incAbortedCommitWriteDuration(long amount){ abortedCommitWriteDuration += amount; }
-
-    protected long commitWriteDuration = 0L;
-    public long getCommitWriteDuration() { return commitWriteDuration; }
-    public void incCommitWriteDuration(long amount){ commitWriteDuration += amount; }
-
-    protected long writeServiceTime = 0L;
-    public long getWriteServiceTime() { return writeServiceTime; }
-    public void incWriteServiceTime(long amount){ writeServiceTime+=amount; }
-
-    protected long readServiceTime = 0L;
-    public long getReadServiceTime() { return readServiceTime; }
-    public void incReadServiceTime(long amount){ readServiceTime+= amount; }
-
-    protected long successfulWriteDuration = 0L;
-    public long getSuccessfulWriteDuration() { return successfulWriteDuration; }
-    public void incSuccessfulWriteDuration(long amount){ successfulWriteDuration+=amount; }
-
-    protected long successfulReadDuration = 0L;
-    public long getSuccessfulReadDuration() { return successfulReadDuration; }
-    public void incSuccessfulReadDuration(long amount){ successfulReadDuration+=amount; }
-
-
+    public static final String READS = "reads";
+    public static final String WRITES = "writes";
+    public static final String NR_FAILURES = "nrFailures";
+    public static final String NR_WR_FAILURES = "nrWrFailures";
+    public static final String NR_RD_FAILURES = "nrRdFailures";
+    public static final String NR_WR_FAILURES_ON_COMMIT = "nrWrFailuresOnCommit";
+    public static final String APP_FAILURES = "appFailures";
+    public static final String DURATION = "duration";
+    public static final String READ_DURATION = "readDuration";
+    public static final String WRITE_DURATION = "writeDuration";
+    public static final String SUCCESSFUL_COMMIT_WRITE_DURATION = "successfulCommitWriteDuration";
+    public static final String ABORTED_COMMIT_WRITE_DURATION = "abortedCommitWriteDuration";
+    public static final String COMMIT_WRITE_DURATION = "commitWriteDuration";
+    public static final String WRITE_SERVICE_TIME = "writeServiceTime";
+    public static final String READ_SERVICE_TIME = "readServiceTime";
+    public static final String SUCCESSFUL_WRITE_DURATION = "successfulWriteDuration";
+    public static final String SUCCESSFUL_READ_DURATION = "successfulReadDuration";
 
     /* ******************* */
     /* *** QUEUE STATS *** */
     /* ******************* */
 
-    protected long numWriteDequeued = 0L;
-    public long getNumWriteDequeued() { return numWriteDequeued; }
-    public void incNumWriteDequeued(){ numWriteDequeued++; }
+    public static final String NUM_WRITE_DEQUEUED = "numWriteDequeued";
+    public static final String NUM_READ_DEQUEUED = "numReadDequeued";
+    public static final String WRITE_IN_QUEUE_TIME = "writeInQueueTime";
+    public static final String READ_IN_QUEUE_TIME = "readInQueueTime";
+    public static final String LOCAL_TIMEOUT = "localTimeout";
+    public static final String REMOTE_TIMEOUT = "remoteTimeout";
+    public static final String NUM_BACK_OFFS = "numBackOffs";
+    public static final String BACKED_OFF_TIME = "backedOffTime";
 
-    protected long numReadDequeued = 0L;
-    public long getNumReadDequeued() { return numReadDequeued; }
-    public void incNumReadDequeued(){ numReadDequeued++; }
 
-    /* tempo di attesa in coda per le write */
-    protected long writeInQueueTime = 0L;
-    public long getWriteInQueueTime() { return writeInQueueTime; }
-    public void incWriteInQueueTime(long amount){ writeInQueueTime+=amount; }
+    /* ************************** */
+    /* *** EVALUATION METHODS *** */
+    /* ************************** */
 
-    /* tempo di attesa in coda per le read */
-    protected long readInQueueTime = 0L;
-    public long getReadInQueueTime() { return readInQueueTime; }
-    public void incReadInQueueTime(long amount){ readInQueueTime+= amount; }
+    public double evalRequestPerSec(){
+        long duration = get(StressorStats.DURATION);
+        if( duration == 0 )
+            return 0;
+        double requestPerSec = (get(StressorStats.READS) + get(StressorStats.WRITES)) / (duration / 1000.0);
+        return requestPerSec;
+    }
 
-    protected long localTimeout = 0L;
-    public long getLocalTimeout() { return localTimeout; }
-    public void incLocalTimeout(){ localTimeout++; }
+    public double evalWrtPerSec(){
+        long duration = get(StressorStats.DURATION);
+        if( duration == 0 )
+            return 0;
+        return (double) get(StressorStats.WRITES) / (duration / 1000.0);
+    }
 
-    protected long remoteTimeout = 0L;
-    public long getRemoteTimeout() { return remoteTimeout; }
-    public void incRemoteTimeout(){ remoteTimeout++; }
+    public double evalRdPerSec(){
+        long duration = get(StressorStats.DURATION);
+        if( duration == 0 )
+            return 0;
+        return (double) get(StressorStats.READS) / (duration / 1000.0);
+    }
 
-    protected long numBackOffs = 0L;
-    public long getNumBackOffs() { return numBackOffs; }
-    public void incNumBackOffs(){ numBackOffs++; }
+    public double evalAvgSuccessfulDuration(){
+        long sum = get(READS) + get(WRITES);
+        if (sum == 0)
+            return 0;
+        return (double) (get(SUCCESSFUL_WRITE_DURATION) + get(SUCCESSFUL_READ_DURATION)) / (sum);
+    }
 
-    protected long backedOffTime = 0L;
-    public long getBackedOffTime() { return backedOffTime; }
-    public void incBackedOffTime(long amount){ backedOffTime+= amount; }
+    public double evalAvgSuccessfulReadDuration(){
+        long reads = get(READS);
+        if (reads == 0)
+            return 0;
+        return (double) ( get(SUCCESSFUL_READ_DURATION) ) / (reads);
+    }
+
+    public double evalAvgSuccessfulWriteDuration(){
+        long writes = get(WRITES);
+        if (writes == 0)
+            return 0;
+        return (double) ( get(SUCCESSFUL_WRITE_DURATION) ) / (writes);
+    }
+
+    public double evalAvgSuccessfulCommitWriteDuration(){
+        long writes = get(WRITES);
+        if (writes == 0)
+            return 0;
+        return (double) ( get(SUCCESSFUL_COMMIT_WRITE_DURATION) ) / (writes);
+    }
+
+    public double evalAvgAbortedCommitWriteDuration(){
+        long denom = get(NR_WR_FAILURES_ON_COMMIT);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(ABORTED_COMMIT_WRITE_DURATION) ) / (denom);
+    }
+
+    public double evalAvgCommitWriteDuration(){
+        long denom = get(NR_WR_FAILURES_ON_COMMIT) + get(WRITES);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(COMMIT_WRITE_DURATION) ) / (denom);
+    }
+
+    public double evalAvgRdServiceTime(){
+        long denom = get(READS) + get(NR_RD_FAILURES);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(READ_SERVICE_TIME) ) / (denom);
+    }
+
+    public double evalAvgWrServiceTime(){
+        long denom = get(WRITES) + get(NR_WR_FAILURES);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(WRITE_SERVICE_TIME) ) / (denom);
+    }
+
+    public double evalAvgWrInQueueTime(){
+        long denom = get(NUM_WRITE_DEQUEUED);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(WRITE_IN_QUEUE_TIME) ) / (denom);
+    }
+
+    public double evalAvgRdInQueueTime(){
+        long denom = get(NUM_READ_DEQUEUED);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(READ_IN_QUEUE_TIME) ) / (denom);
+    }
+
+    public double evalAvgBackoff(){
+        long denom = get(NUM_BACK_OFFS);
+        if (denom == 0)
+            return 0;
+        return (double) ( get(BACKED_OFF_TIME) ) / (denom);
+    }
 
 }
