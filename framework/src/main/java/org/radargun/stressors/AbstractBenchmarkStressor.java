@@ -115,7 +115,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     protected AbstractBenchmarkStage benchmarkStage;
 
-    protected S totalStats;
+
 
 
     /* ******************* */
@@ -318,7 +318,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     protected Map<String, String> processResults(List<T> consumers) {
 
         long duration = 0;
-        totalStats = createStatsContainer();
+        S totalStats = createStatsContainer();
 
         /* 1) Extracting per consumer stats */
         for (T consumer : consumers) {

@@ -93,10 +93,8 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     }
 
     @Override
-    protected void fillMapWithExtraStats(TpccStats stats, Map<String, String> results){
-        if( ! (stats instanceof TpccStats) )
-            throw new IllegalStateException();
-        TpccStats totalStats = (TpccStats) stats;
+    protected void fillMapWithExtraStats(TpccStats totalStats, Map<String, String> results){
+
         /* 1) Converting from nanoseconds to milliseconds && filling the stats obj */
         totalStats.put(TpccStats.NEW_ORDER_DURATION, totalStats.get(TpccStats.NEW_ORDER_DURATION) / 1000); //nanosec to microsec
         totalStats.put(TpccStats.PAYMENT_DURATION, totalStats.get(TpccStats.PAYMENT_DURATION) / 1000); //nanosec to microsec
@@ -150,8 +148,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
         TpccConsumer consumer = this.consumers.get(threadId);
         Transaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
         log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
-
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return transaction;
     }
 
     @Override
