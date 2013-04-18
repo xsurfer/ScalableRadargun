@@ -1,4 +1,4 @@
-package org.radargun.producer;
+package org.radargun.stressors.producer;
 
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
@@ -87,4 +87,40 @@ public class GroupProducerRateFactory {
       }
       return producers;
    }
+
+
+    /**
+     * it creates an array of producers, each one with the desire rate in order to achieve the global system rate
+     *
+     * @return an array of producers
+     */
+    public static ProducerRate[] createClients(int populationSize,
+                                                     AbstractWorkloadGenerator.RateDistribution rateDistribution,
+                                                     int numberOfNodes,
+                                                     int nodeIndex,
+                                                     long thinkTime ) {
+
+        int remainder = populationSize % numberOfNodes;
+
+        //this is the producer rate common to all nodes
+        int myClients = (int) (populationSize - remainder) / numberOfNodes;
+
+        //if this node is unlucky, it can get more load than the others
+        if (nodeIndex < remainder) {
+            myClients++;
+        }
+
+        ProducerRate[] producers = new ProducerRate[myClients];
+
+        for (int i = 0; i < myClients; ++i) {
+            try {
+                producers[i] = ProducerRate.createInstance(rateDistribution, thinkTime);
+            } catch (ProducerRate.ProducerRateException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+        return producers;
+    }
 }

@@ -6,6 +6,7 @@ import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.portings.tpcc.dac.CustomerDAC;
 import org.radargun.portings.tpcc.domain.Customer;
+import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * @author Diego Didona, didona@gsd.inesc-id.pt
  *         Date: 18/12/12
  */
-public abstract class AbstractTpccTransaction implements Transaction {
+public abstract class AbstractTpccTransaction extends Transaction {
 
    private static boolean avoidNotFoundExceptions = true;
    protected TpccTools tpccTools;
@@ -28,7 +29,7 @@ public abstract class AbstractTpccTransaction implements Transaction {
    }
 
    public AbstractTpccTransaction(TpccTools tools, int threadId) {
-      this.tpccTools = tools;
+       this.tpccTools = tools;
       this.threadId = threadId;
    }
 

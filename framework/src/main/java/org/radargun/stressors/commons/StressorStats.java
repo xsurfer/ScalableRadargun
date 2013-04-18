@@ -1,5 +1,8 @@
 package org.radargun.stressors.commons;
 
+import org.radargun.Transaction;
+import org.radargun.stressors.exceptions.ApplicationException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,17 +13,17 @@ import java.util.Map;
  */
 public class StressorStats {
 
-    private Map<String, Long> stats = new HashMap<String, Long>();
+    private Map<String, Long> statistics = new HashMap<String, Long>();
 
     public void put(String key, Long val){
-        stats.put(key,val);
+        statistics.put(key, val);
     }
 
     public long get(String key){
-        Long val = stats.get(key);
+        Long val = statistics.get(key);
         if( val == null ){
             val = new Long(0);
-            stats.put(key,val);
+            statistics.put(key, val);
         }
         return val;
     }
@@ -28,16 +31,26 @@ public class StressorStats {
     public Long inc(String key){
         Long val = get(key);
         val++;
-        stats.put(key,val);
+        statistics.put(key, val);
         return val;
     }
 
     public Long inc(String key, Long q){
         Long val = get(key);
         val += q;
-        stats.put(key,val);
+        statistics.put(key, val);
         return val;
     }
+
+    /* *********************** */
+    /* *** SINGLE TX STATS *** */
+    /* *********************** */
+    public static final String START_EXEC_TIMESTAMP = "startTimeStamp";
+    public static final String END_EXEC_TIMESTAMP = "endTimeStamp";
+
+    public static final String START_COMMIT_TIMESTAMP = "startCommitTimestamp";
+    public static final String END_COMMIT_TIMESTAMP = "endCommitTimestamp";
+
 
     /* ********************* */
     /* *** GENERIC STATS *** */
@@ -73,6 +86,129 @@ public class StressorStats {
     public static final String REMOTE_TIMEOUT = "remoteTimeout";
     public static final String NUM_BACK_OFFS = "numBackOffs";
     public static final String BACKED_OFF_TIME = "backedOffTime";
+
+
+    /* ****************************** */
+    /* *** PERSONAL STATS METHODS *** */
+    /* ****************************** */
+
+
+    /* *** START/END HANDLERS *** */
+    public void handleStartsTx(Transaction tx){}
+    public final void _handleStartsTx(Transaction tx){
+        tx.setStartTimestamp(System.nanoTime());
+
+
+
+        handleStartsTx(tx);
+    }
+
+    public void handleEndTx(Transaction tx, boolean successful){}
+    public final void _handleEndTx(Transaction tx, boolean successful){
+
+        if (!tx.isReadOnly()) { //write
+
+            put( StressorStats.WRITE_DURATION, tx.getEndTimestamp() - tx.getDequeueTimestamp() );
+            put(StressorStats.WRITE_SERVICE_TIME, tx.getEndTimestamp() - tx.getStartTimestamp());
+            if (successful) {
+                put( StressorStats.SUCCESSFUL_WRITE_DURATION, tx.getEndTimestamp() - tx.getStartTimestamp() );
+                inc(WRITES);
+            }
+
+            if(successful){
+                put(SUCCESSFUL_COMMIT_WRITE_DURATION, tx.getEndTimestamp()-get(START_COMMIT_TIMESTAMP) );
+            } else {
+                put(ABORTED_COMMIT_WRITE_DURATION, tx.getEndTimestamp() - get(START_COMMIT_TIMESTAMP) );
+            }
+            put(COMMIT_WRITE_DURATION,tx.getEndTimestamp() - get(START_COMMIT_TIMESTAMP));
+
+        } else {
+            put(StressorStats.READ_DURATION, tx.getEndTimestamp() - tx.getDequeueTimestamp());
+            put(StressorStats.READ_SERVICE_TIME, tx.getEndTimestamp() - tx.getStartTimestamp());
+            if (successful) {
+                put( StressorStats.SUCCESSFUL_READ_DURATION, tx.getEndTimestamp() - tx.getStartTimestamp() );
+                inc(READS);
+            }
+        }
+
+        handleEndTx(tx, successful);
+    }
+
+
+
+    /* *** LOCAL HANDLERS *** */
+    public void handleSuccessLocalTx(Transaction tx){}
+    public final void _handleSuccessLocalTx(Transaction tx){
+        handleSuccessLocalTx(tx);
+
+        put(START_COMMIT_TIMESTAMP, System.nanoTime());
+    }
+
+    public void handleAbortLocalTx(Transaction tx, Throwable e){}
+    public final void _handleAbortLocalTx(Transaction tx, Throwable e, boolean isCacheTimeout){
+
+        inc(StressorStats.NR_FAILURES);
+
+        if(isCacheTimeout)
+            inc(StressorStats.LOCAL_TIMEOUT);
+
+
+        if (!tx.isReadOnly()) {
+            inc(StressorStats.NR_WR_FAILURES);
+        } else {
+            inc(StressorStats.NR_RD_FAILURES);
+        }
+
+        if (e instanceof ApplicationException) {
+            inc(APP_FAILURES);
+        }
+
+        handleAbortLocalTx(tx, e);
+    }
+
+
+
+    /* *** REMOTE HANDLERS *** */
+    public void handleSuccessRemoteTx(Transaction tx){}
+    public final void _handleSuccessRemoteSuccessTx(Transaction tx){
+        tx.setEndTimestamp(System.nanoTime());
+
+        handleSuccessRemoteTx(tx);
+    }
+
+    public void handleAbortRemoteTx(Transaction tx, Throwable e){}
+    public final void _handleAbortRemoteTx(Transaction tx, Throwable e){
+        inc(StressorStats.NR_FAILURES);
+        inc(StressorStats.REMOTE_TIMEOUT);
+
+        if (!tx.isReadOnly()) {
+            inc(StressorStats.NR_WR_FAILURES);
+            inc(StressorStats.NR_WR_FAILURES_ON_COMMIT);
+        } else {
+            inc(StressorStats.NR_RD_FAILURES);
+        }
+
+        handleAbortRemoteTx(tx, e);
+    }
+
+
+
+    /* *** OTHER HANDLERS *** */
+    public void handleQueueTx(Transaction tx){}
+    public final void _handleQueueTx(Transaction tx){
+        long queuingTime = tx.getDequeueTimestamp() - tx.getEnqueueTimestamp();
+        if (tx.isReadOnly()) {
+            inc(StressorStats.NUM_READ_DEQUEUED);
+            put(StressorStats.READ_IN_QUEUE_TIME, queuingTime );
+        } else {
+            inc(StressorStats.NUM_WRITE_DEQUEUED);
+            put(StressorStats.WRITE_IN_QUEUE_TIME, queuingTime);
+        }
+
+        handleQueueTx(tx);
+    }
+
+
 
 
     /* ************************** */

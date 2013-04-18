@@ -8,6 +8,7 @@ import org.radargun.portings.tpcc.domain.Customer;
 import org.radargun.portings.tpcc.domain.District;
 import org.radargun.portings.tpcc.domain.History;
 import org.radargun.portings.tpcc.domain.Warehouse;
+import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.Collections;
 import java.util.Date;

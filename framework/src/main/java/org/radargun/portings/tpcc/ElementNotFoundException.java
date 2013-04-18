@@ -1,9 +1,11 @@
 package org.radargun.portings.tpcc;
 
+import org.radargun.stressors.exceptions.ApplicationException;
+
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
  */
-public class ElementNotFoundException extends Exception {
+public class ElementNotFoundException extends ApplicationException {
 
    public ElementNotFoundException() {
       super();
@@ -21,4 +23,8 @@ public class ElementNotFoundException extends Exception {
       super(cause);
    }
 
+    @Override
+    public boolean allowsRetry() {
+        return false;
+    }
 }

@@ -61,7 +61,7 @@ public class CsvScalingReportGenerationStage extends CsvReportGenerationStage {
 
     protected void joinInitialTs(Map<Integer, Map<String, Object>> results, Map<Integer, Long> initialTsValues) {
         if (initialTsValues == null || initialTsValues.size() == 0) {
-            log.info("Initial timestamp values not collected. Skip join to results");
+            log.info("Initial enqueueTimestamp values not collected. Skip join to results");
             return;
         }
 

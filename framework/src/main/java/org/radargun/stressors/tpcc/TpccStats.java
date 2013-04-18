@@ -1,5 +1,8 @@
 package org.radargun.stressors.tpcc;
 
+import org.radargun.Transaction;
+import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
+import org.radargun.portings.tpcc.transaction.PaymentTransaction;
 import org.radargun.stressors.commons.StressorStats;
 
 /**
@@ -64,9 +67,40 @@ public class TpccStats extends StressorStats {
         return (double) ( get(PAYMENT_IN_QUEUE_TIME) ) / (denom);
     }
 
+    /* ****************** */
+    /* *** OVERRIDING *** */
+    /* ****************** */
 
+    @Override
+    public void handleAbortLocalTx(Transaction tx, Throwable e){
+        if (tx instanceof NewOrderTransaction) {
+            inc(NR_NEW_ORDER_FAILURES);
+        } else if (tx instanceof PaymentTransaction) {
+            inc(NR_PAYMENT_FAILURES);
+        }
+    }
 
+    @Override
+    public void handleAbortRemoteTx(Transaction tx, Throwable e){
+        if (tx instanceof NewOrderTransaction) {
+            inc(NR_NEW_ORDER_FAILURES);
+        } else if (tx instanceof PaymentTransaction) {
+            inc(NR_PAYMENT_FAILURES);
+        }
+    }
 
+    public void handleEndTx(Transaction tx, boolean successful){
+        if (!tx.isReadOnly()) { //write
+            if (tx instanceof NewOrderTransaction) {
+                put(NEW_ORDER_DURATION, tx.getEndTimestamp()-tx.getStartTimestamp() );
+                put(NEW_ORDER_SERVICE_TIME, tx.getEndTimestamp()-tx.getStartTimestamp());
+            } else if (tx instanceof PaymentTransaction) {
+                put(NEW_ORDER_DURATION, tx.getEndTimestamp()-tx.getStartTimestamp() );
+                put(NEW_ORDER_SERVICE_TIME, tx.getEndTimestamp()-tx.getStartTimestamp());
+            }
+
+        }
+    }
 
 
 

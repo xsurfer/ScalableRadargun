@@ -1,4 +1,4 @@
-//package org.radargun.producer;
+//package org.radargun.stressors.producer;
 //
 //import org.testng.annotations.Test;
 //

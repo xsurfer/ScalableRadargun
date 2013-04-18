@@ -3,20 +3,13 @@ package org.radargun.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Transaction;
-import org.radargun.portings.tpcc.ElementNotFoundException;
-import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
-import org.radargun.portings.tpcc.transaction.PaymentTransaction;
-import org.radargun.producer.ProducerRate;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
-import org.radargun.stressors.commons.StressorStats;
-import org.radargun.utils.Utils;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 
 /**

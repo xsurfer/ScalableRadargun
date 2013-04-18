@@ -2,8 +2,11 @@ package org.radargun.workloadGenerator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.state.MasterState;
+import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.producer.Producer;
 import org.radargun.utils.Utils;
 import org.radargun.utils.WorkerThreadFactory;
 
@@ -108,6 +111,8 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /***************************/
 
     protected abstract int getCurrentArrivalRate();
+
+    public abstract List<Producer> createProducers(CacheWrapper cacheWrapper,int nodeIndex, double writeWeight, double readWeight);
 
     public abstract SystemType getSystemType();
 

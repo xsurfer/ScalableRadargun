@@ -1,12 +1,10 @@
-package org.radargun.producer;
+package org.radargun.stressors.producer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.helpers.LogLog;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class handles the sleep time for the producer rates
@@ -31,7 +29,7 @@ public abstract class ProducerRate {
         ProducerRate obj;
         String producerRateString = producerRateEnum.getDistributionRateName();
         if (producerRateString.indexOf('.') < 0) {
-            producerRateString = "org.radargun.producer." + producerRateString;
+            producerRateString = "org.radargun.stressors.producer." + producerRateString;
         }
         try {
             Constructor c = Class.forName(producerRateString).getConstructor(Double.TYPE);

@@ -1,4 +1,4 @@
-package org.radargun.producer;
+package org.radargun.stressors.producer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
