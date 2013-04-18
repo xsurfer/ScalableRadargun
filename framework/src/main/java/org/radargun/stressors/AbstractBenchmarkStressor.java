@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *         E-mail: perfabio87@gmail.com
  *         Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats, V> extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats> extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -178,7 +178,9 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         validateTransactionsWeight();
         initialization();
 
-        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
+        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.MULE) == 0) {
+            log.info("Closed System");
+        } else {
             queue = new LinkedBlockingQueue<RequestType>();
             countJobs = new AtomicLong(0L);
 
@@ -186,8 +188,6 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
             log.info("MaxArrivalRate: " + workloadGenerator.getMaxArrivalRate());
             log.info("Granularity: " + workloadGenerator.getGranularity());
             log.info("InitTime: " + workloadGenerator.getInitTime());
-        } else {
-            log.info("Closed System");
         }
 
 
@@ -917,28 +917,6 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
 
 
-    /* ************************ */
-    /* *** RequestType CLASS ** */
-    /* ************************ */
 
-    public class RequestType {
-
-        public long enqueueTimestamp;
-        public int transactionType;
-
-        public boolean notifiable = false;
-        public ClosedProducer producer;
-
-        public RequestType(long timestamp, int transactionType) {
-            this.enqueueTimestamp = timestamp;
-            this.transactionType = transactionType;
-        }
-
-        public RequestType(long timestamp, int transactionType, ClosedProducer producer) {
-            this.enqueueTimestamp = timestamp;
-            this.transactionType = transactionType;
-            this.notifiable = true;
-        }
-    }
 
 }

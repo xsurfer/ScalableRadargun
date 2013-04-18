@@ -37,7 +37,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
     public static final int ARRIVAL_RATE_CHANGED = 2000;
 
-    private final AbstractBenchmarkStage stage;
+    protected final AbstractBenchmarkStage stage;
 
     private final String targetDir = "workloads";
 

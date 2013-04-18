@@ -1,6 +1,10 @@
 package org.radargun.workloadGenerator;
 
+import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.stressors.producer.Producer;
+
+import java.util.List;
 
 /**
  * Created by: Fabio Perfetti
@@ -22,6 +26,11 @@ public class MuleWorkloadGenerator extends AbstractWorkloadGenerator {
     @Override
     public int getCurrentArrivalRate() {
         return 0;
+    }
+
+    @Override
+    public List<Producer> createProducers(CacheWrapper cacheWrapper, int nodeIndex, double writeWeight, double readWeight) {
+        throw new IllegalStateException("Mule system doesn't allow to create producers");
     }
 
     @Override

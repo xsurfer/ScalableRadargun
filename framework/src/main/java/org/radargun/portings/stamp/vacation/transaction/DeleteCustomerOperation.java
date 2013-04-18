@@ -6,6 +6,7 @@ import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.domain.Manager;
 import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.producer.RequestType;
 
 public class DeleteCustomerOperation extends Transaction {
 

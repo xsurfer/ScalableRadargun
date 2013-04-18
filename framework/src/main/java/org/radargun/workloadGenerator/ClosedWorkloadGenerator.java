@@ -3,7 +3,9 @@ package org.radargun.workloadGenerator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.stressors.producer.ClosedProducer;
 import org.radargun.stressors.producer.GroupProducerRateFactory;
+import org.radargun.stressors.producer.Producer;
 import org.radargun.stressors.producer.ProducerRate;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.AbstractBenchmarkStressor;
@@ -40,8 +42,8 @@ public class ClosedWorkloadGenerator extends AbstractWorkloadGenerator {
     /* *** METHODS *** */
     /* *************** */
 
-    public List<AbstractBenchmarkStressor.Producer> createProducers(CacheWrapper cacheWrapper,int nodeIndex, double writeWeight, double readWeight) {
-        List<AbstractBenchmarkStressor.Producer> producers = new ArrayList<AbstractBenchmarkStressor.Producer>();
+    public List<Producer> createProducers(CacheWrapper cacheWrapper,int nodeIndex, double writeWeight, double readWeight) {
+        List<Producer> producers = new ArrayList<Producer>();
 
         final int THINK_TIME = 5000;
         ProducerRate[] producerRates;
@@ -73,7 +75,7 @@ public class ClosedWorkloadGenerator extends AbstractWorkloadGenerator {
 
         producers.clear();
         for (int i = 0; i < producerRates.length; ++i) {
-            producers.add(i, AbstractBenchmarkStressor.ClosedProducer(getThinkTime(), nodeIndex) );
+            producers.add(i, new ClosedProducer(stage.getStressor(), getThinkTime(), nodeIndex) );
             //producers[i] = new Producer(producerRates[i], i);
         }
 

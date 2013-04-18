@@ -242,6 +242,6 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public long getInitTimeStamp() { return this.initTimeStamp; }
     public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
 
-
+    public T getStressor(){ return stressor; }
 
 }

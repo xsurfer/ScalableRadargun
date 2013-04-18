@@ -9,7 +9,7 @@ import org.radargun.stages.AbstractBenchmarkStage;
  * User: Fabio Perfetti
  * Date: 3/18/13
  */
-public class SinWorkloadGenerator extends AbstractWorkloadGenerator {
+public class SinWorkloadGenerator extends AbstractOpenWorkloadGenerator {
 
     private static Log log = LogFactory.getLog(SinWorkloadGenerator.class);
 
@@ -23,11 +23,6 @@ public class SinWorkloadGenerator extends AbstractWorkloadGenerator {
     public int getCurrentArrivalRate() {
         int eval = (int) Math.abs(Math.ceil(amplitude * Math.sin(getTime())));
         return eval;
-    }
-
-    @Override
-    public SystemType getSystemType() {
-        return SystemType.OPEN;
     }
 
     public double getAmplitude(){ return this.amplitude; }

@@ -3,6 +3,8 @@ package org.radargun;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.producer.ClosedProducer;
+import org.radargun.stressors.producer.RequestType;
 
 import java.net.Authenticator;
 
@@ -13,7 +15,7 @@ public abstract class Transaction {
 
     private static Log log = LogFactory.getLog(Transaction.class);
 
-    private AbstractBenchmarkStressor.RequestType requestType;
+    private RequestType requestType;
 
     private long enqueueTimestamp = -1;
     private long dequeueTimestamp = -1;
@@ -21,15 +23,14 @@ public abstract class Transaction {
     private long startTimestamp = -1;
     private long endTimestamp = -1;
 
-    private AbstractBenchmarkStressor.ClosedProducer producer;
+    private ClosedProducer producer;
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public Transaction(AbstractBenchmarkStressor.RequestType type){
-        enqueueTimestamp = type.enqueueTimestamp;
-        producer = type.producer;
+    public Transaction(){
+
     }
 
 
@@ -69,8 +70,8 @@ public abstract class Transaction {
     public long getEndTimestamp(){ if(endTimestamp == -1) throw new IllegalArgumentException("endTimestamp not set"); return endTimestamp; }
     public void setEndTimestamp(long val) { this.endTimestamp = val; }
 
-    public AbstractBenchmarkStressor.RequestType getRequestType(){ if(requestType == null) throw new IllegalArgumentException("requestType not set, it is mandatory!! Please add it using set method"); return requestType; }
-    public void setRequestType(AbstractBenchmarkStressor.RequestType val) { this.requestType = val; }
+    public RequestType getRequestType(){ if(requestType == null) throw new IllegalArgumentException("requestType not set, it is mandatory!! Please add it using set method"); return requestType; }
+    public void setRequestType(RequestType val) { this.requestType = val; }
 
 
 }

@@ -6,6 +6,7 @@ import org.radargun.Transaction;
 import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
+import org.radargun.stressors.producer.RequestType;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 
@@ -120,7 +121,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     }
 
     @Override
-    protected RequestType nextTransaction() {
+    public RequestType nextTransaction() {
         TpccTerminal terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
         return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
                                                                                   cacheWrapper.isPassiveReplication(),

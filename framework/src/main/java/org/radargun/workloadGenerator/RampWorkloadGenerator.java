@@ -9,7 +9,7 @@ import org.radargun.stages.AbstractBenchmarkStage;
  * User: Fabio Perfetti
  * Date: 3/18/13
  */
-public class RampWorkloadGenerator extends AbstractWorkloadGenerator {
+public class RampWorkloadGenerator extends AbstractOpenWorkloadGenerator {
 
     private static Log log = LogFactory.getLog(RampWorkloadGenerator.class);
 
@@ -25,11 +25,6 @@ public class RampWorkloadGenerator extends AbstractWorkloadGenerator {
     public int getCurrentArrivalRate() {
         int eval = (int) Math.ceil(( slope * getTime() )+ yintercept);
         return eval;
-    }
-
-    @Override
-    public SystemType getSystemType() {
-        return SystemType.OPEN;
     }
 
     public double getSlope(){ return this.slope; }

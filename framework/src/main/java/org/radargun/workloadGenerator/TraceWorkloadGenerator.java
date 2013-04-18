@@ -14,7 +14,7 @@ import java.util.Scanner;
  * User: Fabio Perfetti
  * Date: 3/18/13
  */
-public class TraceWorkloadGenerator extends AbstractWorkloadGenerator {
+public class TraceWorkloadGenerator extends AbstractOpenWorkloadGenerator {
 
     private static Log log = LogFactory.getLog(TraceWorkloadGenerator.class);
 
@@ -52,11 +52,6 @@ public class TraceWorkloadGenerator extends AbstractWorkloadGenerator {
         int t = ((int) Math.floor(getTime())) % arrivalRates.size();
         int eval = (arrivalRates.get(t).intValue());
         return eval;
-    }
-
-    @Override
-    public SystemType getSystemType() {
-        return SystemType.OPEN;
     }
 
     @Override
