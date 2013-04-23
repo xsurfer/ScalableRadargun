@@ -8,7 +8,6 @@ import org.radargun.stressors.producer.GroupProducerRateFactory;
 import org.radargun.stressors.producer.Producer;
 import org.radargun.stressors.producer.ProducerRate;
 import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +17,16 @@ import java.util.List;
  * E-mail: perfabio87@gmail.com
  * Date: 3/18/13
  */
+
+// todo da eliminare!!
+
+@Deprecated
 public class ClosedWorkloadGenerator extends AbstractWorkloadGenerator {
 
     /* ****************** */
     /* *** ATTRIBUTES *** */
     /* ****************** */
-    private int population = 0;
 
-    private long thinkTime = 0;
 
     private static Log log = LogFactory.getLog(ClosedWorkloadGenerator.class);
 
@@ -96,22 +97,8 @@ public class ClosedWorkloadGenerator extends AbstractWorkloadGenerator {
     }
 
     @Override
-    public SystemType getSystemType(){ return SystemType.CLOSED; }
-
-    @Override
     public ClosedWorkloadGenerator clone(){
         return (ClosedWorkloadGenerator) super.clone();
     }
-
-
-    /* ********************* */
-    /* *** GETTER/SETTER *** */
-    /* ********************* */
-
-    public int getPopulation(){ return population; }
-    public void setPopulation(int val){ population = val; }
-
-    public long getThinkTime(){ return thinkTime; }
-    public void setThinkTime(long val){ thinkTime = val; }
 
 }

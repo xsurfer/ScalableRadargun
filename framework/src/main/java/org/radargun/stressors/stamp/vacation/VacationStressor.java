@@ -1,7 +1,5 @@
 package org.radargun.stressors.stamp.vacation;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -13,11 +11,11 @@ import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;
 import org.radargun.portings.stamp.vacation.transaction.MakeReservationOperation;
 import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
 import org.radargun.stressors.commons.StressorStats;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
-public class VacationStressor extends AbstractBenchmarkStressor<AbstractBenchmarkStressor.Consumer, StressorStats> {
+public class VacationStressor extends BenchmarkStressor<BenchmarkStressor.Consumer, StressorStats> {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 

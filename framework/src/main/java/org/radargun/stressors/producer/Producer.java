@@ -2,7 +2,7 @@ package org.radargun.stressors.producer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
 
 /**
  * Created by: Fabio Perfetti
@@ -14,9 +14,9 @@ public abstract class Producer extends Thread {
 
     protected static Log log = LogFactory.getLog(Producer.class);
     private boolean running = false;
-    AbstractBenchmarkStressor stressor;
+    BenchmarkStressor stressor;
 
-    public Producer(int id, AbstractBenchmarkStressor stressor) {
+    public Producer(int id, BenchmarkStressor stressor) {
         super("Producer-" + id);
         this.stressor = stressor;
         setDaemon(true);

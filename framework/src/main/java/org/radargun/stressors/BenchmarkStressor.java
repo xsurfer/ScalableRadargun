@@ -3,14 +3,13 @@ package org.radargun.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
+import org.radargun.stressors.consumer.Consumer;
 import org.radargun.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.commons.StressorStats;
-import org.radargun.stressors.exceptions.ApplicationException;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
+import org.radargun.workloadGenerator.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *         E-mail: perfabio87@gmail.com
  *         Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStressor.Consumer, S extends StressorStats> extends AbstractCacheWrapperStressor implements Observer {
+public class BenchmarkStressor extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -45,7 +44,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     private static Log log = LogFactory.getLog(AbstractCacheWrapperStressor.class);
 
-    public AtomicLong countJobs;
+    public AtomicLong countJobs = new AtomicLong(0L);
 
     protected final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -69,52 +68,19 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
     protected volatile CountDownLatch startPoint;
 
-    /**
-     * total time (in seconds) of simulation for each stressor thread
-     */
-    protected long perThreadSimulTime = 30L;
+    protected BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
 
-    /**
-     * the number of threads that will work on this cache wrapper.
-     */
-    protected int numOfThreads = 10;
 
-    /**
-     * this node's index in the Radargun cluster.  -1 is used for local benchmarks.
-     */
-    protected int nodeIndex = -1;
-
-    /**
-     * the number of nodes in the Radargun cluster.
-     */
-    protected int numSlaves = 0;
-
-    /**
-     * Specifies the msec a transaction spends in backoff after aborting
-     */
-    protected long backOffTime = 0;
-
-    /**
-     * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
-     */
-    protected boolean retryOnAbort = false;
-
-    protected boolean retrySameXact = false;
-
-    protected CacheWrapper cacheWrapper;
-
-    protected boolean stoppedByJmx = false;
-
-    protected BlockingQueue<RequestType> queue;
 
     protected final List<Producer> producers = Collections.synchronizedList(new ArrayList<Producer>());
 
-    protected final List<T> consumers = Collections.synchronizedList(new LinkedList<T>());
-
-    protected AbstractWorkloadGenerator workloadGenerator;
+    protected final List<Consumer> consumers = Collections.synchronizedList(new LinkedList<Consumer>());
 
     protected AbstractBenchmarkStage benchmarkStage;
 
+    //protected T systemType;
+
+    protected StressorParameter parameters;
 
 
 
@@ -122,10 +88,18 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public AbstractBenchmarkStressor(AbstractWorkloadGenerator loadGenerator) {
-        this.workloadGenerator = loadGenerator;
-        log.trace("Registring this TpccStressor to the WorkLoadGenerator (Observable)");
-        this.workloadGenerator.addObserver(this);
+    public BenchmarkStressor(CacheWrapper cacheWrapper,
+                             AbstractBenchmarkStage benchmarkStage,
+                             StressorParameter parameters) {
+
+        if (cacheWrapper == null) { throw new IllegalStateException("Null wrapper not allowed"); }
+
+        this.cacheWrapper = cacheWrapper;
+        this.benchmarkStage = benchmarkStage;
+        this.parameters = parameters;
+
+        //log.trace("Registring this TpccStressor to the WorkLoadGenerator (Observable)");
+        //this.workloadGenerator.addObserver(this);
     }
 
 
@@ -134,27 +108,13 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     /* *** TO OVERRIDE *** */
     /* ******************* */
 
-    protected abstract void initialization();
-
-    public abstract RequestType nextTransaction();
-
-    protected abstract Transaction generateTransaction(RequestType type, int threadIndex);
-
-    protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    //protected abstract Consumer createConsumer(int threadIndex);
 
     //protected abstract Map<String, String> processResults(List<T> stressors);
 
-    protected abstract double getWriteWeight();
+    //protected abstract void extractExtraStats(S totalStats, S singleStats);
 
-    protected abstract double getReadWeight();
-
-    protected abstract void validateTransactionsWeight();
-
-    protected abstract T createConsumer(int threadIndex);
-
-    protected abstract void extractExtraStats(S totalStats, S singleStats);
-
-    protected abstract void fillMapWithExtraStats(S totalStats, Map<String, String> results);
+    //protected abstract void fillMapWithExtraStats(S totalStats, Map<String, String> results);
 
 
 
@@ -166,65 +126,35 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         queue.offer(r);
     }
 
-    public final Map<String, String> stress(CacheWrapper wrapper) {
-        if (wrapper == null) {
-            throw new IllegalStateException("Null wrapper not allowed");
-        }
-        this.cacheWrapper = wrapper;
+    /**
+     * Stressor method for open systems
+     * @param system
+     * @return
+     */
+    public final Map<String, String> stress(OpenSystem system ){
 
-        /* Registering to the observable */
-        wrapper.addObserver(this);
+        cacheWrapper.addObserver(this);
 
-        validateTransactionsWeight();
-        initialization();
-
-        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.MULE) == 0) {
-            log.info("Closed System");
-        } else {
-            queue = new LinkedBlockingQueue<RequestType>();
-            countJobs = new AtomicLong(0L);
-
-            log.info("Open System");
-            log.info("MaxArrivalRate: " + workloadGenerator.getMaxArrivalRate());
-            log.info("Granularity: " + workloadGenerator.getGranularity());
-            log.info("InitTime: " + workloadGenerator.getInitTime());
-        }
-
+        benchmarkStage.validateTransactionsWeight();
+        benchmarkStage.initialization();
 
         if (statsSamplingInterval > 0) {
             statSampler = new StatSampler(statsSamplingInterval);
         }
-
         log.info("Executing: " + this.toString());
 
-        if (perThreadSimulTime > 0) {
-            finishBenchmarkTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    finishBenchmark();
-                }
-            }, perThreadSimulTime * 1000);
-        } else if (perThreadSimulTime <= 0) {
-            log.warn("Slave arrived too late, it will works on the next stage");
-            return null;
-        }
+        log.info("Open System");
+        log.info("MaxArrivalRate: " + system.getWorkloadGenerator().getMaxArrivalRate());
+        log.info("Granularity: " + system.getWorkloadGenerator().getGranularity());
+        log.info("InitTime: " + system.getWorkloadGenerator().getInitTime());
 
+        log.trace("Starting the workload generator");
+        system.getWorkloadGenerator().start();
 
-        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
-            log.trace("Workload generator started");
-            workloadGenerator.start();
-        }
+        log.trace("Sampler started");
+        if (statSampler != null) { statSampler.start(); }
 
-        if (statSampler != null) {
-            log.trace("Sampler started");
-            statSampler.start();
-        }
-        try {
-            executeOperations();
-        } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-
+        executeOperations();
 
         if (statSampler != null) {
             statSampler.cancel();
@@ -232,11 +162,45 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         return processResults(consumers);
     }
 
+    /**
+     * Stressor method for closed system
+     * @param system
+     * @return
+     */
+    public final Map<String, String> stress(ClosedSystem system ){
+
+        return null;
+    }
+
+
+    /**
+     * Stressor method for mule system. It doesn't use producer-consumer
+     * @param system
+     * @return
+     */
+    public final Map<String, String> stress(MuleSystem system){
+
+        return null;
+    }
+
+    private void initBenchmarkTimer() throws Exception {
+        if (parameters.perThreadSimulTime > 0) {
+            finishBenchmarkTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    finishBenchmark();
+                }
+            }, parameters.perThreadSimulTime * 1000);
+        } else if (parameters.perThreadSimulTime <= 0) {
+            throw new Exception("Slave arrived too late, it will works on the next stage");
+        }
+    }
+
     protected void executeOperations() {
 
         startPoint = new CountDownLatch(1);
-        for (int threadIndex = 0; threadIndex < numOfThreads; threadIndex++) {
-            T consumer = createConsumer(threadIndex);
+        for (int threadIndex = 0; threadIndex < parameters.numOfThreads; threadIndex++) {
+            Consumer consumer = new Consumer(threadIndex);
             consumers.add(consumer);
             consumer.start();
         }
@@ -269,11 +233,14 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     protected final synchronized void finishBenchmark() {
         if (running.compareAndSet(true, false)) {
             stopStressor();
+
+            /* stoppo i producer nel caso di sistema a producer */
             if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
                 log.trace("Stopping producers");
                 stopProducers();
             }
             log.trace("Stopping workload generator");
+            /* stoppo il workload generator nel caso di sistema aperto */
             workloadGenerator.stop();
             log.trace("Waking up waiting thread");
             notifyAll();
@@ -315,7 +282,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
 
                     producers.addAll(workloadGenerator.createProducers(cacheWrapper, nodeIndex, getWriteWeight(), getReadWeight() ));
 //                    for (int i = 0; i < producerRates.length; ++i) {
-//                        producers.add( i, new AbstractBenchmarkStressor.ClosedProducer(getThinkTime(), nodeIndex) );
+//                        producers.add( i, new BenchmarkStressor.ClosedProducer(getThinkTime(), nodeIndex) );
 //                        //producers[i] = new Producer(producerRates[i], i);
 //                    }
                 }
@@ -331,17 +298,17 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     }
 
 
-    public abstract S createStatsContainer();
+    //public abstract StressorStats createStatsContainer();
 
-    protected Map<String, String> processResults(List<T> consumers) {
+    protected Map<String, String> processResults(List<Consumer> consumers) {
 
         long duration = 0;
-        S totalStats = createStatsContainer();
+        StressorStats totalStats = new StressorStats(); //createStatsContainer();
 
         /* 1) Extracting per consumer stats */
-        for (T consumer : consumers) {
+        for (Consumer consumer : consumers) {
 
-            S singleStats = (S) consumer.stats;
+            StressorStats singleStats = consumer.stats;
 
             totalStats.inc(StressorStats.WRITE_DURATION, singleStats.get(StressorStats.SUCCESSFUL_WRITE_DURATION)); // in nanosec
             totalStats.inc(StressorStats.READ_DURATION, singleStats.get(StressorStats.SUCCESSFUL_READ_DURATION)); // in nanosec
@@ -366,7 +333,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
             totalStats.inc(StressorStats.NUM_BACK_OFFS, singleStats.get(StressorStats.NUM_BACK_OFFS));
             totalStats.inc(StressorStats.BACKED_OFF_TIME, singleStats.get(StressorStats.BACKED_OFF_TIME));
 
-            extractExtraStats(totalStats, singleStats);
+            //extractExtraStats(totalStats, singleStats);
 
         }
 
@@ -415,7 +382,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         results.put("AVG_BACKOFF", str(totalStats.evalAvgBackoff()));
         results.put("NumThreads", str(numOfThreads));
 
-        fillMapWithExtraStats(totalStats, results);
+        //fillMapWithExtraStats(totalStats, results);
 
         double cpu = 0, mem = 0;
         if (statSampler != null) {
@@ -467,18 +434,18 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     }
 
 
+    /* crea il numero di producer sul singolo nodo a seconda della size della popolazione */
+    private void createProducers(ClosedSystem system){
+
+    }
 
 
     /**
-     * Class in charge of create or update the Producer in base of
+     * Class in charge of create or update the Producer in base of arrival rate.
      *
-     * @param arrivalRate
+     * @param system
      */
-    private void createProducers(int arrivalRate) {
-
-        if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) != 0) {
-            return;
-        } // Closed System
+    private void createProducers(OpenSystem system) {
 
         log.info("Creating/Updating producers");
 
@@ -486,14 +453,14 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         if (cacheWrapper.isPassiveReplication()) {
             if (cacheWrapper.isTheMaster()) {
                 log.info("Creating producers groups for the master. Write transaction percentage is " + getWriteWeight());
-                producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(),
+                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
                         getWriteWeight(),
                         1,
                         nodeIndex,
                         AVERAGE_PRODUCER_SLEEP_TIME).create();
             } else {
                 log.info("Creating producers groups for the slave. Read-only transaction percentage is " + getReadWeight());
-                producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(),
+                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
                         getReadWeight(),
                         cacheWrapper.getNumMembers() - 1,
                         nodeIndex == 0 ? nodeIndex : nodeIndex - 1,
@@ -501,7 +468,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
             }
         } else {
             log.info("Creating producers groups");
-            producerRates = new GroupProducerRateFactory(workloadGenerator.getRateDistribution(), arrivalRate, cacheWrapper.getNumMembers(), nodeIndex,
+            producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(), system.getWorkloadGenerator().getArrivalRate(), cacheWrapper.getNumMembers(), nodeIndex,
                     AVERAGE_PRODUCER_SLEEP_TIME).create();
         }
         //producers = new Producer[producerRates.length];
@@ -533,7 +500,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         if (numOfThreads < 1 || !running.get()) {
             return;
         }
-        Iterator<T> iterator = consumers.iterator();
+        Iterator<Consumer> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
             Consumer consumer = iterator.next();
             if (!consumer.isActive()) {
@@ -545,7 +512,7 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         if (numOfThreads > 0) {
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
-                T consumer = createConsumer(threadIdx++);
+                Consumer consumer = createConsumer(threadIdx++);
                 consumer.start();
                 consumers.add(consumer);
             }
@@ -579,6 +546,13 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
         } catch (IOException e) {
             log.warn("IOException caught while saving sampling: " + e.getMessage());
         }
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, String> stress(CacheWrapper wrapper) {
+        throw new IllegalStateException("Use other stress methods");
+        //return null;
     }
 
     public void destroy() throws Exception {
@@ -630,293 +604,5 @@ public abstract class AbstractBenchmarkStressor<T extends AbstractBenchmarkStres
     public void setStatsSamplingInterval(long statsSamplingInterval) {
         this.statsSamplingInterval = statsSamplingInterval;
     }
-
-
-
-   /* ************************************************************************************************************* */
-   /* ********************************************** INNER CLASSES ************************************************ */
-   /* ************************************************************************************************************* */
-
-
-
-
-
-
-
-    /* **************************** */
-    /* *** CLOSED PRODUCER CLASS *** */
-    /* **************************** */
-
-
-
-   /* ************************** */
-   /* ***** CONSUMER CLASS ***** */
-   /* ************************** */
-
-
-    public class Consumer extends Thread {
-        protected int threadIndex;
-        //private double arrivalRate;
-
-        public long commit_start = 0L;
-
-        private boolean running = true;
-
-        private boolean active = true;
-
-        boolean takeStats;
-
-        private ProducerRate backOffSleeper;
-
-        public S stats;
-
-
-        /* ******************* */
-        /* *** CONSTRUCTOR *** */
-        /* ******************* */
-
-        public Consumer(int threadIndex) {
-            super("Stressor-" + threadIndex);
-            stats = createStatsContainer();
-            if (backOffTime > 0)
-                try {
-                    this.backOffSleeper =
-                            ProducerRate.createInstance(workloadGenerator.getRateDistribution(), Math.pow((double) backOffTime, -1D));
-                } catch (ProducerRate.ProducerRateException e) {
-                    throw new RuntimeException(e);
-                }
-        }
-
-        /* *************** */
-        /* *** METHODS *** */
-        /* *************** */
-
-        private void copyTimeStampInformation(Transaction oldTx, Transaction newTx){
-            newTx.setEnqueueTimestamp(oldTx.getEnqueueTimestamp());
-            newTx.setDequeueTimestamp(oldTx.getDequeueTimestamp());
-            newTx.setStartTimestamp(oldTx.getStartTimestamp());
-        }
-
-        private Transaction regenerate(Transaction oldTransaction, int threadIndex, boolean lastSuccessful) {
-
-            if (!lastSuccessful && !retrySameXact) {
-                this.backoffIfNecessary();
-                Transaction newTransaction = generateTransaction(new RequestType(System.nanoTime(), oldTransaction.getType()), threadIndex);
-                copyTimeStampInformation(oldTransaction, newTransaction);
-                log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +
-                        " into a transaction of type " + newTransaction.getType());
-                return newTransaction;
-            }
-            //If this is the first time xact runs or exact retry on abort is enabled...
-            return oldTransaction;
-        }
-
-        protected boolean processTransaction(Transaction tx) {
-            // entrambi le fasi devono essere fatte!!!
-
-            boolean successful = true;
-            boolean isSafeToRetry = true;
-            boolean localAbort = false;
-            boolean remoteAbort = false;
-
-            stats._handleStartsTx(tx);
-            //TODO per diego, gestisciti CCTP i retry
-            do {
-                tx = regenerate(tx, threadIndex, successful);
-                cacheWrapper.startTransaction();
-                try {
-                    tx.executeTransaction(cacheWrapper);
-                    stats._handleSuccessLocalTx(tx);
-                    log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " +
-                            tx.getType() + " btw, successful is " + successful);
-
-                } catch (Throwable e) {
-                    localAbort= true;
-                    successful = false;
-                    if (log.isDebugEnabled()) {
-                        log.debug("Exception while executing transaction.", e);
-                    } else {
-                        log.warn("Exception while executing transaction of type: " + tx.getType() + " " + e.getMessage());
-                    }
-
-                    if (e instanceof ApplicationException) {
-                        isSafeToRetry = ( (ApplicationException) e ).allowsRetry();
-                    }
-
-                    stats._handleAbortLocalTx(tx,e, cacheWrapper.isTimeoutException(e));
-                }
-
-                if(!localAbort){
-                    stats._handleSuccessLocalTx(tx);
-                }
-
-                //here we try to finalize the transaction
-                //if any read/write has failed we abort
-
-                try {
-                    cacheWrapper.endTransaction(successful, threadIndex);
-                    if (successful) {
-                        log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
-                                tx.getType() + " Btw, successful is " + successful);
-                    }
-                } catch (Throwable e) {
-                    // errore o in rollback o commit
-                    if( successful ){ // errore nel commit
-                        remoteAbort=true;
-                        successful = false;
-                        stats._handleAbortRemoteTx(tx, e);
-                    }
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Error while committing", e);
-                    } else {
-                        log.warn("Error while committing: " + e.getMessage());
-                    }
-                }
-
-                if(!remoteAbort){
-                    stats._handleSuccessRemoteSuccessTx(tx);
-                }
-
-            }
-            //If we experience an elementNotFoundException we do not want to restart the very same xact!!
-            //If a xact is not progressing at the endTxTimestamp of the test, we kill it. Some stats will be slightly affected by this
-            while (assertRunning() && retryOnAbort && !successful && isSafeToRetry);
-
-            return successful;
-        }
-
-        @Override
-        public void run() {
-            // TODO refactoring!!!
-
-            Transaction tx;
-
-            try {
-                startPoint.await();
-                log.info("Starting thread: " + getName());
-            } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting for starting in " + getName());
-            }
-
-            long dequeueTimestamp = -1;
-
-
-
-            boolean successful = true;
-
-            while (assertRunning()) {
-                /* 1- Extracting && generating request from queue */
-                tx = null;
-                dequeueTimestamp = -1;
-
-                if(workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.MULE) == 0){ // no queue
-                    tx = choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
-                    log.info("Closed system: starting a brand new transaction of type " + tx.getType());
-
-                } else { // OPEN or CLOSED ==> queue!
-
-                    try {
-                        RequestType request = queue.take();
-                        dequeueTimestamp = System.nanoTime();
-
-                        tx = generateTransaction(request, threadIndex);
-                        tx.setEnqueueTimestamp(request.enqueueTimestamp);
-                        tx.setDequeueTimestamp(dequeueTimestamp);
-
-//                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
-//                        if PassiveReplication so skip whether:
-//                        a) master node && readOnly transaction
-//                        b) slave node && write transaction
-//                        boolean masterAndReadOnlyTx = cacheWrapper.isTheMaster() && tx.isReadOnly();
-//                        boolean slaveAndWriteTx = (!cacheWrapper.isTheMaster() && !tx.isReadOnly());
-//
-//                        if (cacheWrapper.isPassiveReplication() && (masterAndReadOnlyTx || slaveAndWriteTx)) {
-//                            continue;
-//                        }
-
-
-                        /* updating queue stats */
-                        stats._handleQueueTx(tx);
-
-                    } catch (InterruptedException ir) {
-                        log.error("»»»»»»»THREAD INTERRUPTED WHILE TRYING GETTING AN OBJECT FROM THE QUEUE«««««««");
-                    }
-
-                }
-
-                /* 2- Executing the transaction */
-
-                successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
-                if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.CLOSED) == 0) {  //Closed system   --> no queueing time
-                    tx.setDequeueTimestamp( tx.getStartTimestamp() ); // No queuing time
-                }
-                stats._handleEndTx(tx,successful);
-
-                // notify the producer
-                tx.notifyProducer();
-
-
-                blockIfInactive();
-            }
-        }
-
-
-        private void backoffIfNecessary() {
-            if (backOffTime != 0) {
-                stats.inc(StressorStats.NUM_BACK_OFFS);
-                long backedOff = backOffSleeper.sleep();
-                log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
-                stats.put(StressorStats.BACKED_OFF_TIME, backedOff);
-            }
-        }
-
-        private boolean startNewTransaction(boolean lastXactSuccessul) {
-            return !retryOnAbort || lastXactSuccessul;
-        }
-
-        /*
-        public long totalDuration() {
-            return readDuration + writeDuration;
-        }
-        */
-
-        private synchronized boolean assertRunning() {
-            return running;
-        }
-
-        public final synchronized void inactive() {
-            active = false;
-        }
-
-        public final synchronized void active() {
-            active = true;
-            notifyAll();
-        }
-
-        public final synchronized void finish() {
-            active = true;
-            running = false;
-            notifyAll();
-        }
-
-        public final synchronized boolean isActive() {
-            return active;
-        }
-
-        private synchronized void blockIfInactive() {
-            while (!active) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-    }
-
-
-
-
 
 }

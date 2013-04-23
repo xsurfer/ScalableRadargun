@@ -9,7 +9,6 @@ import org.radargun.portings.tpcc.dac.OrderLineDAC;
 import org.radargun.portings.tpcc.domain.Customer;
 import org.radargun.portings.tpcc.domain.Order;
 import org.radargun.portings.tpcc.domain.OrderLine;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.Collections;
 import java.util.Iterator;

@@ -5,7 +5,6 @@ import org.radargun.Transaction;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.domain.Manager;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 
 public class MakeReservationOperation extends Transaction {
 

@@ -4,8 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.state.MasterState;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.stressors.producer.Producer;
 import org.radargun.utils.Utils;
 import org.radargun.utils.WorkerThreadFactory;
@@ -111,11 +109,6 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /***************************/
 
     protected abstract int getCurrentArrivalRate();
-
-    public abstract List<Producer> createProducers(CacheWrapper cacheWrapper,int nodeIndex, double writeWeight, double readWeight);
-
-    public abstract SystemType getSystemType();
-
 
 
     /***************************/
@@ -354,22 +347,5 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         public String getDistributionRateName(){ return this.value; }
 
     }
-
-    /************************/
-    /*** SYSTEM TYPE ENUM ***/
-    /************************/
-
-    public enum SystemType {
-        OPEN("open"), CLOSED("closed"), MULE("mule");
-        private String value;
-
-        SystemType(String value) {
-            this.value = value;
-        }
-
-        public String getSystemTipe(){ return this.value; }
-
-    }
-
 
 }

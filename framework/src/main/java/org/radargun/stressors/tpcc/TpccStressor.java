@@ -3,7 +3,7 @@ package org.radargun.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.Transaction;
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.stressors.producer.RequestType;
@@ -22,7 +22,7 @@ import java.util.*;
  * @author Fabio Perfetti (refactored)
  */
 
-public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccConsumer, TpccStats> {
+public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, TpccStats> {
 
 
     private static Log log = LogFactory.getLog(TpccStressor.class);
@@ -368,7 +368,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressor.TpccCon
     /* *** TpccConsumer CLASS *** */
     /* ************************** */
 
-    public class TpccConsumer extends AbstractBenchmarkStressor<?, TpccStats>.Consumer {
+    public class TpccConsumer extends BenchmarkStressor<?, TpccStats>.Consumer {
 
         private final TpccTerminal terminal;
 

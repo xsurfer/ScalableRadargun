@@ -6,7 +6,6 @@ import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.portings.tpcc.dac.CustomerDAC;
 import org.radargun.portings.tpcc.domain.Customer;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.List;
 

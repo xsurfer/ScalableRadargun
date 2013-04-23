@@ -1,6 +1,6 @@
 package org.radargun.stressors.producer;
 
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
 
 /**
  * Created by: Fabio Perfetti
@@ -11,7 +11,7 @@ import org.radargun.stressors.AbstractBenchmarkStressor;
 public class OpenProducer extends Producer {
     private final ProducerRate rate;
 
-    public OpenProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id) {
+    public OpenProducer(BenchmarkStressor stressor, ProducerRate rate, int id) {
         super(id, stressor);
         this.rate = rate;
     }

@@ -5,7 +5,6 @@ import org.radargun.portings.tpcc.ElementNotFoundException;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.portings.tpcc.domain.*;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 
 import java.util.Date;
 

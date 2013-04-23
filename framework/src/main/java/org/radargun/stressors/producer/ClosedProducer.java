@@ -1,6 +1,6 @@
 package org.radargun.stressors.producer;
 
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -14,7 +14,7 @@ public class ClosedProducer extends Producer {
     private long thinkTime;
     private AtomicBoolean notified = new AtomicBoolean(false);
 
-    public ClosedProducer(AbstractBenchmarkStressor stressor, long tt, int id) {
+    public ClosedProducer(BenchmarkStressor stressor, long tt, int id) {
         super(id, stressor);
         this.thinkTime = tt;
     }

@@ -3,10 +3,13 @@ package org.radargun.stages;
 import org.radargun.CacheWrapper;
 import org.radargun.DistStage;
 import org.radargun.DistStageAck;
+import org.radargun.Transaction;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
+import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
 import org.radargun.state.MasterState;
-import org.radargun.stressors.AbstractBenchmarkStressor;
+import org.radargun.stressors.BenchmarkStressor;
+import org.radargun.stressors.producer.RequestType;
 import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 
 import java.nio.channels.SocketChannel;
@@ -23,7 +26,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
-public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -54,8 +57,8 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
      */
     protected AbstractWorkloadGenerator workloadGenerator;
 
-    /* istanza di AbstractBenchmarkStressor */
-    protected transient T stressor;
+    /* istanza di BenchmarkStressor */
+    protected transient BenchmarkStressor stressor;
 
     protected transient CacheWrapper cacheWrapper;
 
@@ -74,11 +77,32 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
 
     protected static final String SIZE_INFO = "SIZE_INFO";
 
+    /* if true, new keys are tracked so that they can be erased in the end of the stage */
+    protected boolean trackNewKeys = false;
+
+    protected boolean perThreadTrackNewKeys = false;
 
 
     /* ****************** */
     /* ** TO OVERRIDE *** */
     /* ****************** */
+
+    public abstract void initialization();
+
+    public abstract void validateTransactionsWeight();
+
+    public abstract RequestType nextTransaction();
+
+    protected abstract Transaction generateTransaction(RequestType type, int threadIndex);
+
+    protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+
+    protected abstract double getWriteWeight();
+
+    protected abstract double getReadWeight();
+
+    protected abstract void getStressorConfiguration(); // TODO da finire
+
 
 
 
@@ -89,6 +113,67 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public void initOnMaster(MasterState masterState, int slaveIndex) {
         super.initOnMaster(masterState, slaveIndex);
         this.setInitTimeStamp();
+    }
+
+    @Override
+    public DistStageAck executeOnSlave() {
+        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
+        this.cacheWrapper = slaveState.getCacheWrapper();
+        if (cacheWrapper == null) {
+            log.info("Not running test on this slave as the wrapper hasn't been configured.");
+            return result;
+        }
+
+        log.info("Starting TpccBenchmarkStage: " + this.toString());
+
+        trackNewKeys();
+
+        stressor = new T(this.workloadGenerator);
+        stressor.setNodeIndex(getSlaveIndex());
+        stressor.setNumSlaves(getActiveSlaveCount());
+        stressor.setNumOfThreads(this.numOfThreads);
+        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+        stressor.setStatsSamplingInterval(statsSamplingInterval);
+        stressor.setBackOffTime(backOffTime);
+        stressor.setRetryOnAbort(retryOnAbort);
+        stressor.setRetrySameXact(retrySameXact);
+        stressor.setPaymentWeight(this.paymentWeight);
+        stressor.setOrderStatusWeight(this.orderStatusWeight);
+        stressor.setAccessSameWarehouse(accessSameWarehouse);
+        stressor.setNumberOfItemsInterval(numberOfItemsInterval);
+
+
+        AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
+
+        try {
+            Map<String, String> results = stressor.stress(cacheWrapper);
+            if (results != null) {
+                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+                        ", clusterSize:" + super.getActiveSlaveCount() +
+                        ", nodeIndex:" + super.getSlaveIndex() +
+                        ", cacheSize: " + cacheWrapper.getCacheSize();
+                log.info(sizeInfo);
+                results.put(SIZE_INFO, sizeInfo);
+            }
+            result.setPayload(results);
+            return result;
+        } catch (Exception e) {
+            log.warn("Exception while initializing the test", e);
+            result.setError(true);
+            result.setRemoteException(e);
+            return result;
+        }
+    }
+
+
+    //If in subsequent runs I want to sue different methods, I have to ensure that only one is active
+    private void trackNewKeys() {
+        if (trackNewKeys && perThreadTrackNewKeys)
+            throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
+        this.cacheWrapper.setPerThreadTrackNewKeys(false);
+        this.cacheWrapper.setTrackNewKeys(false);
+        cacheWrapper.setTrackNewKeys(trackNewKeys);
+        cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
     }
 
 
@@ -242,6 +327,6 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public long getInitTimeStamp() { return this.initTimeStamp; }
     public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
 
-    public T getStressor(){ return stressor; }
+    public BenchmarkStressor getStressor(){ return stressor; }
 
 }

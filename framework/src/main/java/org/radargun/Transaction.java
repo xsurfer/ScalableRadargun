@@ -2,11 +2,8 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stressors.AbstractBenchmarkStressor;
 import org.radargun.stressors.producer.ClosedProducer;
 import org.radargun.stressors.producer.RequestType;
-
-import java.net.Authenticator;
 
 /**
  * @author perfabio87@gmail.com

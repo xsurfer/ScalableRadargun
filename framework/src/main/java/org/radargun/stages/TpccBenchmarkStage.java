@@ -32,8 +32,6 @@ import static org.radargun.utils.Utils.numberFormat;
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
 public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
 
-
-
     private static final String SCRIPT_LAUNCH = "_script_launch_";
 
     private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
@@ -65,11 +63,6 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
     If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
      */
     private boolean avoidMiss = true;
-
-    /* if true, new keys are tracked so that they can be erased in the end of the stage */
-    private boolean trackNewKeys = false;
-
-    private boolean perThreadTrackNewKeys = false;
 
 
 
@@ -167,15 +160,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
         }
     }
 
-    //If in subsequent runs I want to sue different methods, I have to ensure that only one is active
-    private void trackNewKeys() {
-        if (trackNewKeys && perThreadTrackNewKeys)
-            throw new IllegalArgumentException("trackNewKeys and perThreadTrackNewKeys should be mutually exclusive (at least for now)");
-        this.cacheWrapper.setPerThreadTrackNewKeys(false);
-        this.cacheWrapper.setTrackNewKeys(false);
-        cacheWrapper.setTrackNewKeys(trackNewKeys);
-        cacheWrapper.setPerThreadTrackNewKeys(perThreadTrackNewKeys);
-    }
+
 
 
     /* ***********************/
