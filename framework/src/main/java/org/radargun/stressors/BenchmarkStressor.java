@@ -3,7 +3,10 @@ package org.radargun.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.stressors.consumer.ClosedConsumer;
 import org.radargun.stressors.consumer.Consumer;
+import org.radargun.stressors.consumer.MuleConsumer;
+import org.radargun.stressors.consumer.OpenConsumer;
 import org.radargun.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.commons.StressorStats;
@@ -53,10 +56,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
      */
     protected int lastArrivalRate = 0;
 
-    /**
-     * specify the interval period (in milliseconds) of the memory and cpu usage is collected
-     */
-    protected long statsSamplingInterval = 0;
+
 
     protected StatSampler statSampler;
 
@@ -68,6 +68,8 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     protected volatile CountDownLatch startPoint;
 
+    protected boolean stoppedByJmx = false;
+
     protected BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
 
 
@@ -78,7 +80,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     protected AbstractBenchmarkStage benchmarkStage;
 
-    //protected T systemType;
+    protected SystemType system;
 
     protected StressorParameter parameters;
 
@@ -108,7 +110,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
     /* *** TO OVERRIDE *** */
     /* ******************* */
 
-    //protected abstract Consumer createConsumer(int threadIndex);
+    //protected abstract OpenConsumer createConsumer(int threadIndex);
 
     //protected abstract Map<String, String> processResults(List<T> stressors);
 
@@ -126,11 +128,17 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         queue.offer(r);
     }
 
-    /**
-     * Stressor method for open systems
-     * @param system
-     * @return
-     */
+    public RequestType takeFromQueue(){
+        RequestType ret = null;
+        try {
+            ret = queue.take();
+        } catch (InterruptedException e) {
+            log.error("»»»»»»»THREAD INTERRUPTED WHILE TRYING GETTING AN OBJECT FROM THE QUEUE«««««««");
+        }
+        return ret;
+    }
+
+
     public final Map<String, String> stress(OpenSystem system ){
 
         cacheWrapper.addObserver(this);
@@ -138,8 +146,8 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         benchmarkStage.validateTransactionsWeight();
         benchmarkStage.initialization();
 
-        if (statsSamplingInterval > 0) {
-            statSampler = new StatSampler(statsSamplingInterval);
+        if ( parameters.getStatsSamplingInterval() > 0 ) {
+            statSampler = new StatSampler( parameters.getStatsSamplingInterval() );
         }
         log.info("Executing: " + this.toString());
 
@@ -183,6 +191,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         return null;
     }
 
+
     private void initBenchmarkTimer() throws Exception {
         if (parameters.perThreadSimulTime > 0) {
             finishBenchmarkTimer.schedule(new TimerTask() {
@@ -196,11 +205,42 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         }
     }
 
-    protected void executeOperations() {
+    private Consumer createConsumer(int threadIndex, SystemType system){
+        Consumer consumer = null;
+        if(system.getType().equals(SystemType.OPEN)){
+            consumer = new OpenConsumer(cacheWrapper,
+                                        threadIndex,
+                                        (OpenSystem) system,
+                                        benchmarkStage,
+                                        this,
+                                        parameters
+                                        );
+        } else if(system.getType().equals(SystemType.CLOSED)){
+            consumer = new ClosedConsumer(cacheWrapper,
+                                        threadIndex,
+                                        (ClosedSystem) system,
+                                        benchmarkStage,
+                                        this,
+                                        parameters
+                                        );
+        }
+        else {
+            consumer = new MuleConsumer(cacheWrapper,
+                                        threadIndex,
+                                        (MuleSystem) system,
+                                        benchmarkStage,
+                                        this,
+                                        parameters
+                                        );
+        }
+        return consumer;
+    }
+
+    protected void executeOperations(SystemType system) {
 
         startPoint = new CountDownLatch(1);
         for (int threadIndex = 0; threadIndex < parameters.numOfThreads; threadIndex++) {
-            Consumer consumer = new Consumer(threadIndex);
+            Consumer consumer = createConsumer(threadIndex, system);
             consumers.add(consumer);
             consumer.start();
         }
@@ -235,6 +275,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
             stopStressor();
 
             /* stoppo i producer nel caso di sistema a producer */
+            if(system.getType())
             if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
                 log.trace("Stopping producers");
                 stopProducers();
@@ -249,7 +290,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     private void stopStressor() {
         synchronized (consumers) {
-            for (Consumer stressor : consumers) {
+            for (OpenConsumer stressor : consumers) {
                 stressor.finish();
             }
         }
@@ -300,13 +341,13 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     //public abstract StressorStats createStatsContainer();
 
-    protected Map<String, String> processResults(List<Consumer> consumers) {
+    protected Map<String, String> processResults(List<OpenConsumer> consumers) {
 
         long duration = 0;
         StressorStats totalStats = new StressorStats(); //createStatsContainer();
 
         /* 1) Extracting per consumer stats */
-        for (Consumer consumer : consumers) {
+        for (OpenConsumer consumer : consumers) {
 
             StressorStats singleStats = consumer.stats;
 
@@ -484,7 +525,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     public final synchronized int getNumberOfActiveThreads() {
         int count = 0;
-        for (Consumer stressor : consumers) {
+        for (OpenConsumer stressor : consumers) {
             if (stressor.isActive()) {
                 count++;
             }
@@ -500,9 +541,9 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads < 1 || !running.get()) {
             return;
         }
-        Iterator<Consumer> iterator = consumers.iterator();
+        Iterator<OpenConsumer> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
-            Consumer consumer = iterator.next();
+            OpenConsumer consumer = iterator.next();
             if (!consumer.isActive()) {
                 consumer.active();
             }
@@ -512,7 +553,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads > 0) {
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
-                Consumer consumer = createConsumer(threadIdx++);
+                OpenConsumer consumer = createConsumer(threadIdx++);
                 consumer.start();
                 consumers.add(consumer);
             }
@@ -573,36 +614,5 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
     /* *** GETTER/SETTER ** */
     /* ******************** */
 
-    public void setNodeIndex(int nodeIndex) {
-        this.nodeIndex = nodeIndex;
-    }
-
-    public void setNumOfThreads(int numOfThreads) {
-        this.numOfThreads = numOfThreads;
-    }
-
-    public void setNumSlaves(int value) {
-        this.numSlaves = value;
-    }
-
-    public void setPerThreadSimulTime(long perThreadSimulTime) {
-        this.perThreadSimulTime = perThreadSimulTime;
-    }
-
-    public void setRetryOnAbort(boolean retryOnAbort) {
-        this.retryOnAbort = retryOnAbort;
-    }
-
-    public void setRetrySameXact(boolean b) {
-        this.retrySameXact = b;
-    }
-
-    public void setBackOffTime(long backOffTime) {
-        this.backOffTime = backOffTime;
-    }
-
-    public void setStatsSamplingInterval(long statsSamplingInterval) {
-        this.statsSamplingInterval = statsSamplingInterval;
-    }
 
 }

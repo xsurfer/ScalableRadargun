@@ -9,8 +9,9 @@ import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.BenchmarkStressor;
+import org.radargun.stressors.StressorParameter;
 import org.radargun.stressors.producer.RequestType;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
+import org.radargun.workloadGenerator.*;
 
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
-public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -53,9 +54,9 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
     protected long statsSamplingInterval = 0;
 
     /**
-     * the workload generator
+     * the system type
      */
-    protected AbstractWorkloadGenerator workloadGenerator;
+    protected SystemType system;
 
     /* istanza di BenchmarkStressor */
     protected transient BenchmarkStressor stressor;
@@ -93,9 +94,9 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
 
     public abstract RequestType nextTransaction();
 
-    protected abstract Transaction generateTransaction(RequestType type, int threadIndex);
+    public abstract Transaction generateTransaction(RequestType type, int threadIndex);
 
-    protected abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
     protected abstract double getWriteWeight();
 
@@ -128,25 +129,38 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
 
         trackNewKeys();
 
-        stressor = new T(this.workloadGenerator);
-        stressor.setNodeIndex(getSlaveIndex());
-        stressor.setNumSlaves(getActiveSlaveCount());
-        stressor.setNumOfThreads(this.numOfThreads);
-        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
-        stressor.setStatsSamplingInterval(statsSamplingInterval);
-        stressor.setBackOffTime(backOffTime);
-        stressor.setRetryOnAbort(retryOnAbort);
-        stressor.setRetrySameXact(retrySameXact);
-        stressor.setPaymentWeight(this.paymentWeight);
-        stressor.setOrderStatusWeight(this.orderStatusWeight);
-        stressor.setAccessSameWarehouse(accessSameWarehouse);
-        stressor.setNumberOfItemsInterval(numberOfItemsInterval);
+        StressorParameter parameters = new StressorParameter();
+
+        parameters.setNodeIndex(getSlaveIndex());
+        parameters.setBackOffTime(backOffTime);
+        parameters.setRetryOnAbort(retryOnAbort);
+        parameters.setRetryOnAbort(retrySameXact);
+        parameters.setPerThreadSimulTime(perThreadSimulTime);
+        parameters.setNumOfThreads(numOfThreads);
+        parameters.setNumSlaves(getActiveSlaveCount());
+        parameters.setStatsSamplingInterval(statsSamplingInterval);
 
 
-        AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
+        stressor = new BenchmarkStressor(cacheWrapper, this, parameters);
+
+        // TODO da risolvere
+        //stressor.setPaymentWeight(this.paymentWeight);
+        //stressor.setOrderStatusWeight(this.orderStatusWeight);
+        //stressor.setAccessSameWarehouse(accessSameWarehouse);
+        //stressor.setNumberOfItemsInterval(numberOfItemsInterval);
+        //AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
         try {
-            Map<String, String> results = stressor.stress(cacheWrapper);
+            Map<String, String> results;
+
+            if(system.getType().equals(SystemType.OPEN)){
+                results = stressor.stress( (OpenSystem) system);
+            } else if(system.getType().equals(SystemType.CLOSED)){
+                results = stressor.stress( (ClosedSystem) system);
+            } else {
+                results = stressor.stress( (MuleSystem) system);
+            }
+
             if (results != null) {
                 String sizeInfo = "size info: " + cacheWrapper.getInfo() +
                         ", clusterSize:" + super.getActiveSlaveCount() +
@@ -177,11 +191,11 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
     }
 
 
-    public void updateTimes(DistStage currentMainStage) {
+    public void updateTimes(AbstractBenchmarkStage currentMainStage) {
         log.info("Updating perThreadSimulTime");
 
-        long totalSimulTime = ((AbstractBenchmarkStage) currentMainStage).getPerThreadSimulTime();
-        long currentMainStageInitTs = ((AbstractBenchmarkStage) currentMainStage).getInitTimeStamp();
+        long totalSimulTime = (currentMainStage).getPerThreadSimulTime();
+        long currentMainStageInitTs = (currentMainStage).getInitTimeStamp();
         long toExecuteInitTs = this.getInitTimeStamp();
         long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
         long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning / 1000);
@@ -192,7 +206,9 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
 
         log.info("Updating initTime Workload Generator");
 
-        this.getWorkloadGenerator().setInitTime( (int) (elapsedTimeFromBeginning / 1000) );
+        if(system.getType().equals(SystemType.OPEN)){
+            ((OpenSystem)system).getWorkloadGenerator().setInitTime( (int) (elapsedTimeFromBeginning / 1000) );
+        }
     }
 
 
@@ -234,7 +250,7 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
         AbstractBenchmarkStage clone = (AbstractBenchmarkStage) super.clone();
         log.info("cloning AbstractBenchmarkStage");
         clone.initTimeStamp = 0;
-        clone.workloadGenerator = workloadGenerator.clone();
+        //clone.workloadGenerator = workloadGenerator.clone();
 
         return clone;
     }
@@ -318,8 +334,8 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor> extend
 
     public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
 
-    public void setWorkloadGenerator(AbstractWorkloadGenerator wg){ this.workloadGenerator = wg; }
-    public AbstractWorkloadGenerator getWorkloadGenerator(){ return this.workloadGenerator; }
+    public void setSysyemType(SystemType val){ this.system = val; }
+    public SystemType getSysyemType(){ return this.system; }
 
     public long getPerThreadSimulTime(){ return this.perThreadSimulTime; }
     public void setPerThreadSimulTime(long perThreadSimulTime){ this.perThreadSimulTime = perThreadSimulTime; }

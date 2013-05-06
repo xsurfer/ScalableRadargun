@@ -17,8 +17,8 @@ public class StressorParameter {
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public StressorParameter(CountDownLatch startPoint){
-        this.startPoint = startPoint;
+    public StressorParameter(){
+
     }
 
 
@@ -60,34 +60,43 @@ public class StressorParameter {
 
     protected boolean retrySameXact = false;
 
-    protected CacheWrapper cacheWrapper;
-
-    protected boolean stoppedByJmx = false;
-
+    /**
+     * specify the interval period (in milliseconds) of the memory and cpu usage is collected
+     */
+    protected long statsSamplingInterval = 0;
 
 
     /* *************** */
     /* *** GETTERS *** */
     /* *************** */
 
+    public int getNodeIndex() { return nodeIndex; }
+    public void setNodeIndex(int val) { nodeIndex = val; }
+
     public CountDownLatch getStartPoint() { return startPoint; }
 
     public long getPerThreadSimulTime() { return perThreadSimulTime; }
+    public void setPerThreadSimulTime( long val ) { perThreadSimulTime=val; }
 
     public int getNumOfThreads() { return numOfThreads; }
-
-    public int getNodeIndex() { return nodeIndex; }
+    public void setNumOfThreads( int val ) { numOfThreads=val; }
 
     public int getNumSlaves() { return numSlaves; }
+    public void setNumSlaves(int val) { numSlaves = val; }
 
     public long getBackOffTime() { return backOffTime; }
+    public void setBackOffTime(long val) { backOffTime = val; }
 
     public boolean isRetryOnAbort() { return retryOnAbort; }
+    public void setRetryOnAbort(boolean val) { retryOnAbort = val; }
 
     public boolean isRetrySameXact() { return retrySameXact; }
+    public void setRetrySameXact(boolean val) { retrySameXact = val; }
 
-    public CacheWrapper getCacheWrapper() { return cacheWrapper; }
+    public long getStatsSamplingInterval() { return statsSamplingInterval; }
+    public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
 
-    public boolean isStoppedByJmx() { return stoppedByJmx; }
+
+//    public boolean isStoppedByJmx() { return stoppedByJmx; }
 
 }

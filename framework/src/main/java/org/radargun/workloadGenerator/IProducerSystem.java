@@ -9,7 +9,7 @@ import java.lang.*;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public interface IProducerSystem extends System {
+public interface IProducerSystem extends SystemType {
 
     public Producer createProducers();
 

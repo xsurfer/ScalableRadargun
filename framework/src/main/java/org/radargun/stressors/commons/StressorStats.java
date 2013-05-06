@@ -98,8 +98,6 @@ public class StressorStats {
     public final void _handleStartsTx(Transaction tx){
         tx.setStartTimestamp(System.nanoTime());
 
-
-
         handleStartsTx(tx);
     }
 

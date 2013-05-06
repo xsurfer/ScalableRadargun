@@ -18,4 +18,15 @@ public class ClosedSystem implements IProducerSystem {
         return null;
     }
 
+    @Override
+    public String getType() {
+        return SystemType.CLOSED;
+    }
+
+    public long getThinkTime(){ return thinkTime; }
+    public void setThinkTime(long val){ thinkTime=val; }
+
+    public long getPopulation(){ return population; }
+    public void setPopulation(int val){ population = val; }
+
 }

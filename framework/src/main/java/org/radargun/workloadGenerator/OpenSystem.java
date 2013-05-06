@@ -7,7 +7,7 @@ import org.radargun.stressors.producer.Producer;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public abstract class OpenSystem implements IProducerSystem {
+public class OpenSystem implements IProducerSystem {
 
     private AbstractWorkloadGenerator workloadGenerator;
 
@@ -18,4 +18,8 @@ public abstract class OpenSystem implements IProducerSystem {
         return null;
     }
 
+    @Override
+    public String getType() {
+        return SystemType.OPEN;
+    }
 }
