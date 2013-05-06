@@ -1,12 +1,10 @@
 package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
-import org.radargun.DistStage;
 import org.radargun.DistStageAck;
 import org.radargun.Transaction;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
-import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
 import org.radargun.state.MasterState;
 import org.radargun.stressors.BenchmarkStressor;
 import org.radargun.stressors.StressorParameter;
@@ -98,9 +96,9 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
     public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
-    protected abstract double getWriteWeight();
+    public abstract double getWriteWeight();
 
-    protected abstract double getReadWeight();
+    public abstract double getReadWeight();
 
     protected abstract void getStressorConfiguration(); // TODO da finire
 
@@ -118,11 +116,10 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
     @Override
     public DistStageAck executeOnSlave() {
-        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
+
         this.cacheWrapper = slaveState.getCacheWrapper();
         if (cacheWrapper == null) {
-            log.info("Not running test on this slave as the wrapper hasn't been configured.");
-            return result;
+            throw new IllegalStateException("Not running test on this slave as the wrapper hasn't been configured");
         }
 
         log.info("Starting TpccBenchmarkStage: " + this.toString());
@@ -141,7 +138,7 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
         parameters.setStatsSamplingInterval(statsSamplingInterval);
 
 
-        stressor = new BenchmarkStressor(cacheWrapper, this, parameters);
+        stressor = new BenchmarkStressor(cacheWrapper, this, system, parameters);
 
         // TODO da risolvere
         //stressor.setPaymentWeight(this.paymentWeight);
@@ -150,16 +147,10 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
         //stressor.setNumberOfItemsInterval(numberOfItemsInterval);
         //AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
+        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
         try {
             Map<String, String> results;
-
-            if(system.getType().equals(SystemType.OPEN)){
-                results = stressor.stress( (OpenSystem) system);
-            } else if(system.getType().equals(SystemType.CLOSED)){
-                results = stressor.stress( (ClosedSystem) system);
-            } else {
-                results = stressor.stress( (MuleSystem) system);
-            }
+            results = stressor.stress();
 
             if (results != null) {
                 String sizeInfo = "size info: " + cacheWrapper.getInfo() +
@@ -171,6 +162,7 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
             }
             result.setPayload(results);
             return result;
+
         } catch (Exception e) {
             log.warn("Exception while initializing the test", e);
             result.setError(true);

@@ -3,17 +3,13 @@ package org.radargun.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.stressors.consumer.ClosedConsumer;
 import org.radargun.stressors.consumer.Consumer;
-import org.radargun.stressors.consumer.MuleConsumer;
-import org.radargun.stressors.consumer.OpenConsumer;
 import org.radargun.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.commons.StressorStats;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
 import org.radargun.workloadGenerator.*;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -37,7 +33,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
     /* **************** */
 
     //in milliseconds, each producer sleeps for this time in average
-    protected static final int AVERAGE_PRODUCER_SLEEP_TIME = 10;
+    public static final int AVERAGE_PRODUCER_SLEEP_TIME = 10;
 
 
 
@@ -92,16 +88,16 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     public BenchmarkStressor(CacheWrapper cacheWrapper,
                              AbstractBenchmarkStage benchmarkStage,
+                             SystemType system,
                              StressorParameter parameters) {
 
         if (cacheWrapper == null) { throw new IllegalStateException("Null wrapper not allowed"); }
 
         this.cacheWrapper = cacheWrapper;
         this.benchmarkStage = benchmarkStage;
+        this.system = system;
         this.parameters = parameters;
 
-        //log.trace("Registring this TpccStressor to the WorkLoadGenerator (Observable)");
-        //this.workloadGenerator.addObserver(this);
     }
 
 
@@ -109,8 +105,6 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
     /* ******************* */
     /* *** TO OVERRIDE *** */
     /* ******************* */
-
-    //protected abstract OpenConsumer createConsumer(int threadIndex);
 
     //protected abstract Map<String, String> processResults(List<T> stressors);
 
@@ -138,36 +132,45 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         return ret;
     }
 
+    public final Map<String, String> stress(){
+        return system.stress(this);
+    }
 
-    public final Map<String, String> stress(OpenSystem system ){
-
+    public final Map<String, String> stress(OpenSystem system){
         cacheWrapper.addObserver(this);
+
+        log.trace("Registring this Stressor to the WorkLoadGenerator (Observable)");
+        system.getWorkloadGenerator().addObserver(this);
 
         benchmarkStage.validateTransactionsWeight();
         benchmarkStage.initialization();
+        if( initBenchmarkTimer() ){
+            if ( parameters.getStatsSamplingInterval() > 0 ) {
+                statSampler = new StatSampler( parameters.getStatsSamplingInterval() );
+            }
+            log.info("Executing: " + this.toString());
 
-        if ( parameters.getStatsSamplingInterval() > 0 ) {
-            statSampler = new StatSampler( parameters.getStatsSamplingInterval() );
+            log.info("Open System");
+            log.info("MaxArrivalRate: " + system.getWorkloadGenerator().getMaxArrivalRate());
+            log.info("Granularity: " + system.getWorkloadGenerator().getGranularity());
+            log.info("InitTime: " + system.getWorkloadGenerator().getInitTime());
+
+            log.trace("Starting the workload generator");
+            system.getWorkloadGenerator().start();
+
+            log.trace("Sampler started");
+            if (statSampler != null) { statSampler.start(); }
+
+            executeOperations(system);
+
+            if (statSampler != null) {
+                statSampler.cancel();
+            }
+            return processResults(consumers);
+        } else {
+            log.warn("Execution time <= 0. This slave will execute on next stage");
+            return null;
         }
-        log.info("Executing: " + this.toString());
-
-        log.info("Open System");
-        log.info("MaxArrivalRate: " + system.getWorkloadGenerator().getMaxArrivalRate());
-        log.info("Granularity: " + system.getWorkloadGenerator().getGranularity());
-        log.info("InitTime: " + system.getWorkloadGenerator().getInitTime());
-
-        log.trace("Starting the workload generator");
-        system.getWorkloadGenerator().start();
-
-        log.trace("Sampler started");
-        if (statSampler != null) { statSampler.start(); }
-
-        executeOperations();
-
-        if (statSampler != null) {
-            statSampler.cancel();
-        }
-        return processResults(consumers);
     }
 
     /**
@@ -176,10 +179,9 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
      * @return
      */
     public final Map<String, String> stress(ClosedSystem system ){
-
+        this.system = system;
         return null;
     }
-
 
     /**
      * Stressor method for mule system. It doesn't use producer-consumer
@@ -187,60 +189,33 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
      * @return
      */
     public final Map<String, String> stress(MuleSystem system){
-
+        this.system = system;
         return null;
     }
 
 
-    private void initBenchmarkTimer() throws Exception {
-        if (parameters.perThreadSimulTime > 0) {
+    /**
+     *
+     * @return true if timer is setted, false otherwise
+     */
+    private boolean initBenchmarkTimer() {
+        if (parameters.getPerThreadSimulTime() > 0) {
             finishBenchmarkTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     finishBenchmark();
                 }
-            }, parameters.perThreadSimulTime * 1000);
-        } else if (parameters.perThreadSimulTime <= 0) {
-            throw new Exception("Slave arrived too late, it will works on the next stage");
+            }, parameters.getPerThreadSimulTime() * 1000);
+            return true;
         }
-    }
-
-    private Consumer createConsumer(int threadIndex, SystemType system){
-        Consumer consumer = null;
-        if(system.getType().equals(SystemType.OPEN)){
-            consumer = new OpenConsumer(cacheWrapper,
-                                        threadIndex,
-                                        (OpenSystem) system,
-                                        benchmarkStage,
-                                        this,
-                                        parameters
-                                        );
-        } else if(system.getType().equals(SystemType.CLOSED)){
-            consumer = new ClosedConsumer(cacheWrapper,
-                                        threadIndex,
-                                        (ClosedSystem) system,
-                                        benchmarkStage,
-                                        this,
-                                        parameters
-                                        );
-        }
-        else {
-            consumer = new MuleConsumer(cacheWrapper,
-                                        threadIndex,
-                                        (MuleSystem) system,
-                                        benchmarkStage,
-                                        this,
-                                        parameters
-                                        );
-        }
-        return consumer;
+        return false;
     }
 
     protected void executeOperations(SystemType system) {
 
         startPoint = new CountDownLatch(1);
-        for (int threadIndex = 0; threadIndex < parameters.numOfThreads; threadIndex++) {
-            Consumer consumer = createConsumer(threadIndex, system);
+        for (int threadIndex = 0; threadIndex < parameters.getNumOfThreads(); threadIndex++) {
+            Consumer consumer = system.createConsumer(cacheWrapper, threadIndex, benchmarkStage, this, parameters);
             consumers.add(consumer);
             consumer.start();
         }
@@ -272,25 +247,44 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     protected final synchronized void finishBenchmark() {
         if (running.compareAndSet(true, false)) {
-            stopStressor();
-
-            /* stoppo i producer nel caso di sistema a producer */
-            if(system.getType())
-            if (workloadGenerator.getSystemType().compareTo(AbstractWorkloadGenerator.SystemType.OPEN) == 0) {
-                log.trace("Stopping producers");
-                stopProducers();
-            }
-            log.trace("Stopping workload generator");
-            /* stoppo il workload generator nel caso di sistema aperto */
-            workloadGenerator.stop();
-            log.trace("Waking up waiting thread");
-            notifyAll();
+            system.finishBenchmark(this);
         }
     }
 
-    private void stopStressor() {
+    public void finishBenchmark(OpenSystem system) {
+        stopConsumers();
+        /* stoppo i producer */
+        log.trace("Stopping producers");
+        stopProducers();
+
+        log.trace("Stopping workload generator");
+        /* stoppo il workload generator */
+        system.getWorkloadGenerator().stop();
+
+        log.trace("Waking up waiting thread");
+        notifyAll();
+    }
+
+    public void finishBenchmark(ClosedSystem system) {
+        stopConsumers();
+        /* stoppo i producer */
+        log.trace("Stopping producers");
+        stopProducers();
+
+        log.trace("Waking up waiting thread");
+        notifyAll();
+    }
+
+    public void finishBenchmark(MuleSystem system) {
+        stopConsumers();
+
+        log.trace("Waking up waiting thread");
+        notifyAll();
+    }
+
+    private void stopConsumers() {
         synchronized (consumers) {
-            for (OpenConsumer stressor : consumers) {
+            for (Consumer stressor : consumers) {
                 stressor.finish();
             }
         }
@@ -312,7 +306,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         }
     }
 
-    private void updateProducer() {
+    private void updateProducer(OpenSystem system) {
         synchronized (running) {
             if (running.get()) {
                 log.info("Stopping old producer");
@@ -320,18 +314,9 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
                 synchronized (producers) {
                     producers.clear();
-
-                    producers.addAll(workloadGenerator.createProducers(cacheWrapper, nodeIndex, getWriteWeight(), getReadWeight() ));
-//                    for (int i = 0; i < producerRates.length; ++i) {
-//                        producers.add( i, new BenchmarkStressor.ClosedProducer(getThinkTime(), nodeIndex) );
-//                        //producers[i] = new Producer(producerRates[i], i);
-//                    }
+                    producers.addAll(system.createProducers(cacheWrapper, benchmarkStage, this, parameters ));
                 }
 
-                workloadGenerator.createProducers(cacheWrapper,nodeIndex,getWriteWeight(),getReadWeight());
-
-
-                //createProducers(workloadGenerator.getArrivalRate());
                 log.info("Starting " + producers.size() + " producers");
                 startProducers();
             }
@@ -341,13 +326,13 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     //public abstract StressorStats createStatsContainer();
 
-    protected Map<String, String> processResults(List<OpenConsumer> consumers) {
+    protected Map<String, String> processResults(List<Consumer> consumers) {
 
         long duration = 0;
         StressorStats totalStats = new StressorStats(); //createStatsContainer();
 
         /* 1) Extracting per consumer stats */
-        for (OpenConsumer consumer : consumers) {
+        for (Consumer consumer : consumers) {
 
             StressorStats singleStats = consumer.stats;
 
@@ -421,7 +406,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         results.put("LOCAL_TIMEOUT", str(totalStats.get(StressorStats.LOCAL_TIMEOUT)));
         results.put("REMOTE_TIMEOUT", str(totalStats.get(StressorStats.REMOTE_TIMEOUT)));
         results.put("AVG_BACKOFF", str(totalStats.evalAvgBackoff()));
-        results.put("NumThreads", str(numOfThreads));
+        results.put("NumThreads", str(parameters.getNumOfThreads()));
 
         //fillMapWithExtraStats(totalStats, results);
 
@@ -448,84 +433,44 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
 
     /**
-     * This method is executed each time that the workload wake up
+     * This method is executed if there is a change in the arrival rate or in the cluster's size
      *
      * @param o
      * @param arg
      */
     @Override
     public final void update(Observable o, Object arg) {
-        Integer cmd = (Integer) arg;
-        switch (cmd) {
-            case CacheWrapper.VIEW_CHANGED:
-                log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-                updateProducer();
-                break;
-            case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
-                log.info("Arrival rate changed");
-                if (workloadGenerator.getArrivalRate() != this.lastArrivalRate) {
-                    this.lastArrivalRate = workloadGenerator.getArrivalRate();
-                    updateProducer();
-                }
-                break;
-            default:
-                log.warn("Unrecognized argument");
-                break;
-        }
-    }
+        if(system.getType().equals(SystemType.OPEN)){
+            // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
+            // aggiorno i producer
 
+            Integer cmd = (Integer) arg;
 
-    /* crea il numero di producer sul singolo nodo a seconda della size della popolazione */
-    private void createProducers(ClosedSystem system){
-
-    }
-
-
-    /**
-     * Class in charge of create or update the Producer in base of arrival rate.
-     *
-     * @param system
-     */
-    private void createProducers(OpenSystem system) {
-
-        log.info("Creating/Updating producers");
-
-        ProducerRate[] producerRates;
-        if (cacheWrapper.isPassiveReplication()) {
-            if (cacheWrapper.isTheMaster()) {
-                log.info("Creating producers groups for the master. Write transaction percentage is " + getWriteWeight());
-                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
-                        getWriteWeight(),
-                        1,
-                        nodeIndex,
-                        AVERAGE_PRODUCER_SLEEP_TIME).create();
-            } else {
-                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + getReadWeight());
-                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
-                        getReadWeight(),
-                        cacheWrapper.getNumMembers() - 1,
-                        nodeIndex == 0 ? nodeIndex : nodeIndex - 1,
-                        AVERAGE_PRODUCER_SLEEP_TIME).create();
+            switch (cmd) {
+                case CacheWrapper.VIEW_CHANGED:
+                    log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
+                    updateProducer( (OpenSystem) system );
+                    break;
+                case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
+                    log.info("Arrival rate changed");
+                    if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
+                        this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
+                        updateProducer( (OpenSystem) system );
+                    }
+                    break;
+                default:
+                    log.warn("Unrecognized argument");
+                    break;
             }
         } else {
-            log.info("Creating producers groups");
-            producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(), system.getWorkloadGenerator().getArrivalRate(), cacheWrapper.getNumMembers(), nodeIndex,
-                    AVERAGE_PRODUCER_SLEEP_TIME).create();
-        }
-        //producers = new Producer[producerRates.length];
-
-        synchronized (producers) {
-            producers.clear();
-            for (int i = 0; i < producerRates.length; ++i) {
-                producers.add(i, new OpenProducer(this, producerRates[i], i));
-                //producers[i] = new Producer(producerRates[i], i);
-            }
+            // è cambiata solo la dimensione del cluster
+            // i producer (se presenti) non sono da cambiare
         }
     }
 
     public final synchronized int getNumberOfActiveThreads() {
         int count = 0;
-        for (OpenConsumer stressor : consumers) {
+        for (Consumer stressor : consumers) {
             if (stressor.isActive()) {
                 count++;
             }
@@ -541,9 +486,9 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads < 1 || !running.get()) {
             return;
         }
-        Iterator<OpenConsumer> iterator = consumers.iterator();
+        Iterator<Consumer> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
-            OpenConsumer consumer = iterator.next();
+            Consumer consumer = iterator.next();
             if (!consumer.isActive()) {
                 consumer.active();
             }
@@ -553,7 +498,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads > 0) {
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
-                OpenConsumer consumer = createConsumer(threadIdx++);
+                Consumer consumer = system.createConsumer(cacheWrapper, threadIdx++, benchmarkStage, this, parameters);
                 consumer.start();
                 consumers.add(consumer);
             }
@@ -568,8 +513,8 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (statSampler == null) {
             return;
         }
-        log.info("Saving samples in the file sample-" + nodeIndex);
-        File f = new File("sample-" + nodeIndex);
+        log.info("Saving samples in the file sample-" + parameters.getNodeIndex());
+        File f = new File("sample-" + parameters.getNodeIndex());
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
             List<Long> mem = statSampler.getMemoryUsageHistory();
@@ -579,7 +524,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
             bw.write("#Time (milliseconds)\tCPU(%)\tMemory(bytes)");
             bw.newLine();
             for (int i = 0; i < size; ++i) {
-                bw.write((i * statsSamplingInterval) + "\t" + cpu.get(i) + "\t" + mem.get(i));
+                bw.write((i * parameters.getStatsSamplingInterval()) + "\t" + cpu.get(i) + "\t" + mem.get(i));
                 bw.newLine();
             }
             bw.flush();

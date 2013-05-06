@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stressors.producer.Producer;
 import org.radargun.utils.Utils;
 import org.radargun.utils.WorkerThreadFactory;
 

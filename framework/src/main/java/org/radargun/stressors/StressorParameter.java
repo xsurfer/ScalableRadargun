@@ -26,44 +26,44 @@ public class StressorParameter {
     /* *** ATTRIBUTES *** */
     /* ****************** */
 
-    protected volatile CountDownLatch startPoint;
+    private volatile CountDownLatch startPoint;
 
     /**
      * total time (in seconds) of simulation for each stressor thread
      */
-    protected long perThreadSimulTime = 30L;
+    private long perThreadSimulTime = 30L;
 
     /**
      * the number of threads that will work on this cache wrapper.
      */
-    protected int numOfThreads = 10;
+    private int numOfThreads = 10;
 
     /**
      * this node's index in the Radargun cluster.  -1 is used for local benchmarks.
      */
-    protected int nodeIndex = -1;
+    private int nodeIndex = -1;
 
     /**
      * the number of nodes in the Radargun cluster.
      */
-    protected int numSlaves = 0;
+    private int numSlaves = 0;
 
     /**
      * Specifies the msec a transaction spends in backoff after aborting
      */
-    protected long backOffTime = 0;
+    private long backOffTime = 0;
 
     /**
      * If true, after the abort of a transaction t of type T, a new transaction t' of type T is generated
      */
-    protected boolean retryOnAbort = false;
+    private boolean retryOnAbort = false;
 
-    protected boolean retrySameXact = false;
+    private boolean retrySameXact = false;
 
     /**
      * specify the interval period (in milliseconds) of the memory and cpu usage is collected
      */
-    protected long statsSamplingInterval = 0;
+    private long statsSamplingInterval = 0;
 
 
     /* *************** */
