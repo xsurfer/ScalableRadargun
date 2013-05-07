@@ -328,13 +328,58 @@ public abstract class BenchmarkStressor<T extends StressorParameter, S extends C
 
                 synchronized (producers) {
                     producers.clear();
-                    producers.addAll(system.createProducers(cacheWrapper, benchmarkStage, this, parameters ));
+                    producers.addAll(system.createProducers(this));
                 }
 
                 log.info("Starting " + producers.size() + " producers");
                 startProducers();
             }
         }
+    }
+
+    public List<Producer> createProducers(ClosedSystem system) {
+        throw new IllegalStateException("Still not implemented");
+    }
+
+    /**
+     * Class in charge of create or update the Producer in base of arrival rate. So for the open system
+     *
+     */
+    public List<Producer> createProducers(OpenSystem system) {
+
+        log.info("Creating/Updating producers");
+
+        ProducerRate[] producerRates;
+        if (cacheWrapper.isPassiveReplication()) {
+            if (cacheWrapper.isTheMaster()) {
+                log.info("Creating producers groups for the master. Write transaction percentage is " + getWriteWeight());
+                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
+                        getWriteWeight(),
+                        1,
+                        parameters.getNodeIndex(),
+                        BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+            } else {
+                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + getReadWeight());
+                producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
+                        getReadWeight(),
+                        cacheWrapper.getNumMembers() - 1,
+                        parameters.getNodeIndex() == 0 ? parameters.getNodeIndex() : parameters.getNodeIndex() - 1,
+                        BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+            }
+        } else {
+            log.info("Creating producers groups");
+            producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
+                    system.getWorkloadGenerator().getArrivalRate(),
+                    cacheWrapper.getNumMembers(),
+                    parameters.getNodeIndex(),
+                    BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+        }
+
+        List<Producer> producers = new ArrayList<Producer>();
+        for (int i = 0; i < producerRates.length; ++i) {
+            producers.add(i, new OpenProducer(this, producerRates[i], i));
+        }
+        return producers;
     }
 
 

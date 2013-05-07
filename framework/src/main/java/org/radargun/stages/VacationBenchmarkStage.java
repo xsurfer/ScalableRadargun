@@ -10,15 +10,18 @@ import org.radargun.DistStageAck;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.DefaultDistStageAck;
+import org.radargun.stressors.BenchmarkStressor;
 import org.radargun.stressors.stamp.vacation.VacationStressor;
 import org.radargun.state.MasterState;
+import org.radargun.stressors.stamp.vacation.VacationStressorParameter;
 import org.radargun.stressors.tpcc.TpccStressor;
+import org.radargun.stressors.tpcc.TpccStressorParameter;
 
 import static java.lang.Double.parseDouble;
 import static org.radargun.utils.Utils.numberFormat;
 
 
-public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor> {
+public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationStressorParameter> {
 
     private static final String SIZE_INFO = "SIZE_INFO";
 
@@ -47,60 +50,78 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 //    private int time;
 
 
-    /* NEW EXECUTE by FABIO */
-    public DistStageAck executeOnSlave() {
-        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
-        this.cacheWrapper = slaveState.getCacheWrapper();
-        if (cacheWrapper == null) {
-            log.info("Not running test on this slave as the wrapper hasn't been configured.");
-            return result;
-        }
+    @Override
+    protected VacationStressorParameter createStressorConfiguration() {
+        VacationStressorParameter parameters = new VacationStressorParameter();
 
-        log.info("Starting TpccBenchmarkStage: " + this.toString());
+        parameters.setQueryPerTx(number);
+        parameters.setPercentUser(user);
+        parameters.setQueryRange(queries);
+        parameters.setReadOnlyPerc(this.readOnly);
+        parameters.setRelations(relations);
 
-        //trackNewKeys();
-
-        stressor = new VacationStressor(this.workloadGenerator);
-        stressor.setNodeIndex(getSlaveIndex());
-        stressor.setNumSlaves(getActiveSlaveCount());
-        stressor.setNumOfThreads(this.numOfThreads);
-        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
-        stressor.setStatsSamplingInterval(statsSamplingInterval);
-        stressor.setBackOffTime(backOffTime);
-        stressor.setRetryOnAbort(retryOnAbort);
-        stressor.setRetrySameXact(retrySameXact);
-
-        /* Ad hoc for Vacation */
-        int numQueryPerTransaction = number;
-        int percentUser = user;
-
-        stressor.setQueryPerTx(numQueryPerTransaction);
-        stressor.setPercentUser(percentUser);
-        stressor.setQueryRange(queries);
-        stressor.setReadOnlyPerc(this.readOnly);
-        stressor.setCacheWrapper(cacheWrapper);
-        stressor.setRelations(relations);
-        /* end */
-
-        try {
-            Map<String, String> results = stressor.stress(cacheWrapper);
-            if( results != null ){
-                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
-                        ", clusterSize:" + super.getActiveSlaveCount() +
-                        ", nodeIndex:" + super.getSlaveIndex() +
-                        ", cacheSize: " + cacheWrapper.getCacheSize();
-                log.info(sizeInfo);
-                results.put(SIZE_INFO, sizeInfo);
-            }
-            result.setPayload(results);
-            return result;
-        } catch (Exception e) {
-            log.warn("Exception while initializing the test", e);
-            result.setError(true);
-            result.setRemoteException(e);
-            return result;
-        }
+        return parameters;
     }
+
+    @Override
+    public BenchmarkStressor createStressor() {
+        return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
+    }
+
+//    /* NEW EXECUTE by FABIO */
+//    public DistStageAck executeOnSlave() {
+//        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
+//        this.cacheWrapper = slaveState.getCacheWrapper();
+//        if (cacheWrapper == null) {
+//            log.info("Not running test on this slave as the wrapper hasn't been configured.");
+//            return result;
+//        }
+//
+//        log.info("Starting TpccBenchmarkStage: " + this.toString());
+//
+//        //trackNewKeys();
+//
+//        stressor = new VacationStressor(this.workloadGenerator);
+//        stressor.setNodeIndex(getSlaveIndex());
+//        stressor.setNumSlaves(getActiveSlaveCount());
+//        stressor.setNumOfThreads(this.numOfThreads);
+//        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+//        stressor.setStatsSamplingInterval(statsSamplingInterval);
+//        stressor.setBackOffTime(backOffTime);
+//        stressor.setRetryOnAbort(retryOnAbort);
+//        stressor.setRetrySameXact(retrySameXact);
+//
+//        /* Ad hoc for Vacation */
+//
+//        int percentUser = user;
+//
+//        stressor.setQueryPerTx(number);
+//        stressor.setPercentUser(percentUser);
+//        stressor.setQueryRange(queries);
+//        stressor.setReadOnlyPerc(this.readOnly);
+//        stressor.setCacheWrapper(cacheWrapper);
+//        stressor.setRelations(relations);
+//        /* end */
+//
+//        try {
+//            Map<String, String> results = stressor.stress(cacheWrapper);
+//            if( results != null ){
+//                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+//                        ", clusterSize:" + super.getActiveSlaveCount() +
+//                        ", nodeIndex:" + super.getSlaveIndex() +
+//                        ", cacheSize: " + cacheWrapper.getCacheSize();
+//                log.info(sizeInfo);
+//                results.put(SIZE_INFO, sizeInfo);
+//            }
+//            result.setPayload(results);
+//            return result;
+//        } catch (Exception e) {
+//            log.warn("Exception while initializing the test", e);
+//            result.setError(true);
+//            result.setRemoteException(e);
+//            return result;
+//        }
+//    }
 
 
 

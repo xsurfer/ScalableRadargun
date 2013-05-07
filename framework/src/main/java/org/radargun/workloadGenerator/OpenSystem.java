@@ -49,45 +49,8 @@ public class OpenSystem implements IProducerSystem {
         stressor.finishBenchmark(this);
     }
 
-    /**
-     * Class in charge of create or update the Producer in base of arrival rate.
-     *
-     */
-    public List<Producer> createProducers(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters) {
-
-        log.info("Creating/Updating producers");
-
-        ProducerRate[] producerRates;
-        if (cacheWrapper.isPassiveReplication()) {
-            if (cacheWrapper.isTheMaster()) {
-                log.info("Creating producers groups for the master. Write transaction percentage is " + benchmarkStage.getWriteWeight());
-                producerRates = new GroupProducerRateFactory(getWorkloadGenerator().getRateDistribution(),
-                        benchmarkStage.getWriteWeight(),
-                        1,
-                        parameters.getNodeIndex(),
-                        BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
-            } else {
-                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + benchmarkStage.getReadWeight());
-                producerRates = new GroupProducerRateFactory(getWorkloadGenerator().getRateDistribution(),
-                        benchmarkStage.getReadWeight(),
-                        cacheWrapper.getNumMembers() - 1,
-                        parameters.getNodeIndex() == 0 ? parameters.getNodeIndex() : parameters.getNodeIndex() - 1,
-                        BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
-            }
-        } else {
-            log.info("Creating producers groups");
-            producerRates = new GroupProducerRateFactory(getWorkloadGenerator().getRateDistribution(),
-                                                         getWorkloadGenerator().getArrivalRate(),
-                                                         cacheWrapper.getNumMembers(),
-                                                         parameters.getNodeIndex(),
-                                                         BenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
-        }
-
-        List<Producer> producers = new ArrayList<Producer>();
-        for (int i = 0; i < producerRates.length; ++i) {
-            producers.add(i, new OpenProducer(stressor, producerRates[i], i));
-        }
-        return producers;
+    @Override
+    public List<Producer> createProducers(BenchmarkStressor stressor) {
+        return stressor.createProducers(this);
     }
-
 }

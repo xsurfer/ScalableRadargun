@@ -97,7 +97,9 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
     /* ** TO OVERRIDE *** */
     /* ****************** */
 
-    protected abstract S createStressorConfiguration(); // TODO da finire
+    protected abstract S createStressorConfiguration();
+
+    public abstract BenchmarkStressor createStressor();
 
 
 
@@ -125,7 +127,6 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
         return parameters;
     }
 
-    public abstract BenchmarkStressor createStressor();
 
     public void initOnMaster(MasterState masterState, int slaveIndex) {
         super.initOnMaster(masterState, slaveIndex);
@@ -135,7 +136,6 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
         }
         this.setInitTimeStamp();
     }
-
 
 
     @Override
@@ -151,14 +151,6 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
         trackNewKeys();
 
         stressor = createStressor();
-                //new BenchmarkStressor(cacheWrapper, this, system, parameters);
-
-        // TODO da risolvere
-        //stressor.setPaymentWeight(this.paymentWeight);
-        //stressor.setOrderStatusWeight(this.orderStatusWeight);
-        //stressor.setAccessSameWarehouse(accessSameWarehouse);
-        //stressor.setNumberOfItemsInterval(numberOfItemsInterval);
-        //AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
 
         DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
         try {
