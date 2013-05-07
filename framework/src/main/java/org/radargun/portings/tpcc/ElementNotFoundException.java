@@ -1,6 +1,6 @@
 package org.radargun.portings.tpcc;
 
-import org.radargun.stressors.exceptions.ApplicationException;
+import org.radargun.stages.stressors.exceptions.ApplicationException;
 
 /**
  * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it

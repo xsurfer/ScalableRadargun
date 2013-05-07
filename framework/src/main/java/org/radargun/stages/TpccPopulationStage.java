@@ -3,10 +3,8 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.stages.AbstractDistStage;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
-import org.radargun.stressors.tpcc.TpccPopulationStressor;
+import org.radargun.stages.stressors.tpcc.TpccPopulationStressor;
 
 import java.util.List;
 

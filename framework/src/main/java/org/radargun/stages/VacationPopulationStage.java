@@ -2,9 +2,7 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.stages.AbstractDistStage;
-import org.radargun.stages.DefaultDistStageAck;
-import org.radargun.stressors.stamp.vacation.VacationPopulationStressor;
+import org.radargun.stages.stressors.stamp.vacation.VacationPopulationStressor;
 
 public class VacationPopulationStage extends AbstractDistStage {
 

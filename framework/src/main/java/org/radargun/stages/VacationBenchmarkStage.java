@@ -1,23 +1,10 @@
 package org.radargun.stages;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.radargun.CacheWrapper;
-import org.radargun.DistStageAck;
-import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stages.DefaultDistStageAck;
-import org.radargun.stressors.BenchmarkStressor;
-import org.radargun.stressors.stamp.vacation.VacationStressor;
-import org.radargun.state.MasterState;
-import org.radargun.stressors.stamp.vacation.VacationStressorParameter;
-import org.radargun.stressors.tpcc.TpccStressor;
-import org.radargun.stressors.tpcc.TpccStressorParameter;
+import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
+import org.radargun.stages.stressors.stamp.vacation.VacationStressorParameter;
 
-import static java.lang.Double.parseDouble;
 import static org.radargun.utils.Utils.numberFormat;
 
 
@@ -64,7 +51,7 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
     }
 
     @Override
-    public BenchmarkStressor createStressor() {
+    public AbstractBenchmarkStressor createStressor() {
         return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
     }
 

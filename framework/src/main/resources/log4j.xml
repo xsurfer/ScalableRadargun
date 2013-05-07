@@ -68,7 +68,7 @@
         <priority value="WARN"/>
     </category>
 
-    <category name="org.radargun.stressors">
+    <category name="org.radargun.stages.stressors">
         <priority value="INFO"/>
     </category>
     <category name="org.radargun.portings.tpcc.TpccPopulation">

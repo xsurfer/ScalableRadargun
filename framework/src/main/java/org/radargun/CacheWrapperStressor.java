@@ -1,7 +1,5 @@
 package org.radargun;
 
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
-
 import java.util.Map;
 
 /**

@@ -3,9 +3,9 @@ package org.radargun.stages;
 import org.radargun.jmx.annotations.MBean;
 
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.stressors.BenchmarkStressor;
-import org.radargun.stressors.tpcc.TpccStressor;
-import org.radargun.stressors.tpcc.TpccStressorParameter;
+import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.tpcc.TpccStressor;
+import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
 
 
 /**
@@ -73,7 +73,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     }
 
     @Override
-    public BenchmarkStressor createStressor() {
+    public AbstractBenchmarkStressor createStressor() {
         return new TpccStressor(cacheWrapper, this, system, getStressorParameters());
     }
 

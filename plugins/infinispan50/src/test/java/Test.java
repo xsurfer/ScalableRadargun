@@ -1,6 +1,6 @@
 
 import org.radargun.cachewrappers.InfinispanWrapper;
-import org.radargun.stressors.PutGetStressor;
+import org.radargun.stages.stressors.PutGetStressor;
 import org.radargun.utils.TypedProperties;
 
 import java.util.Properties;

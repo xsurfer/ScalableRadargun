@@ -2,16 +2,12 @@ package org.radargun.cachewrappers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.distribution.ch.DefaultConsistentHash;
 import org.infinispan.remoting.transport.Address;
-import org.infinispan.util.Immutables;
-import org.radargun.stressors.ObjectKey;
+import org.radargun.stages.stressors.ObjectKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

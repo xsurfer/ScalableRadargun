@@ -8,8 +8,10 @@ import org.radargun.Stage;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
 import org.radargun.stages.StartClusterStage;
+import org.radargun.stages.stressors.systems.OpenSystem;
+import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.TypedProperties;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
 import org.radargun.workloadGenerator.ClosedWorkloadGenerator;
 import org.w3c.dom.*;
 
@@ -167,33 +169,80 @@ public class DomConfigParser extends ConfigParser {
                 }
                 ConfigHelper.setValues(st, attrToSet, true);
 
-                // Setting workload generator
+                // Setting system
                 if (st instanceof AbstractBenchmarkStage) {
-                    //let's read the workloadGenerator
+                    //let's read the system
                     NodeList stageChildNodes = childEl.getChildNodes();
                     for (int j = 0; j < stageChildNodes.getLength(); j++) {
-                        Node workloadChild = stageChildNodes.item(j);
-                        if (workloadChild instanceof Element) {
-                            Element generatorEl = (Element) workloadChild;
-                            String generatorShortName = generatorEl.getNodeName();
-                            AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator", (AbstractBenchmarkStage) st);
-                            if (wg == null)
-                                throw new RuntimeException("Unvalid Workload Generator");
-                            ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
-                            NamedNodeMap loadGenAttributes = generatorEl.getAttributes();
-                            Map<String, String> loadGenAttrToSet = new HashMap<String, String>();
-                            for (int attrIndex = 0; attrIndex < loadGenAttributes.getLength(); attrIndex++) {
-                                Attr attr = (Attr) loadGenAttributes.item(attrIndex);
-                                loadGenAttrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+                        Node systemChild = stageChildNodes.item(j);
+                        if (systemChild instanceof Element) {
+                            Element systemEl = (Element) systemChild;
+                            String systemName = systemEl.getNodeName();
+                            SystemType system = JaxbConfigParser.getSystem(systemName);
+                            if (system == null)
+                                throw new RuntimeException("Unvalid System type");
+                            ((AbstractBenchmarkStage) st).setSysyemType(system);
+                            NamedNodeMap systemAttributes = systemEl.getAttributes();
+                            Map<String, String> systemAttrToSet = new HashMap<String, String>();
+                            for (int attrIndex = 0; attrIndex < systemAttributes.getLength(); attrIndex++) {
+                                Attr attr = (Attr) systemAttributes.item(attrIndex);
+                                systemAttrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
                             }
-                            ConfigHelper.setValues(wg, loadGenAttrToSet, true);
+                            ConfigHelper.setValues(system, systemAttrToSet, true);
+
+                            if (system.getType().equals(SystemType.OPEN)) { // or istanceof OpenSystem
+                                //let's read the workloadGenerator
+                                NodeList systemChildNodes = childEl.getChildNodes();
+                                for (int k = 0; k < systemChildNodes.getLength(); k++) {
+                                    Node workloadChild = systemChildNodes.item(k);
+                                    if (workloadChild instanceof Element) {
+                                        Element generatorEl = (Element) workloadChild;
+                                        String generatorShortName = generatorEl.getNodeName();
+                                        AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator", (AbstractBenchmarkStage) st);
+                                        if (wg == null)
+                                            throw new RuntimeException("Unvalid Workload Generator");
+                                        ((OpenSystem) system).setWorkloadGenerator(wg);
+                                        NamedNodeMap loadGenAttributes = generatorEl.getAttributes();
+                                        Map<String, String> loadGenAttrToSet = new HashMap<String, String>();
+                                        for (int attrIndex = 0; attrIndex < loadGenAttributes.getLength(); attrIndex++) {
+                                            Attr attr = (Attr) loadGenAttributes.item(attrIndex);
+                                            loadGenAttrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+                                        }
+                                        ConfigHelper.setValues(wg, loadGenAttrToSet, true);
+                                    }
+                                }
+                            }
                         }
                     }
-                    if (((AbstractBenchmarkStage) st).getWorkloadGenerator() == null) {
-                        AbstractWorkloadGenerator wg = new ClosedWorkloadGenerator( ((AbstractBenchmarkStage) st) );
-                        ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
-                    }
                 }
+
+//                // Setting workload generator
+//                if (st instanceof AbstractBenchmarkStage) {
+//                    //let's read the workloadGenerator
+//                    NodeList stageChildNodes = childEl.getChildNodes();
+//                    for (int j = 0; j < stageChildNodes.getLength(); j++) {
+//                        Node workloadChild = stageChildNodes.item(j);
+//                        if (workloadChild instanceof Element) {
+//                            Element generatorEl = (Element) workloadChild;
+//                            String generatorShortName = generatorEl.getNodeName();
+//                            AbstractWorkloadGenerator wg = JaxbConfigParser.getWorkloadGenerator(generatorShortName + "WorkloadGenerator", (AbstractBenchmarkStage) st);
+//                            if (wg == null)
+//                                throw new RuntimeException("Unvalid Workload Generator");
+//                            ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
+//                            NamedNodeMap loadGenAttributes = generatorEl.getAttributes();
+//                            Map<String, String> loadGenAttrToSet = new HashMap<String, String>();
+//                            for (int attrIndex = 0; attrIndex < loadGenAttributes.getLength(); attrIndex++) {
+//                                Attr attr = (Attr) loadGenAttributes.item(attrIndex);
+//                                loadGenAttrToSet.put(attr.getName(), ConfigHelper.parseString(attr.getValue()));
+//                            }
+//                            ConfigHelper.setValues(wg, loadGenAttrToSet, true);
+//                        }
+//                    }
+//                    if (((AbstractBenchmarkStage) st).getWorkloadGenerator() == null) {
+//                        AbstractWorkloadGenerator wg = new ClosedWorkloadGenerator( ((AbstractBenchmarkStage) st) );
+//                        ((AbstractBenchmarkStage) st).setWorkloadGenerator(wg);
+//                    }
+//                }
 
             }
         }

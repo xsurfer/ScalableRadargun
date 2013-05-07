@@ -2,11 +2,9 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.stages.AbstractDistStage;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
-import org.radargun.stressors.PutGetStressor;
-import org.radargun.stressors.StringKeyGenerator;
+import org.radargun.stages.stressors.PutGetStressor;
+import org.radargun.stages.stressors.StringKeyGenerator;
 import org.radargun.utils.Utils;
 
 import java.util.HashMap;

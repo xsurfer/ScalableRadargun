@@ -26,7 +26,7 @@
                 partialReplication="false"/>
         <SyntheticWarmup
                 id="d"
-                keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator"
+                keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
                 numberOfAttributes="100"
                 sizeOfAnAttribute="10"
                 numOfThreads="1"/>

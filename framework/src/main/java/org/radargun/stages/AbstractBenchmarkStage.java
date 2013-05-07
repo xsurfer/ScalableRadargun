@@ -2,14 +2,13 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.Transaction;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
+import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.state.MasterState;
-import org.radargun.stressors.BenchmarkStressor;
-import org.radargun.stressors.StressorParameter;
-import org.radargun.stressors.producer.RequestType;
-import org.radargun.workloadGenerator.*;
+import org.radargun.stages.stressors.StressorParameter;
+import org.radargun.stages.stressors.systems.OpenSystem;
+import org.radargun.stages.stressors.systems.SystemType;
 
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
-public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -65,8 +64,8 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
      */
     protected SystemType system;
 
-    /* istanza di BenchmarkStressor */
-    protected transient BenchmarkStressor stressor;
+    /* istanza di AbstractBenchmarkStressor */
+    protected transient AbstractBenchmarkStressor stressor;
 
     protected transient CacheWrapper cacheWrapper;
 
@@ -99,7 +98,7 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
 
     protected abstract S createStressorConfiguration();
 
-    public abstract BenchmarkStressor createStressor();
+    public abstract AbstractBenchmarkStressor createStressor();
 
 
 
@@ -351,6 +350,6 @@ public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S exte
     public long getInitTimeStamp() { return this.initTimeStamp; }
     public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
 
-    public BenchmarkStressor getStressor(){ return stressor; }
+    public AbstractBenchmarkStressor getStressor(){ return stressor; }
 
 }
