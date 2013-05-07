@@ -25,11 +25,20 @@ import static org.radargun.utils.Utils.numberFormat;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
-public abstract class AbstractBenchmarkStage extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends BenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
     /* ***************** */
+
+    private static final String SCRIPT_LAUNCH = "_script_launch_";
+
+    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
+
+    /**
+     * the number of nodes in the Radargun cluster.
+     */
+    protected int numSlaves = 0;
 
     /**
      * the number of threads that will work on this slave
@@ -81,27 +90,14 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
     protected boolean perThreadTrackNewKeys = false;
 
+    private S parameters;
+
 
     /* ****************** */
     /* ** TO OVERRIDE *** */
     /* ****************** */
 
-    public abstract void initialization();
-
-    public abstract void validateTransactionsWeight();
-
-    public abstract RequestType nextTransaction();
-
-    public abstract Transaction generateTransaction(RequestType type, int threadIndex);
-
-    public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
-
-    public abstract double getWriteWeight();
-
-    public abstract double getReadWeight();
-
-    protected abstract void getStressorConfiguration(); // TODO da finire
-
+    protected abstract S createStressorConfiguration(); // TODO da finire
 
 
 
@@ -109,10 +105,38 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
     /* *** METHODS *** */
     /* *************** */
 
+
+    protected S getStressorParameters(){
+
+        if(parameters!=null)
+            return parameters;
+
+        S parameters = createStressorConfiguration();
+
+        parameters.setNodeIndex(getSlaveIndex());
+        parameters.setBackOffTime(backOffTime);
+        parameters.setRetryOnAbort(retryOnAbort);
+        parameters.setRetryOnAbort(retrySameXact);
+        parameters.setPerThreadSimulTime(perThreadSimulTime);
+        parameters.setNumOfThreads(numOfThreads);
+        parameters.setNumSlaves(getActiveSlaveCount());
+        parameters.setStatsSamplingInterval(statsSamplingInterval);
+
+        return parameters;
+    }
+
+    public abstract BenchmarkStressor createStressor();
+
     public void initOnMaster(MasterState masterState, int slaveIndex) {
         super.initOnMaster(masterState, slaveIndex);
+        Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
+        if (started == null || !started) {
+            masterState.put(SCRIPT_LAUNCH, startScript());
+        }
         this.setInitTimeStamp();
     }
+
+
 
     @Override
     public DistStageAck executeOnSlave() {
@@ -126,19 +150,8 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
 
         trackNewKeys();
 
-        StressorParameter parameters = new StressorParameter();
-
-        parameters.setNodeIndex(getSlaveIndex());
-        parameters.setBackOffTime(backOffTime);
-        parameters.setRetryOnAbort(retryOnAbort);
-        parameters.setRetryOnAbort(retrySameXact);
-        parameters.setPerThreadSimulTime(perThreadSimulTime);
-        parameters.setNumOfThreads(numOfThreads);
-        parameters.setNumSlaves(getActiveSlaveCount());
-        parameters.setStatsSamplingInterval(statsSamplingInterval);
-
-
-        stressor = new BenchmarkStressor(cacheWrapper, this, system, parameters);
+        stressor = createStressor();
+                //new BenchmarkStressor(cacheWrapper, this, system, parameters);
 
         // TODO da risolvere
         //stressor.setPaymentWeight(this.paymentWeight);
@@ -276,6 +289,17 @@ public abstract class AbstractBenchmarkStage extends AbstractDistStage {
             }
         }
         return success;
+    }
+
+    private Boolean startScript() {
+        try {
+            Runtime.getRuntime().exec(SCRIPT_PATH);
+            log.info("Script " + SCRIPT_PATH + " started successfully");
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.warn("Error starting script " + SCRIPT_PATH + ". " + e.getMessage());
+            return Boolean.FALSE;
+        }
     }
 
 

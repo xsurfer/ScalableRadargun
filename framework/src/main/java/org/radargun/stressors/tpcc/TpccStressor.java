@@ -2,74 +2,54 @@ package org.radargun.stressors.tpcc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.CacheWrapper;
 import org.radargun.Transaction;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.BenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
+import org.radargun.stressors.StressorParameter;
+import org.radargun.stressors.consumer.Consumer;
 import org.radargun.stressors.producer.RequestType;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
-
-
+import org.radargun.stressors.tpcc.consumer.TpccConsumer;
+import org.radargun.workloadGenerator.SystemType;
 import java.util.*;
 
 
 /**
- * On multiple threads executes implementations of TPC-C Transaction Profiles against the CacheWrapper, and returns the
- * result as a Map.
- *
- * @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
- * @author Pedro Ruivo
- * @author Fabio Perfetti (refactored)
- */
+* On multiple threads executes implementations of TPC-C Transaction Profiles against the CacheWrapper, and returns the
+* result as a Map.
+*
+* @author peluso@gsd.inesc-id.pt , peluso@dis.uniroma1.it
+* @author Pedro Ruivo
+* @author Fabio Perfetti (refactored)
+*/
 
-public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, TpccStats> {
+public class TpccStressor extends BenchmarkStressor<TpccStressorParameter, TpccConsumer> {
 
 
     private static Log log = LogFactory.getLog(TpccStressor.class);
 
-    /**
-     * percentage of Payment transactions
-     */
-    private int paymentWeight = 45;
-
-    /**
-     * percentage of Order Status transactions
-     */
-    private int orderStatusWeight = 5;
-
-    /**
-     * if true, each node will pick a warehouse and all transactions will work over that warehouse. The warehouses are
-     * picked by order, i.e., slave 0 gets warehouse 1,N+1, 2N+1,[...]; ... slave N-1 gets warehouse N, 2N, [...].
-     */
-    private boolean accessSameWarehouse = false;
-
-    /**
-     * specify the min and the max number of items created by a New Order Transaction.
-     * format: min,max
-     */
-    private String numberOfItemsInterval = null;
+    private List<TpccTerminal> terminals = new ArrayList<TpccTerminal>();
 
     private final List<Integer> listLocalWarehouses = new LinkedList<Integer>();
-
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public TpccStressor(AbstractWorkloadGenerator loadGenerator) {
-        super(loadGenerator);
+    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccStressorParameter parameters) {
+        super(cacheWrapper, benchmarkStage, system, parameters);
     }
 
     /* ****************** */
     /* *** OVERRIDING *** */
     /* ****************** */
 
-    @Override
     public TpccStats createStatsContainer(){
         return new TpccStats();
     }
 
-    @Override
     protected void extractExtraStats(TpccStats totalStats, TpccStats singleStats){
 
         totalStats.inc(TpccStats.NEW_ORDER_DURATION, singleStats.get(TpccStats.NEW_ORDER_DURATION)); // in nanosec
@@ -86,7 +66,7 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
         totalStats.inc(TpccStats.NUM_PAYMENT_DEQUEUED, singleStats.get(TpccStats.NUM_PAYMENT_DEQUEUED));
     }
 
-    @Override
+    //@Override
     protected void fillMapWithExtraStats(TpccStats totalStats, Map<String, String> results){
 
         /* 1) Converting from nanoseconds to milliseconds && filling the stats obj */
@@ -108,30 +88,28 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
         results.put("AVG_PAYMENT_SERVICE_TIME (usec)", str( totalStats.evalAvgPaymentServiceTime() ));
         results.put("AVG_NEW_ORDER_INQUEUE_TIME (usec)", str( totalStats.evalAvgNewOrderInQueueTime() ));
         results.put("AVG_PAYMENT_INQUEUE_TIME (usec)", str( totalStats.evalAvgPaymentInQueueTime() ));
-        results.put("TEST_ID", this.testIdString(paymentWeight, orderStatusWeight, numOfThreads));
+        results.put("TEST_ID", this.testIdString(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNumOfThreads()));
 
     }
 
 
-    @Override
     protected void initialization(){
         updateNumberOfItemsInterval();
         initializeToolsParameters();
         calculateLocalWarehouses();
     }
 
-    @Override
+
     public RequestType nextTransaction() {
-        TpccTerminal terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
+        TpccTerminal terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), 0);
         return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
                                                                                   cacheWrapper.isPassiveReplication(),
                                                                                   cacheWrapper.isTheMaster()
                                                                                 ) );
     }
 
-    @Override
-    protected Transaction generateTransaction(RequestType type, int threadIndex) {
 
+    public Transaction generateTransaction(RequestType type, int threadIndex) {
         TpccConsumer consumer = this.consumers.get(threadIndex);
         Transaction transaction = consumer.getTerminal().createTransaction(type.transactionType, threadIndex);
         return transaction;
@@ -148,14 +126,13 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
     @Override
     protected TpccConsumer createConsumer(int threadIndex) {
         int localWarehouse = getWarehouseForThread(threadIndex);
-        return new TpccConsumer(localWarehouse, threadIndex, nodeIndex, paymentWeight, orderStatusWeight);
+        return new TpccConsumer(localWarehouse, threadIndex, cacheWrapper, system, benchmarkStage, this, parameters);
     }
-
 
 
     @Override
     protected void validateTransactionsWeight() {
-        int sum = orderStatusWeight + paymentWeight;
+        int sum = parameters.getOrderStatusWeight() + parameters.getPaymentWeight();
         if (sum < 0 || sum > 100) {
             throw new IllegalArgumentException("The sum of the transactions weights must be higher or equals than zero " +
                     "and less or equals than one hundred");
@@ -164,13 +141,13 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
 
     @Override
     protected double getWriteWeight() {
-        double writeWeight = Math.max(100 - orderStatusWeight, paymentWeight) / 100D;
+        double writeWeight = Math.max(100 - parameters.getOrderStatusWeight(), parameters.getPaymentWeight()) / 100D;
         return writeWeight;
     }
 
     @Override
     protected double getReadWeight() {
-        double readWeight = orderStatusWeight / 100D;
+        double readWeight = parameters.getOrderStatusWeight() / 100D;
         return readWeight;
     }
 
@@ -182,10 +159,10 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
     /* *************** */
 
     private void updateNumberOfItemsInterval() {
-        if (numberOfItemsInterval == null) {
+        if (parameters.getNumberOfItemsInterval() == null) {
             return;
         }
-        String[] split = numberOfItemsInterval.split(",");
+        String[] split = parameters.getNumberOfItemsInterval().split(",");
 
         if (split.length != 2) {
             log.info("Cannot update the min and max values for the number of items in new order transactions. " +
@@ -220,54 +197,50 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
     }
 
 
-
-
-
-
     /* ********************* */
     /* *** GETTER/SETTER *** */
     /* ********************* */
 
-    public void setPaymentWeight(int paymentWeight) {
-        this.paymentWeight = paymentWeight;
-    }
-
-    public void setOrderStatusWeight(int orderStatusWeight) {
-        this.orderStatusWeight = orderStatusWeight;
-    }
-
-    public void setAccessSameWarehouse(boolean accessSameWarehouse) {
-        this.accessSameWarehouse = accessSameWarehouse;
-    }
-
-    public void setNumberOfItemsInterval(String numberOfItemsInterval) {
-        this.numberOfItemsInterval = numberOfItemsInterval;
-    }
+//    public void setPaymentWeight(int paymentWeight) {
+//        this.paymentWeight = paymentWeight;
+//    }
+//
+//    public void setOrderStatusWeight(int orderStatusWeight) {
+//        this.orderStatusWeight = orderStatusWeight;
+//    }
+//
+//    public void setAccessSameWarehouse(boolean accessSameWarehouse) {
+//        this.accessSameWarehouse = accessSameWarehouse;
+//    }
+//
+//    public void setNumberOfItemsInterval(String numberOfItemsInterval) {
+//        this.numberOfItemsInterval = numberOfItemsInterval;
+//    }
 
 
 
     @Override
     public String toString() {
         return "TpccStressor{" +
-                "updateTimes=" + perThreadSimulTime +
-                ", paymentWeight=" + paymentWeight +
-                ", orderStatusWeight=" + orderStatusWeight +
-                ", accessSameWarehouse=" + accessSameWarehouse +
-                ", numSlaves=" + numSlaves +
-                ", nodeIndex=" + nodeIndex +
-                ", numOfThreads=" + numOfThreads +
-                ", numberOfItemsInterval=" + numberOfItemsInterval +
-                ", statsSamplingInterval=" + statsSamplingInterval +
+                "updateTimes=" + parameters.getPerThreadSimulTime() +
+                ", paymentWeight=" + parameters.getPaymentWeight() +
+                ", orderStatusWeight=" + parameters.getOrderStatusWeight() +
+                ", accessSameWarehouse=" + parameters.isAccessSameWarehouse() +
+                ", numSlaves=" + parameters.getNumSlaves() +
+                ", nodeIndex=" + parameters.getNodeIndex() +
+                ", numOfThreads=" + parameters.getNumOfThreads() +
+                ", numberOfItemsInterval=" + parameters.getNumberOfItemsInterval() +
+                ", statsSamplingInterval=" + parameters.getStatsSamplingInterval() +
                 '}';
     }
 
 
     private void calculateLocalWarehouses() {
-        if (accessSameWarehouse) {
-            TpccTools.selectLocalWarehouse(numSlaves, nodeIndex, listLocalWarehouses);
+        if (parameters.isAccessSameWarehouse()) {
+            TpccTools.selectLocalWarehouse(parameters.getNumSlaves(), parameters.getNodeIndex(), listLocalWarehouses);
             if (log.isDebugEnabled()) {
                 log.debug("Find the local warehouses. Number of Warehouses=" + TpccTools.NB_WAREHOUSES + ", number of slaves=" +
-                        numSlaves + ", node index=" + nodeIndex + ".Local warehouses are " + listLocalWarehouses);
+                        parameters.getNumSlaves() + ", node index=" + parameters.getNodeIndex() + ".Local warehouses are " + listLocalWarehouses);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -276,11 +249,12 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
         }
     }
 
-   /*
+
+     /*
     * For the review, the workload is the following:
-    * 
+    *
     * high contention: change(1, 85, 10);
-    * low contention: change(nodeIndex + 1, 45, 50); 
+    * low contention: change(nodeIndex + 1, 45, 50);
     */
 
 //    public synchronized final void highContention(int payment, int order) {
@@ -346,15 +320,15 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
     }
 
     public synchronized final double getExpectedWritePercentage() {
-        return 1.0 - (orderStatusWeight / 100.0);
+        return 1.0 - (parameters.getOrderStatusWeight() / 100.0);
     }
 
     public synchronized final int getPaymentWeight() {
-        return paymentWeight;
+        return parameters.getPaymentWeight();
     }
 
     public synchronized final int getOrderStatusWeight() {
-        return orderStatusWeight;
+        return parameters.getOrderStatusWeight();
     }
 
 
@@ -362,75 +336,4 @@ public class TpccStressor extends BenchmarkStressor<TpccStressor.TpccConsumer, T
     private String testIdString(long payment, long orderStatus, long threads) {
         return threads + "T_" + payment + "PA_" + orderStatus + "OS";
     }
-
-
-    /* ************************** */
-    /* *** TpccConsumer CLASS *** */
-    /* ************************** */
-
-    public class TpccConsumer extends BenchmarkStressor<?, TpccStats>.Consumer {
-
-        private final TpccTerminal terminal;
-
-        public TpccConsumer(int localWarehouseID, int threadIndex, int nodeIndex, double paymentWeight, double orderStatusWeight) {
-            super(threadIndex);
-
-            stats = new TpccStats();
-            this.threadIndex = threadIndex;
-            this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, localWarehouseID);
-        }
-
-        public TpccTerminal getTerminal(){ return terminal; }
-
-    }
-
-
-   /* ************************** */
-   /* ***** PRODUCER CLASS ***** */
-   /* ************************** */
-
-//    private class Producer extends Thread {
-//        private final ProducerRate rate;
-//        private final TpccTerminal terminal;
-//        private boolean running = false;
-//
-//        public Producer(ProducerRate rate, int id) {
-//            super("Producer-" + id);
-//            setDaemon(true);
-//            this.rate = rate;
-//            this.terminal = new TpccTerminal(paymentWeight, orderStatusWeight, nodeIndex, 0);
-//        }
-//
-//        public void run() {
-//            if (log.isDebugEnabled()) {
-//                log.debug("Starting " + getName() + " with rate of " + rate.getLambda());
-//            }
-//            while (assertRunning()) {
-//                queue.offer(new RequestType(System.nanoTime(), terminal.chooseTransactionType(
-//                        cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster()
-//                )));
-//                countJobs.incrementAndGet();
-//                rate.sleep();
-//            }
-//        }
-//
-//        private synchronized boolean assertRunning() {
-//            return running;
-//        }
-//
-//        @Override
-//        public synchronized void start() {
-//            if (running) return;
-//            running = true;
-//            super.start();
-//        }
-//
-//        @Override
-//        public synchronized void interrupt() {
-//            if (!running) return;
-//            running = false;
-//            super.interrupt();
-//        }
-//    }
-
 }

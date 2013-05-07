@@ -1,11 +1,7 @@
 package org.radargun.workloadGenerator;
 
-import org.radargun.CacheWrapper;
-import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stressors.BenchmarkStressor;
-import org.radargun.stressors.StressorParameter;
 import org.radargun.stressors.consumer.Consumer;
-import org.radargun.stressors.consumer.MuleConsumer;
 import java.util.Map;
 
 /**
@@ -23,21 +19,13 @@ public class MuleSystem implements SystemType {
     }
 
     @Override
-    public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters) {
-        Consumer consumer = null;
-        consumer = new MuleConsumer(cacheWrapper,
-                threadIndex,
-                this,
-                benchmarkStage,
-                stressor,
-                parameters
-        );
-        return consumer;
+    public Map<String, String> stress(BenchmarkStressor stressor) {
+        return stressor.stress(this);
     }
 
     @Override
-    public Map<String, String> stress(BenchmarkStressor stressor) {
-        return stressor.stress(this);
+    public void consume(Consumer consumer) {
+        consumer.consume(this);
     }
 
     @Override

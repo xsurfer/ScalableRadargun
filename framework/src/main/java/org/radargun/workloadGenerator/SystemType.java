@@ -20,9 +20,11 @@ public interface SystemType {
 
     public String getType();
 
-    public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters);
+    //public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters);
 
     public Map<String, String> stress(BenchmarkStressor stressor);
+
+    public void consume(Consumer consumer);
 
     public void finishBenchmark(BenchmarkStressor stressor);
 }

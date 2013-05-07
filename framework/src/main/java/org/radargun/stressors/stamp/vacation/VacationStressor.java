@@ -56,7 +56,7 @@ public class VacationStressor extends BenchmarkStressor<BenchmarkStressor.Consum
     }
 
     @Override
-    protected RequestType nextTransaction() {
+    public RequestType nextTransaction() {
 
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, percentUser);
@@ -85,7 +85,7 @@ public class VacationStressor extends BenchmarkStressor<BenchmarkStressor.Consum
     }
 
     @Override
-    protected Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+    public Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, percentUser);
         RequestType requestType = new RequestType(System.nanoTime(),action);

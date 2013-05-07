@@ -11,15 +11,14 @@ import org.radargun.stressors.commons.StressorStats;
 import org.radargun.stressors.exceptions.ApplicationException;
 import org.radargun.stressors.producer.ProducerRate;
 import org.radargun.stressors.producer.RequestType;
-import org.radargun.workloadGenerator.AbstractWorkloadGenerator;
-import org.radargun.workloadGenerator.SystemType;
+import org.radargun.workloadGenerator.*;
 
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
  * Date: 4/24/13
  */
-public abstract class Consumer<T extends SystemType> extends Thread {
+public class Consumer extends Thread {
 
     private static Log log = LogFactory.getLog(Consumer.class);
 
@@ -27,15 +26,13 @@ public abstract class Consumer<T extends SystemType> extends Thread {
 
     protected int threadIndex;
 
-    protected T system;
+    protected SystemType system;
 
     protected AbstractBenchmarkStage stage;
 
     protected BenchmarkStressor stressor;
 
     protected StressorParameter parameters;
-
-
 
     public StressorStats stats;
 
@@ -51,7 +48,7 @@ public abstract class Consumer<T extends SystemType> extends Thread {
 
     public Consumer(CacheWrapper cacheWrapper,
                     int threadIndex,
-                    T system,
+                    SystemType system,
                     AbstractBenchmarkStage stage,
                     BenchmarkStressor stressor,
                     StressorParameter parameters) {
@@ -82,7 +79,120 @@ public abstract class Consumer<T extends SystemType> extends Thread {
     /* *** TO OVERRIDE *** */
     /* ******************* */
 
-    protected abstract void consume();
+    public void consume(OpenSystem system){
+        Transaction tx;
+        long dequeueTimestamp = -1;
+        boolean successful = true;
+
+        while (assertRunning()) {
+            /* 1- Extracting && generating request from queue */
+            tx = null;
+            dequeueTimestamp = -1;
+
+            RequestType request = stressor.takeFromQueue();
+            dequeueTimestamp = System.nanoTime();
+
+            tx = stressor.generateTransaction(request, threadIndex);
+            tx.setEnqueueTimestamp(request.enqueueTimestamp);
+            tx.setDequeueTimestamp(dequeueTimestamp);
+
+//                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
+//                        if PassiveReplication so skip whether:
+//                        a) master node && readOnly transaction
+//                        b) slave node && write transaction
+//                        boolean masterAndReadOnlyTx = cacheWrapper.isTheMaster() && tx.isReadOnly();
+//                        boolean slaveAndWriteTx = (!cacheWrapper.isTheMaster() && !tx.isReadOnly());
+//
+//                        if (cacheWrapper.isPassiveReplication() && (masterAndReadOnlyTx || slaveAndWriteTx)) {
+//                            continue;
+//                        }
+
+
+            /* updating queue stats */
+            stats._handleQueueTx(tx);
+
+            /* 2- Executing the transaction */
+            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
+            stats._handleEndTx(tx, successful);
+
+            blockIfInactive();
+        }
+    }
+
+    public void consume(ClosedSystem system) {
+
+        Transaction tx;
+        long dequeueTimestamp = -1;
+        boolean successful = true;
+
+        while (assertRunning()) {
+            /* 1- Extracting && generating request from queue */
+            tx = null;
+            dequeueTimestamp = -1;
+
+            RequestType request = stressor.takeFromQueue();
+            dequeueTimestamp = System.nanoTime();
+
+            tx = stressor.generateTransaction(request, threadIndex);
+            tx.setEnqueueTimestamp(request.enqueueTimestamp);
+            tx.setDequeueTimestamp(dequeueTimestamp);
+
+//                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
+//                        if PassiveReplication so skip whether:
+//                        a) master node && readOnly transaction
+//                        b) slave node && write transaction
+//                        boolean masterAndReadOnlyTx = cacheWrapper.isTheMaster() && tx.isReadOnly();
+//                        boolean slaveAndWriteTx = (!cacheWrapper.isTheMaster() && !tx.isReadOnly());
+//
+//                        if (cacheWrapper.isPassiveReplication() && (masterAndReadOnlyTx || slaveAndWriteTx)) {
+//                            continue;
+//                        }
+
+
+            /* updating queue stats */
+            stats._handleQueueTx(tx);
+
+            /* 2- Executing the transaction */
+            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
+            stats._handleEndTx(tx, successful);
+
+            // notify the producer
+            tx.notifyProducer();
+
+            blockIfInactive();
+        }
+    }
+
+    public void consume(MuleSystem system){
+
+        Transaction tx;
+        long dequeueTimestamp = -1;
+        boolean successful = true;
+
+        while (assertRunning()) {
+            /* 1- Extracting && generating request from queue */
+            tx = null;
+            dequeueTimestamp = -1;
+
+            //log.info("Mule system: starting a brand new transaction of type " + tx.getType());
+            tx = stressor.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
+
+            /* 2- Executing the transaction */
+            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
+            tx.setDequeueTimestamp(tx.getStartTimestamp()); // No queuing time
+
+            stats._handleEndTx(tx, successful);
+
+            // sleep think time
+            try {
+                Thread.sleep(system.getThinkTime());
+            } catch (InterruptedException e) {
+                log.warn("Interrupt!");
+            }
+
+            blockIfInactive();
+        }
+    }
 
 
 
@@ -95,7 +205,7 @@ public abstract class Consumer<T extends SystemType> extends Thread {
         // TODO refactoring!!!
 
         synchronize();
-        consume();
+        system.consume(this);
     }
 
 
@@ -188,7 +298,7 @@ public abstract class Consumer<T extends SystemType> extends Thread {
 
         if (!lastSuccessful && !parameters.isRetrySameXact()) {
             this.backoffIfNecessary();
-            Transaction newTransaction = stage.generateTransaction(new RequestType(System.nanoTime(), oldTransaction.getType()), threadIndex);
+            Transaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), oldTransaction.getType()), threadIndex);
             copyTimeStampInformation(oldTransaction, newTransaction);
             log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +
                     " into a transaction of type " + newTransaction.getType());

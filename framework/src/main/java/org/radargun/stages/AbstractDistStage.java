@@ -43,6 +43,7 @@ public abstract class AbstractDistStage implements DistStage {
     protected boolean exitBenchmarkOnSlaveFailure = false;
 
     protected int slaveIndex;
+
     private int activeSlavesCount;
 
     private int totalSlavesCount;

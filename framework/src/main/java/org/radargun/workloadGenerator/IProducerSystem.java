@@ -15,6 +15,6 @@ import java.util.List;
  */
 public abstract interface IProducerSystem extends SystemType {
 
-    public List<Producer> createProducers(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters);
+    //public List<Producer> createProducers(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, BenchmarkStressor stressor, StressorParameter parameters);
 
 }

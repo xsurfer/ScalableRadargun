@@ -3,6 +3,7 @@ package org.radargun.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.Transaction;
 import org.radargun.stressors.consumer.Consumer;
 import org.radargun.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
@@ -26,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *         E-mail: perfabio87@gmail.com
  *         Date: 4/1/13
  */
-public class BenchmarkStressor extends AbstractCacheWrapperStressor implements Observer {
+public abstract class BenchmarkStressor<T extends StressorParameter, S extends Consumer> extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -68,17 +69,15 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     protected BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
 
-
-
     protected final List<Producer> producers = Collections.synchronizedList(new ArrayList<Producer>());
 
-    protected final List<Consumer> consumers = Collections.synchronizedList(new LinkedList<Consumer>());
+    protected final List<S> consumers = Collections.synchronizedList(new LinkedList<S>());
 
     protected AbstractBenchmarkStage benchmarkStage;
 
     protected SystemType system;
 
-    protected StressorParameter parameters;
+    protected T parameters;
 
 
 
@@ -89,7 +88,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
     public BenchmarkStressor(CacheWrapper cacheWrapper,
                              AbstractBenchmarkStage benchmarkStage,
                              SystemType system,
-                             StressorParameter parameters) {
+                             T parameters) {
 
         if (cacheWrapper == null) { throw new IllegalStateException("Null wrapper not allowed"); }
 
@@ -112,11 +111,26 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     //protected abstract void fillMapWithExtraStats(S totalStats, Map<String, String> results);
 
+    protected abstract void initialization();
+
+    protected abstract void validateTransactionsWeight();
+
+    public abstract RequestType nextTransaction();
+
+    public abstract Transaction generateTransaction(RequestType type, int threadIndex);
+
+    public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+
+    protected abstract double getWriteWeight();
+
+    protected abstract double getReadWeight();
 
 
     /* ****************** */
     /* ***** METHODS **** */
     /* ****************** */
+
+    protected abstract S createConsumer(int threadIndex);
 
     public void addToQueue(RequestType r){
         queue.offer(r);
@@ -142,8 +156,8 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         log.trace("Registring this Stressor to the WorkLoadGenerator (Observable)");
         system.getWorkloadGenerator().addObserver(this);
 
-        benchmarkStage.validateTransactionsWeight();
-        benchmarkStage.initialization();
+        validateTransactionsWeight();
+        initialization();
         if( initBenchmarkTimer() ){
             if ( parameters.getStatsSamplingInterval() > 0 ) {
                 statSampler = new StatSampler( parameters.getStatsSamplingInterval() );
@@ -215,7 +229,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
         startPoint = new CountDownLatch(1);
         for (int threadIndex = 0; threadIndex < parameters.getNumOfThreads(); threadIndex++) {
-            Consumer consumer = system.createConsumer(cacheWrapper, threadIndex, benchmarkStage, this, parameters);
+            S consumer = createConsumer(threadIndex);
             consumers.add(consumer);
             consumer.start();
         }
@@ -326,7 +340,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
 
     //public abstract StressorStats createStatsContainer();
 
-    protected Map<String, String> processResults(List<Consumer> consumers) {
+    protected Map<String, String> processResults(List<S> consumers) {
 
         long duration = 0;
         StressorStats totalStats = new StressorStats(); //createStatsContainer();
@@ -486,7 +500,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads < 1 || !running.get()) {
             return;
         }
-        Iterator<Consumer> iterator = consumers.iterator();
+        Iterator<S> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
             Consumer consumer = iterator.next();
             if (!consumer.isActive()) {
@@ -498,7 +512,7 @@ public class BenchmarkStressor extends AbstractCacheWrapperStressor implements O
         if (numOfThreads > 0) {
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
-                Consumer consumer = system.createConsumer(cacheWrapper, threadIdx++, benchmarkStage, this, parameters);
+                S consumer = createConsumer(threadIdx++);
                 consumer.start();
                 consumers.add(consumer);
             }

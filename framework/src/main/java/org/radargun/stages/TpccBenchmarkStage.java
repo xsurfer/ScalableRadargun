@@ -1,18 +1,12 @@
 package org.radargun.stages;
 
-import org.radargun.DistStageAck;
 import org.radargun.jmx.annotations.MBean;
-import org.radargun.jmx.annotations.ManagedAttribute;
-import org.radargun.state.MasterState;
-import org.radargun.stressors.tpcc.TpccStressor;
+
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
+import org.radargun.stressors.BenchmarkStressor;
+import org.radargun.stressors.tpcc.TpccStressor;
+import org.radargun.stressors.tpcc.TpccStressorParameter;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.lang.Double.parseDouble;
-import static org.radargun.utils.Utils.numberFormat;
 
 /**
  * Simulate the activities found in complex OLTP application environments.
@@ -30,11 +24,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
-
-    private static final String SCRIPT_LAUNCH = "_script_launch_";
-
-    private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccStressorParameter> {
 
 
     /**
@@ -71,63 +61,72 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
     /* ****************** */
 
     @Override
-    public void initOnMaster(MasterState masterState, int slaveIndex) {
-        super.initOnMaster(masterState, slaveIndex);
-        Boolean started = (Boolean) masterState.get(SCRIPT_LAUNCH);
-        if (started == null || !started) {
-            masterState.put(SCRIPT_LAUNCH, startScript());
-        }
+    protected TpccStressorParameter createStressorConfiguration(){
+        TpccStressorParameter parameters = new TpccStressorParameter();
+        parameters.setPaymentWeight(paymentWeight);
+        parameters.setOrderStatusWeight(orderStatusWeight);
+        parameters.setAccessSameWarehouse(accessSameWarehouse);
+        parameters.setNumberOfItemsInterval(numberOfItemsInterval);
+
+        AbstractTpccTransaction.setAvoidNotFoundExceptions(avoidMiss);
+        return parameters;
     }
 
     @Override
-    public DistStageAck executeOnSlave() {
-        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
-        this.cacheWrapper = slaveState.getCacheWrapper();
-        if (cacheWrapper == null) {
-            log.info("Not running test on this slave as the wrapper hasn't been configured.");
-            return result;
-        }
-
-        log.info("Starting TpccBenchmarkStage: " + this.toString());
-
-        trackNewKeys();
-
-        stressor = new TpccStressor(this.workloadGenerator);
-        stressor.setNodeIndex(getSlaveIndex());
-        stressor.setNumSlaves(getActiveSlaveCount());
-        stressor.setNumOfThreads(this.numOfThreads);
-        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
-        stressor.setStatsSamplingInterval(statsSamplingInterval);
-        stressor.setBackOffTime(backOffTime);
-        stressor.setRetryOnAbort(retryOnAbort);
-        stressor.setRetrySameXact(retrySameXact);
-        stressor.setPaymentWeight(this.paymentWeight);
-        stressor.setOrderStatusWeight(this.orderStatusWeight);
-        stressor.setAccessSameWarehouse(accessSameWarehouse);
-        stressor.setNumberOfItemsInterval(numberOfItemsInterval);
-
-
-        AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
-
-        try {
-            Map<String, String> results = stressor.stress(cacheWrapper);
-            if (results != null) {
-                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
-                        ", clusterSize:" + super.getActiveSlaveCount() +
-                        ", nodeIndex:" + super.getSlaveIndex() +
-                        ", cacheSize: " + cacheWrapper.getCacheSize();
-                log.info(sizeInfo);
-                results.put(SIZE_INFO, sizeInfo);
-            }
-            result.setPayload(results);
-            return result;
-        } catch (Exception e) {
-            log.warn("Exception while initializing the test", e);
-            result.setError(true);
-            result.setRemoteException(e);
-            return result;
-        }
+    public BenchmarkStressor createStressor() {
+        return new TpccStressor(cacheWrapper, this, system, getStressorParameters());
     }
+
+
+//    @Override
+//    public DistStageAck executeOnSlave() {
+//        DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
+//        this.cacheWrapper = slaveState.getCacheWrapper();
+//        if (cacheWrapper == null) {
+//            log.info("Not running test on this slave as the wrapper hasn't been configured.");
+//            return result;
+//        }
+//
+//        log.info("Starting TpccBenchmarkStage: " + this.toString());
+//
+//        trackNewKeys();
+//
+//        stressor = new TpccStressor(this.workloadGenerator);
+//        stressor.setNodeIndex(getSlaveIndex());
+//        stressor.setNumSlaves(getActiveSlaveCount());
+//        stressor.setNumOfThreads(this.numOfThreads);
+//        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+//        stressor.setStatsSamplingInterval(statsSamplingInterval);
+//        stressor.setBackOffTime(backOffTime);
+//        stressor.setRetryOnAbort(retryOnAbort);
+//        stressor.setRetrySameXact(retrySameXact);
+//        stressor.setPaymentWeight(this.paymentWeight);
+//        stressor.setOrderStatusWeight(this.orderStatusWeight);
+//        stressor.setAccessSameWarehouse(accessSameWarehouse);
+//        stressor.setNumberOfItemsInterval(numberOfItemsInterval);
+//
+//
+//        AbstractTpccTransaction.setAvoidNotFoundExceptions(this.avoidMiss);
+//
+//        try {
+//            Map<String, String> results = stressor.stress(cacheWrapper);
+//            if (results != null) {
+//                String sizeInfo = "size info: " + cacheWrapper.getInfo() +
+//                        ", clusterSize:" + super.getActiveSlaveCount() +
+//                        ", nodeIndex:" + super.getSlaveIndex() +
+//                        ", cacheSize: " + cacheWrapper.getCacheSize();
+//                log.info(sizeInfo);
+//                results.put(SIZE_INFO, sizeInfo);
+//            }
+//            result.setPayload(results);
+//            return result;
+//        } catch (Exception e) {
+//            log.warn("Exception while initializing the test", e);
+//            result.setError(true);
+//            result.setRemoteException(e);
+//            return result;
+//        }
+//    }
 
     @Override
     public String toString() {
@@ -149,16 +148,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
     /* *** METHODS *** */
     /* *************** */
 
-    private Boolean startScript() {
-        try {
-            Runtime.getRuntime().exec(SCRIPT_PATH);
-            log.info("Script " + SCRIPT_PATH + " started successfully");
-            return Boolean.TRUE;
-        } catch (Exception e) {
-            log.warn("Error starting script " + SCRIPT_PATH + ". " + e.getMessage());
-            return Boolean.FALSE;
-        }
-    }
+
 
 
 
@@ -212,22 +202,23 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor> {
 //      tpccStressor.randomContention(payment, order);
 //   }
 
-    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
-    public final double getExpectedWritePercentage() {
-        return stressor.getExpectedWritePercentage();
-    }
-
-    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
-    public final int getPaymentWeight() {
-        return stressor.getPaymentWeight();
-    }
-
-    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
-    public final int getOrderStatusWeight() {
-        return stressor.getOrderStatusWeight();
-    }
+//    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
+//    public final double getExpectedWritePercentage() {
+//        return stressor.getExpectedWritePercentage();
+//    }
+//
+//    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
+//    public final int getPaymentWeight() {
+//        return stressor.getPaymentWeight();
+//    }
+//
+//    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
+//    public final int getOrderStatusWeight() {
+//        return stressor.getOrderStatusWeight();
+//    }
 
     public TpccBenchmarkStage clone() {
         return (TpccBenchmarkStage) super.clone();
     }
+
 }
