@@ -177,13 +177,15 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
             log.trace("Starting the workload generator");
             system.getWorkloadGenerator().start();
 
-            log.trace("Sampler started");
-            if (statSampler != null) { statSampler.start(); }
 
-            executeOperations(system);
+            if (statSampler != null) { statSampler.start(); log.trace("Sampler started"); }
 
+            executeOperations();
+
+            log.info("Stopping Sampler");
             if (statSampler != null) {
                 statSampler.cancel();
+                log.info("Sampler Stopped");
             }
             return processResults(consumers);
         } else {
@@ -230,9 +232,10 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         return false;
     }
 
-    protected void executeOperations(SystemType system) {
+    protected void executeOperations() {
 
         startPoint = new CountDownLatch(1);
+        parameters.setStartPoint(startPoint);
         for (int threadIndex = 0; threadIndex < parameters.getNumOfThreads(); threadIndex++) {
             S consumer = createConsumer(threadIndex);
             consumers.add(consumer);
@@ -249,7 +252,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                 throw new RuntimeException(e);
             }
         }
-
+        log.info("Fine executeOperations");
         endTime = System.currentTimeMillis();
         //return consumers;
     }
@@ -258,35 +261,29 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         while (running.get()) {
             try {
                 wait();
+                log.info("Sveglio");
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    protected final synchronized void finishBenchmark() {
+    protected final void finishBenchmark() {
         if (running.compareAndSet(true, false)) {
+            log.info("Running è: " + running.get());
             system.finishBenchmark(this);
+            log.info("Running è: " + running.get());
         }
     }
 
-    public void finishBenchmark(OpenSystem system) {
-        stopConsumers();
-        /* stoppo i producer */
-        log.trace("Stopping producers");
-        stopProducers();
-
+    public synchronized void finishBenchmark(OpenSystem system) {
+        log.info("Running è (deve essere FALSE else errore): " + running.get());
         log.trace("Stopping workload generator");
-        /* stoppo il workload generator */
         system.getWorkloadGenerator().stop();
 
-        log.trace("Waking up waiting thread");
-        notifyAll();
-    }
-
-    public void finishBenchmark(ClosedSystem system) {
+        log.trace("Stopping consumers");
         stopConsumers();
-        /* stoppo i producer */
+
         log.trace("Stopping producers");
         stopProducers();
 
@@ -294,7 +291,17 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         notifyAll();
     }
 
-    public void finishBenchmark(MuleSystem system) {
+    public synchronized void finishBenchmark(ClosedSystem system) {
+        stopConsumers();
+
+        log.trace("Stopping producers");
+        stopProducers();
+
+        log.trace("Waking up waiting thread");
+        notifyAll();
+    }
+
+    public synchronized void finishBenchmark(MuleSystem system) {
         stopConsumers();
 
         log.trace("Waking up waiting thread");
@@ -302,7 +309,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     }
 
     private void stopConsumers() {
-        synchronized (consumers) {
+        log.info("Running è: " + running.get());
+        synchronized(consumers){
             for (Consumer stressor : consumers) {
                 stressor.finish();
             }
@@ -310,32 +318,34 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     }
 
     private void stopProducers() {
-        synchronized (producers) {
+        log.info("Running è: " + running.get());
+        synchronized(producers){
             for (Producer producer : producers) {
-                producer.interrupt();
+            producer.interrupt();
             }
         }
     }
 
     private void startProducers() {
-        synchronized (producers) {
-            for (Producer producer : producers) {
-                producer.start();
+        log.info("Running è: " + running.get());
+        if (running.get()) {
+            synchronized(producers){
+                for (Producer producer : producers) {
+                    producer.start();
+                }
             }
         }
     }
 
     private void updateProducer(OpenSystem system) {
-        synchronized (running) {
+        synchronized (running){
             if (running.get()) {
                 log.info("Stopping old producer");
                 stopProducers();
-
-                synchronized (producers) {
+                synchronized(producers){
                     producers.clear();
                     producers.addAll(system.createProducers(this));
                 }
-
                 log.info("Starting " + producers.size() + " producers");
                 startProducers();
             }
@@ -504,31 +514,35 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
      */
     @Override
     public final void update(Observable o, Object arg) {
-        if(system.getType().equals(SystemType.OPEN)){
-            // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
-            // aggiorno i producer
+        synchronized (running){
+            if (running.get()) {
+                if(system.getType().equals(SystemType.OPEN)){
+                    // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
+                    // aggiorno i producer
 
-            Integer cmd = (Integer) arg;
+                    Integer cmd = (Integer) arg;
 
-            switch (cmd) {
-                case CacheWrapper.VIEW_CHANGED:
-                    log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-                    updateProducer( (OpenSystem) system );
-                    break;
-                case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
-                    log.info("Arrival rate changed");
-                    if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
-                        this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
-                        updateProducer( (OpenSystem) system );
+                    switch (cmd) {
+                        case CacheWrapper.VIEW_CHANGED:
+                            log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
+                            updateProducer( (OpenSystem) system );
+                            break;
+                        case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
+                            log.info("Arrival rate changed");
+                            if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
+                                this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
+                                updateProducer( (OpenSystem) system );
+                            }
+                            break;
+                        default:
+                            log.warn("Unrecognized argument");
+                            break;
                     }
-                    break;
-                default:
-                    log.warn("Unrecognized argument");
-                    break;
+                } else {
+                    // è cambiata solo la dimensione del cluster
+                    // i producer (se presenti) non sono da cambiare
+                }
             }
-        } else {
-            // è cambiata solo la dimensione del cluster
-            // i producer (se presenti) non sono da cambiare
         }
     }
 

@@ -32,6 +32,7 @@ public abstract class Producer extends Thread {
             stressor.countJobs.incrementAndGet();
             sleep();
         }
+        log.info("Producer is dying");
     }
 
     protected abstract double getSleepTime();

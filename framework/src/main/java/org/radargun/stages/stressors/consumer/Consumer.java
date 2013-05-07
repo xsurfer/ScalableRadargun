@@ -17,6 +17,8 @@ import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.SystemType;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
@@ -44,7 +46,7 @@ public class Consumer extends Thread {
 
     protected boolean running = true;
 
-    protected boolean active = true;
+    protected AtomicBoolean active = new AtomicBoolean(true);
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
@@ -120,6 +122,7 @@ public class Consumer extends Thread {
             stats._handleEndTx(tx, successful);
 
             blockIfInactive();
+            log.info("Consumer = { active: " + active + " ; running: " + running);
         }
     }
 
@@ -346,30 +349,31 @@ public class Consumer extends Thread {
 
 
     public final synchronized void inactive() {
-        active = false;
+        active.set(false);
     }
 
 
     public final synchronized void active() {
-        active = true;
+        active.set(true);
         notifyAll();
     }
 
 
     public final synchronized void finish() {
-        active = true;
+        active.set(true);
         running = false;
         notifyAll();
+        log.info("Consumer stopped");
     }
 
 
     public final synchronized boolean isActive() {
-        return active;
+        return active.get();
     }
 
 
     protected synchronized void blockIfInactive() {
-        while (!active) {
+        while (!active.get()) {
             try {
                 wait();
             } catch (InterruptedException e) {

@@ -262,6 +262,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
                 setChanged();
                 notifyObservers( new Integer(AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED) );
             }
+            log.info("Workload has been stopped...lets");
             executor.shutdown();
 
             try {
@@ -272,7 +273,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
 
             prepareOutputFile();
             writeData();
-
+            log.info("Starter died");
         }
     }
 

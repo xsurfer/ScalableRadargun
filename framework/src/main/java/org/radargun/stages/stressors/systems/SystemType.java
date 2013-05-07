@@ -2,6 +2,8 @@ package org.radargun.stages.stressors.systems;
 
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
+
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -9,7 +11,7 @@ import java.util.Map;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public interface SystemType {
+public interface SystemType extends Serializable {
 
     public final static String OPEN = "open";
     public final static String CLOSED = "closed";

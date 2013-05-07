@@ -70,6 +70,7 @@ public class StressorParameter {
     public void setNodeIndex(int val) { nodeIndex = val; }
 
     public CountDownLatch getStartPoint() { return startPoint; }
+    public void setStartPoint(CountDownLatch val) { startPoint = val; }
 
     public long getPerThreadSimulTime() { return perThreadSimulTime; }
     public void setPerThreadSimulTime( long val ) { perThreadSimulTime=val; }

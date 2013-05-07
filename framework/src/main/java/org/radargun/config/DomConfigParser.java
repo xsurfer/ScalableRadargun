@@ -12,7 +12,6 @@ import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.SystemType;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.TypedProperties;
-import org.radargun.workloadGenerator.ClosedWorkloadGenerator;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -192,7 +191,7 @@ public class DomConfigParser extends ConfigParser {
 
                             if (system.getType().equals(SystemType.OPEN)) { // or istanceof OpenSystem
                                 //let's read the workloadGenerator
-                                NodeList systemChildNodes = childEl.getChildNodes();
+                                NodeList systemChildNodes = systemEl.getChildNodes();
                                 for (int k = 0; k < systemChildNodes.getLength(); k++) {
                                     Node workloadChild = systemChildNodes.item(k);
                                     if (workloadChild instanceof Element) {

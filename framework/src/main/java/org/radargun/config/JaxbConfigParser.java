@@ -137,7 +137,7 @@ public class JaxbConfigParser extends ConfigParser {
 
     public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName, AbstractBenchmarkStage stage) {
         if (workloadGeneratorName.indexOf('.') < 0) {
-            workloadGeneratorName = "org.radargun.workloadGenerator." + workloadGeneratorName;
+            workloadGeneratorName = "org.radargun.stages.stressors.systems.workloadGenerators." + workloadGeneratorName;
         }
         try {
             AbstractWorkloadGenerator obj;
