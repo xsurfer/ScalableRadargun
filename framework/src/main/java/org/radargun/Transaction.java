@@ -47,7 +47,7 @@ public abstract class Transaction {
     /* *************** */
 
     public void notifyProducer(){
-        if( producer == null ) { log.warn("No producer to notify (open system?)"); return; }
+        if( producer == null ) { throw new IllegalStateException("No producer to notify (open system?)"); }
         producer.doNotify();
     }
 

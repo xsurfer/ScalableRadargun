@@ -127,7 +127,7 @@ public class Consumer extends Thread {
     }
 
     public void consume(ClosedSystem system) {
-
+        log.info("Consuming in closed system scenario");
         Transaction tx;
         long dequeueTimestamp = -1;
         boolean successful = true;
