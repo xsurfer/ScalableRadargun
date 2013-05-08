@@ -54,6 +54,4 @@ public class ClosedSystem implements IProducerSystem {
     public long getPopulation(){ return population; }
     public void setPopulation(int val){ population = val; }
 
-
-
 }

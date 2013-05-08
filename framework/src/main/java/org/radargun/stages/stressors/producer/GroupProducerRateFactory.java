@@ -94,13 +94,13 @@ public class GroupProducerRateFactory {
      *
      * @return an array of producers
      */
-    public static ProducerRate[] createClients(int populationSize,
+    public static ProducerRate[] createClients(long populationSize,
                                                      AbstractWorkloadGenerator.RateDistribution rateDistribution,
                                                      int numberOfNodes,
                                                      int nodeIndex,
                                                      long thinkTime ) {
 
-        int remainder = populationSize % numberOfNodes;
+        long remainder = populationSize % numberOfNodes;
 
         //this is the producer rate common to all nodes
         int myClients = (int) (populationSize - remainder) / numberOfNodes;
@@ -119,8 +119,6 @@ public class GroupProducerRateFactory {
                 throw new RuntimeException(e);
             }
         }
-
-
         return producers;
     }
 }

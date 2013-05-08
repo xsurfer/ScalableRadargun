@@ -3,7 +3,6 @@ package org.radargun.stages.stressors.stamp.vacation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;

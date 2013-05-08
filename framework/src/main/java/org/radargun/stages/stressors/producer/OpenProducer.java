@@ -25,4 +25,14 @@ public class OpenProducer extends Producer {
     protected void sleep() {
         rate.sleep();
     }
+
+    @Override
+    protected RequestType createRequestType(int reqType) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void doNotify() {
+        // nop
+    }
 }

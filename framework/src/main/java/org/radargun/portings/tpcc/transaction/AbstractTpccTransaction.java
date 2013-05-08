@@ -1,7 +1,7 @@
 package org.radargun.portings.tpcc.transaction;
 
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
+import org.radargun.ITransaction;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.portings.tpcc.dac.CustomerDAC;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author Diego Didona, didona@gsd.inesc-id.pt
  *         Date: 18/12/12
  */
-public abstract class AbstractTpccTransaction extends Transaction {
+public abstract class AbstractTpccTransaction implements ITransaction {
 
    private static boolean avoidNotFoundExceptions = true;
    protected TpccTools tpccTools;

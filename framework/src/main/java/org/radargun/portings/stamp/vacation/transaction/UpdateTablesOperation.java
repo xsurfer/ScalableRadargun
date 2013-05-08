@@ -1,12 +1,12 @@
 package org.radargun.portings.stamp.vacation.transaction;
 
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
+import org.radargun.ITransaction;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.domain.Manager;
 
-public class UpdateTablesOperation extends Transaction {
+public class UpdateTablesOperation implements ITransaction {
 
     final private int[] types;
     final private int[] ids;

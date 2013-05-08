@@ -49,4 +49,8 @@ public class ClosedProducer extends Producer {
             notify();
         }
     }
+
+    protected RequestType createRequestType(int reqType){
+        return new RequestType(System.nanoTime(), reqType, this);
+    }
 }

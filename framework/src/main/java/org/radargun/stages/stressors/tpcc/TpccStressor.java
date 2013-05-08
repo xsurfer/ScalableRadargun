@@ -3,7 +3,6 @@ package org.radargun.stages.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
@@ -98,18 +97,25 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
     }
 
 
-    public RequestType nextTransaction() {
+    public int nextTransaction() {
         TpccTerminal terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), 0);
+
+        return terminal.chooseTransactionType(
+                cacheWrapper.isPassiveReplication(),
+                cacheWrapper.isTheMaster()
+        );
+
+        /*
         return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
                                                                                   cacheWrapper.isPassiveReplication(),
                                                                                   cacheWrapper.isTheMaster()
                                                                                 ) );
+        */
     }
-
 
     public Transaction generateTransaction(RequestType type, int threadIndex) {
         TpccConsumer consumer = this.consumers.get(threadIndex);
-        Transaction transaction = consumer.getTerminal().createTransaction(type.transactionType, threadIndex);
+        Transaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
         return transaction;
     }
 

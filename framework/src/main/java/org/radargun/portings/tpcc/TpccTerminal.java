@@ -2,7 +2,7 @@ package org.radargun.portings.tpcc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.Transaction;
+import org.radargun.ITransaction;
 import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
 import org.radargun.portings.tpcc.transaction.OrderStatusTransaction;
 import org.radargun.portings.tpcc.transaction.PaymentTransaction;
@@ -39,7 +39,7 @@ public class TpccTerminal {
       tpccTools = TpccTools.newInstance();
    }
 
-   public final Transaction createTransaction(int type, int threadId) {
+   public final ITransaction createTransaction(int type, int threadId) {
       switch (type) {
          case PAYMENT:
             return new PaymentTransaction(tpccTools, threadId, indexNode, localWarehouseID);
@@ -54,7 +54,7 @@ public class TpccTerminal {
       }
    }
 
-   public final Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+   public final ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
       return createTransaction(chooseTransactionType(isPassiveReplication, isTheMaster), threadId);
    }
 

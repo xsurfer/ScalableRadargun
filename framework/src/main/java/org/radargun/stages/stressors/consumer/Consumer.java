@@ -3,12 +3,13 @@ package org.radargun.stages.stressors.consumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
+import org.radargun.GeneratedTransactionDecorator;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.StressorParameter;
 import org.radargun.stages.stressors.commons.StressorStats;
 import org.radargun.stages.stressors.exceptions.ApplicationException;
+import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.ProducerRate;
 import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.ClosedSystem;
@@ -99,8 +100,9 @@ public class Consumer extends Thread {
             dequeueTimestamp = System.nanoTime();
 
             tx = stressor.generateTransaction(request, threadIndex);
-            tx.setEnqueueTimestamp(request.enqueueTimestamp);
-            tx.setDequeueTimestamp(dequeueTimestamp);
+            //tx.setEnqueueTimestamp(request.enqueueTimestamp);
+            tx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
+
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
 //                        if PassiveReplication so skip whether:
@@ -141,8 +143,7 @@ public class Consumer extends Thread {
             dequeueTimestamp = System.nanoTime();
 
             tx = stressor.generateTransaction(request, threadIndex);
-            tx.setEnqueueTimestamp(request.enqueueTimestamp);
-            tx.setDequeueTimestamp(dequeueTimestamp);
+            GeneratedTransactionDecorator decoratedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
 //                        if PassiveReplication so skip whether:
@@ -161,10 +162,11 @@ public class Consumer extends Thread {
 
             /* 2- Executing the transaction */
             successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
-            stats._handleEndTx(tx, successful);
+            stats._handleEndTx(decoratedTx, successful);
 
             // notify the producer
-            tx.notifyProducer();
+            notifyProducer(decoratedTx.getRequestType().getProducer());
+            //tx.notifyProducer();
 
             blockIfInactive();
         }
@@ -223,6 +225,11 @@ public class Consumer extends Thread {
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for starting in " + getName());
         }
+    }
+
+    public void notifyProducer(Producer producer){
+        if( producer == null ) { throw new IllegalStateException("No producer to notify (open system?)"); }
+        producer.doNotify();
     }
 
     protected boolean processTransaction(Transaction tx) {

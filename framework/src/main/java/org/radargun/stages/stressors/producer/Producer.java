@@ -28,16 +28,23 @@ public abstract class Producer extends Thread {
         }
         while (assertRunning()) {
 
-            stressor.addToQueue(stressor.nextTransaction());
+            int reqType = stressor.nextTransaction();
+            RequestType request = createRequestType(reqType);
+
+            stressor.addToQueue(request);
             stressor.countJobs.incrementAndGet();
             sleep();
         }
-        log.info("Producer is dying");
+        log.info("Ending producer");
     }
 
     protected abstract double getSleepTime();
 
     protected abstract void sleep();
+
+    protected abstract RequestType createRequestType(int reqType);
+
+    public abstract void doNotify();
 
     protected synchronized boolean assertRunning() {
         return running;

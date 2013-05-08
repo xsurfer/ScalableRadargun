@@ -7,20 +7,20 @@ package org.radargun.stages.stressors.producer;
  */
 public class RequestType {
 
-    public long enqueueTimestamp;
-    public int transactionType;
-
-    public boolean notifiable = false;
-    public ClosedProducer producer;
-
-    public RequestType(long timestamp, int transactionType) {
-        this.enqueueTimestamp = timestamp;
-        this.transactionType = transactionType;
-    }
+    private final long enqueueTimestamp;
+    private final int transactionType;
+    private final Producer producer;
 
     public RequestType(long timestamp, int transactionType, ClosedProducer producer) {
         this.enqueueTimestamp = timestamp;
         this.transactionType = transactionType;
-        this.notifiable = true;
+        this.producer = producer;
     }
+
+    public long getEnqueueTimestamp(){ return enqueueTimestamp; }
+
+    public int getTransactionType(){ return transactionType; }
+
+    public Producer getProducer(){ return producer; }
+
 }

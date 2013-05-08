@@ -1,6 +1,5 @@
 package org.radargun.stages.stressors.tpcc;
 
-import org.radargun.Transaction;
 import org.radargun.portings.tpcc.transaction.NewOrderTransaction;
 import org.radargun.portings.tpcc.transaction.PaymentTransaction;
 import org.radargun.stages.stressors.commons.StressorStats;

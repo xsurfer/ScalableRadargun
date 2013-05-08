@@ -3,15 +3,11 @@ package org.radargun.stages.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.Transaction;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.commons.StressorStats;
-import org.radargun.stages.stressors.systems.ClosedSystem;
-import org.radargun.stages.stressors.systems.MuleSystem;
-import org.radargun.stages.stressors.systems.OpenSystem;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.*;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
@@ -120,7 +116,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     protected abstract void validateTransactionsWeight();
 
-    public abstract RequestType nextTransaction();
+    public abstract int nextTransaction();
 
     public abstract Transaction generateTransaction(RequestType type, int threadIndex);
 
@@ -210,6 +206,9 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
             log.info("Closed System");
             log.info("Executing: " + this.toString());
+
+            log.info("Starting Producers");
+            updateProducer(system);
 
             if (statSampler != null) { statSampler.start(); log.trace("Sampler started"); }
 
@@ -360,7 +359,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         }
     }
 
-    private void updateProducer(OpenSystem system) {
+    private void updateProducer(IProducerSystem system) {
         synchronized (running){
             if (running.get()) {
                 log.info("Stopping old producer");
@@ -376,7 +375,64 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     }
 
     public List<Producer> createProducers(ClosedSystem system) {
-        throw new IllegalStateException("Still not implemented");
+        //throw new IllegalStateException("Still not implemented");
+
+        log.info("Creating/Updating producers closed system");
+
+        ProducerRate[] producerRates;
+        if (cacheWrapper.isPassiveReplication()) {
+            if (cacheWrapper.isTheMaster()) {
+                log.info("Creating producers groups for the master. Write transaction percentage is " + getWriteWeight());
+                //TODO rendere la distribuzione personalizzabile
+                /*
+                producerRates = new GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                        getWriteWeight(),
+                        1,
+                        parameters.getNodeIndex(),
+                        AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+                */
+
+                throw new IllegalStateException("NOT YET IMPLEMENTED");
+                //producerRates = GroupProducerRateFactory.createClients();
+
+            } else {
+                log.info("Creating producers groups for the slave. Read-only transaction percentage is " + getReadWeight());
+                /*
+                producerRates = new GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                        getReadWeight(),
+                        cacheWrapper.getNumMembers() - 1,
+                        parameters.getNodeIndex() == 0 ? parameters.getNodeIndex() : parameters.getNodeIndex() - 1,
+                        AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+                */
+
+                throw new IllegalStateException("NOT YET IMPLEMENTED");
+                //producerRates = GroupProducerRateFactory.createClients();
+            }
+        } else {
+            log.info("Creating producers groups");
+            /*
+            producerRates = new GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                    system.getWorkloadGenerator().getArrivalRate(),
+                    cacheWrapper.getNumMembers(),
+                    parameters.getNodeIndex(),
+                    AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).createClients();
+            */
+
+            producerRates = GroupProducerRateFactory.createClients(system.getPopulation(),
+                                                                   AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                                                                   cacheWrapper.getNumMembers(),
+                                                                   parameters.getNodeIndex(),
+                                                                   system.getThinkTime());
+
+        }
+
+        List<Producer> producers = new ArrayList<Producer>();
+        for (int i = 0; i < producerRates.length; ++i) {
+            producers.add(i, new ClosedProducer(this,system.getThinkTime(),i));
+                    //(this, producerRates[i], i));
+        }
+        return producers;
+
     }
 
     /**
@@ -539,7 +595,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     public final void update(Observable o, Object arg) {
         synchronized (running){
             if (running.get()) {
-                if(system.getType().equals(SystemType.OPEN)){
+
                     // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
                     // aggiorno i producer
 
@@ -548,10 +604,15 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                     switch (cmd) {
                         case CacheWrapper.VIEW_CHANGED:
                             log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-                            updateProducer( (OpenSystem) system );
+                            updateProducer( (IProducerSystem) system );
                             break;
                         case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
-                            log.info("Arrival rate changed");
+
+                            if(!system.getType().equals(SystemType.OPEN))
+                                throw new IllegalStateException("Arrival rate changed on a not Open system!!");
+                            else
+                                log.info("Arrival rate changed");
+
                             if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
                                 this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
                                 updateProducer( (OpenSystem) system );
@@ -561,10 +622,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                             log.warn("Unrecognized argument");
                             break;
                     }
-                } else {
-                    // è cambiata solo la dimensione del cluster
-                    // i producer (se presenti) non sono da cambiare
-                }
+
             }
         }
     }
