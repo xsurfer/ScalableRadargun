@@ -2,8 +2,7 @@ package org.radargun.stages.stressors.consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.CacheWrapper;
-import org.radargun.GeneratedTransactionDecorator;
+import org.radargun.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.StressorParameter;
@@ -87,7 +86,7 @@ public class Consumer extends Thread {
     /* ******************* */
 
     public void consume(OpenSystem system){
-        Transaction tx;
+        ITransaction tx;
         long dequeueTimestamp = -1;
         boolean successful = true;
 
@@ -101,7 +100,7 @@ public class Consumer extends Thread {
 
             tx = stressor.generateTransaction(request, threadIndex);
             //tx.setEnqueueTimestamp(request.enqueueTimestamp);
-            tx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
+            GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
@@ -117,11 +116,11 @@ public class Consumer extends Thread {
 
 
             /* updating queue stats */
-            stats._handleQueueTx(tx);
+            stats._handleQueueTx(generatedTx);
 
             /* 2- Executing the transaction */
-            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
-            stats._handleEndTx(tx, successful);
+            successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
+            stats._handleEndTx(generatedTx, successful);
 
             blockIfInactive();
             log.info("Consumer = { active: " + active + " ; running: " + running);
@@ -130,7 +129,7 @@ public class Consumer extends Thread {
 
     public void consume(ClosedSystem system) {
         log.info("Consuming in closed system scenario");
-        Transaction tx;
+        ITransaction tx;
         long dequeueTimestamp = -1;
         boolean successful = true;
 
@@ -143,7 +142,7 @@ public class Consumer extends Thread {
             dequeueTimestamp = System.nanoTime();
 
             tx = stressor.generateTransaction(request, threadIndex);
-            GeneratedTransactionDecorator decoratedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
+            GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
 //                        if PassiveReplication so skip whether:
@@ -158,14 +157,14 @@ public class Consumer extends Thread {
 
 
             /* updating queue stats */
-            stats._handleQueueTx(tx);
+            stats._handleQueueTx(generatedTx);
 
             /* 2- Executing the transaction */
-            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
-            stats._handleEndTx(decoratedTx, successful);
+            successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
+            stats._handleEndTx(generatedTx, successful);
 
             // notify the producer
-            notifyProducer(decoratedTx.getRequestType().getProducer());
+            notifyProducer(generatedTx.getRequestType().getProducer());
             //tx.notifyProducer();
 
             blockIfInactive();
@@ -174,7 +173,8 @@ public class Consumer extends Thread {
 
     public void consume(MuleSystem system){
 
-        Transaction tx;
+        ITransaction tx;
+
         long dequeueTimestamp = -1;
         boolean successful = true;
 
@@ -185,12 +185,11 @@ public class Consumer extends Thread {
 
             //log.info("Mule system: starting a brand new transaction of type " + tx.getType());
             tx = stressor.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
-
+            CreatedTransactionDecorator createdTx = new CreatedTransactionDecorator(tx); // No queuing
             /* 2- Executing the transaction */
-            successful = processTransaction(tx); /* it executes the retryOnAbort (if enabled) */
-            tx.setDequeueTimestamp(tx.getStartTimestamp()); // No queuing time
+            successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
-            stats._handleEndTx(tx, successful);
+            stats._handleEndTx(createdTx, successful);
 
             // sleep think time
             try {
@@ -232,7 +231,7 @@ public class Consumer extends Thread {
         producer.doNotify();
     }
 
-    protected boolean processTransaction(Transaction tx) {
+    protected boolean processTransaction(TransactionDecorator tx) {
         // entrambi le fasi devono essere fatte!!!
 
         boolean successful = true;
@@ -308,18 +307,20 @@ public class Consumer extends Thread {
     }
 
 
-    protected Transaction regenerate(Transaction oldTransaction, int threadIndex, boolean lastSuccessful) {
+    protected TransactionDecorator regenerate(TransactionDecorator transaction, int threadIndex, boolean lastSuccessful) {
 
         if (!lastSuccessful && !parameters.isRetrySameXact()) {
             this.backoffIfNecessary();
-            Transaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), oldTransaction.getType()), threadIndex);
-            copyTimeStampInformation(oldTransaction, newTransaction);
-            log.info("Thread " + threadIndex + ": regenerating a transaction of type " + oldTransaction.getType() +
+            ITransaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()), threadIndex);
+
+            transaction.regenerate(newTransaction);
+            //copyTimeStampInformation(transaction, newTransaction);
+            log.info("Thread " + threadIndex + ": regenerating a transaction of type " + transaction.getType() +
                     " into a transaction of type " + newTransaction.getType());
-            return newTransaction;
+            return transaction;
         }
         //If this is the first time xact runs or exact retry on abort is enabled...
-        return oldTransaction;
+        return transaction;
     }
 
 
@@ -332,12 +333,12 @@ public class Consumer extends Thread {
         }
     }
 
-
-    protected void copyTimeStampInformation(Transaction oldTx, Transaction newTx){
-        newTx.setEnqueueTimestamp(oldTx.getEnqueueTimestamp());
-        newTx.setDequeueTimestamp(oldTx.getDequeueTimestamp());
-        newTx.setStartTimestamp(oldTx.getStartTimestamp());
-    }
+// Fabio: READY TO DELETE
+//    protected void copyTimeStampInformation(TransactionDecorator oldTx, TransactionDecorator newTx){
+//        newTx.setEnqueueTimestamp(oldTx.getEnqueueTimestamp());
+//        newTx.setDequeueTimestamp(oldTx.getDequeueTimestamp());
+//        newTx.setStartTimestamp(oldTx.getStartTimestamp());
+//    }
 
 
     protected boolean startNewTransaction(boolean lastXactSuccessul) {

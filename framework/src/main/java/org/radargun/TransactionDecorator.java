@@ -17,6 +17,7 @@ public abstract class TransactionDecorator implements ITransaction {
     protected long dequeueTimestamp = -1;
 
     private long startTimestamp = -1;
+
     private long endTimestamp = -1;
 
     /* ******************* */
@@ -25,6 +26,14 @@ public abstract class TransactionDecorator implements ITransaction {
 
     public TransactionDecorator(ITransaction transaction){
         tx = transaction;
+    }
+
+    /* *************** */
+    /* *** METHODS *** */
+    /* *************** */
+
+    public void regenerate(ITransaction newTx){
+        this.tx = newTx;
     }
 
     /* ****************** */
@@ -52,6 +61,7 @@ public abstract class TransactionDecorator implements ITransaction {
 
     public abstract long getDequeueTimestamp();
 
+
     /* *********************** */
     /* *** GETTERS/SETTERS *** */
     /* *********************** */
@@ -59,9 +69,7 @@ public abstract class TransactionDecorator implements ITransaction {
     public long getStartTimestamp(){ if(startTimestamp == -1) throw new IllegalArgumentException("startTimestamp not set"); return startTimestamp; }
     public void setStartTimestamp(long val) { this.startTimestamp = val; }
 
-
     public long getEndTimestamp(){ if(endTimestamp == -1) throw new IllegalArgumentException("endTimestamp not set"); return endTimestamp; }
     public void setEndTimestamp(long val) { this.endTimestamp = val; }
-
 
 }

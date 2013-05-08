@@ -7,8 +7,20 @@ package org.radargun;
  */
 public class CreatedTransactionDecorator extends TransactionDecorator {
 
+    // emulating no queue system
+
     public CreatedTransactionDecorator(ITransaction transaction) {
         super(transaction);
+    }
+
+    @Override
+    public long getEnqueueTimestamp() {
+        return getStartTimestamp();
+    }
+
+    @Override
+    public long getDequeueTimestamp() {
+        return getStartTimestamp();
     }
 
 

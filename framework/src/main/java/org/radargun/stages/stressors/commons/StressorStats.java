@@ -1,7 +1,7 @@
 package org.radargun.stages.stressors.commons;
 
+import org.radargun.TransactionDecorator;
 import org.radargun.stages.stressors.exceptions.ApplicationException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,15 +93,15 @@ public class StressorStats {
 
 
     /* *** START/END HANDLERS *** */
-    public void handleStartsTx(Transaction tx){}
-    public final void _handleStartsTx(Transaction tx){
+    public void handleStartsTx(TransactionDecorator tx){}
+    public final void _handleStartsTx(TransactionDecorator tx){
         tx.setStartTimestamp(System.nanoTime());
 
         handleStartsTx(tx);
     }
 
-    public void handleEndTx(Transaction tx, boolean successful){}
-    public final void _handleEndTx(Transaction tx, boolean successful){
+    public void handleEndTx(TransactionDecorator tx, boolean successful){}
+    public final void _handleEndTx(TransactionDecorator tx, boolean successful){
 
         if (!tx.isReadOnly()) { //write
 
@@ -134,15 +134,15 @@ public class StressorStats {
 
 
     /* *** LOCAL HANDLERS *** */
-    public void handleSuccessLocalTx(Transaction tx){}
-    public final void _handleSuccessLocalTx(Transaction tx){
+    public void handleSuccessLocalTx(TransactionDecorator tx){}
+    public final void _handleSuccessLocalTx(TransactionDecorator tx){
         handleSuccessLocalTx(tx);
 
         put(START_COMMIT_TIMESTAMP, System.nanoTime());
     }
 
-    public void handleAbortLocalTx(Transaction tx, Throwable e){}
-    public final void _handleAbortLocalTx(Transaction tx, Throwable e, boolean isCacheTimeout){
+    public void handleAbortLocalTx(TransactionDecorator tx, Throwable e){}
+    public final void _handleAbortLocalTx(TransactionDecorator tx, Throwable e, boolean isCacheTimeout){
 
         inc(StressorStats.NR_FAILURES);
 
@@ -166,15 +166,15 @@ public class StressorStats {
 
 
     /* *** REMOTE HANDLERS *** */
-    public void handleSuccessRemoteTx(Transaction tx){}
-    public final void _handleSuccessRemoteSuccessTx(Transaction tx){
+    public void handleSuccessRemoteTx(TransactionDecorator tx){}
+    public final void _handleSuccessRemoteSuccessTx(TransactionDecorator tx){
         tx.setEndTimestamp(System.nanoTime());
 
         handleSuccessRemoteTx(tx);
     }
 
-    public void handleAbortRemoteTx(Transaction tx, Throwable e){}
-    public final void _handleAbortRemoteTx(Transaction tx, Throwable e){
+    public void handleAbortRemoteTx(TransactionDecorator tx, Throwable e){}
+    public final void _handleAbortRemoteTx(TransactionDecorator tx, Throwable e){
         inc(StressorStats.NR_FAILURES);
         inc(StressorStats.REMOTE_TIMEOUT);
 
@@ -191,8 +191,8 @@ public class StressorStats {
 
 
     /* *** OTHER HANDLERS *** */
-    public void handleQueueTx(Transaction tx){}
-    public final void _handleQueueTx(Transaction tx){
+    public void handleQueueTx(TransactionDecorator tx){}
+    public final void _handleQueueTx(TransactionDecorator tx){
         long queuingTime = tx.getDequeueTimestamp() - tx.getEnqueueTimestamp();
         if (tx.isReadOnly()) {
             inc(StressorStats.NUM_READ_DEQUEUED);

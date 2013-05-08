@@ -3,6 +3,7 @@ package org.radargun.stages.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.ITransaction;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.producer.*;
 import org.radargun.stages.AbstractBenchmarkStage;
@@ -118,9 +119,9 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     public abstract int nextTransaction();
 
-    public abstract Transaction generateTransaction(RequestType type, int threadIndex);
+    public abstract ITransaction generateTransaction(RequestType type, int threadIndex);
 
-    public abstract Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    public abstract ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
     protected abstract double getWriteWeight();
 

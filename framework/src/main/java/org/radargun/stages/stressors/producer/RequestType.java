@@ -9,7 +9,12 @@ public class RequestType {
 
     private final long enqueueTimestamp;
     private final int transactionType;
-    private final Producer producer;
+    private Producer producer;
+
+    public RequestType(long timestamp, int transactionType) {
+        this.enqueueTimestamp = timestamp;
+        this.transactionType = transactionType;
+    }
 
     public RequestType(long timestamp, int transactionType, ClosedProducer producer) {
         this.enqueueTimestamp = timestamp;
