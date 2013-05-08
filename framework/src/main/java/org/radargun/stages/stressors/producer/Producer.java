@@ -61,6 +61,8 @@ public abstract class Producer extends Thread {
     public synchronized void interrupt() {
         if (!running) return;
         running = false;
+        RequestType request = createRequestType(9999);
+        stressor.addToQueue(request);
         super.interrupt();
     }
 }

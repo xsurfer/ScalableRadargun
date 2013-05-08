@@ -3,6 +3,7 @@ package org.radargun.stages.stressors.stamp.vacation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.ITransaction;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;
@@ -44,20 +45,20 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationStressor
     }
 
     @Override
-    public RequestType nextTransaction() {
+    public int nextTransaction() {
 
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, parameters.getPercentUser());
-        RequestType requestType = new RequestType(System.nanoTime(),action);
+        //RequestType requestType = new RequestType(System.nanoTime(),action);
 
-        return requestType;
+        return action;
     }
 
     @Override
-    public Transaction generateTransaction(RequestType type, int threadIndex) {
+    public ITransaction generateTransaction(RequestType type, int threadIndex) {
 
-        int action = type.transactionType;
-        Transaction result = null;
+        int action = type.getTransactionType();
+        ITransaction result = null;
 
         if (action == Definitions.ACTION_MAKE_RESERVATION) {
             result = new MakeReservationOperation(randomPtr, parameters.getQueryPerTx(), parameters.getQueryRange(), parameters.getRelations(), parameters.getReadOnlyPerc());
@@ -73,7 +74,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationStressor
     }
 
     @Override
-    public Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
         int r = randomPtr.posrandom_generate() % 100;
         int action = selectAction(r, parameters.getPercentUser());
         RequestType requestType = new RequestType(System.nanoTime(),action);

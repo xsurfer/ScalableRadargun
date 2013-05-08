@@ -3,6 +3,7 @@ package org.radargun.stages.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.ITransaction;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
@@ -113,16 +114,16 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
         */
     }
 
-    public Transaction generateTransaction(RequestType type, int threadIndex) {
+    public ITransaction generateTransaction(RequestType type, int threadIndex) {
         TpccConsumer consumer = this.consumers.get(threadIndex);
-        Transaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
+        ITransaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
         return transaction;
     }
 
     @Override
-    public Transaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
         TpccConsumer consumer = this.consumers.get(threadId);
-        Transaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
+        ITransaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
         log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
         return transaction;
     }

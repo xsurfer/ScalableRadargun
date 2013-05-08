@@ -44,7 +44,7 @@ public class Consumer extends Thread {
 
     protected ProducerRate backOffSleeper;
 
-    protected boolean running = true;
+    protected volatile boolean running = true;
 
     protected AtomicBoolean active = new AtomicBoolean(true);
 
@@ -96,11 +96,12 @@ public class Consumer extends Thread {
             dequeueTimestamp = -1;
 
             RequestType request = stressor.takeFromQueue();
-            dequeueTimestamp = System.nanoTime();
+            if(request.getTransactionType() != 9999){
+                dequeueTimestamp = System.nanoTime();
 
-            tx = stressor.generateTransaction(request, threadIndex);
-            //tx.setEnqueueTimestamp(request.enqueueTimestamp);
-            GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
+                tx = stressor.generateTransaction(request, threadIndex);
+                //tx.setEnqueueTimestamp(request.enqueueTimestamp);
+                GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
@@ -116,15 +117,17 @@ public class Consumer extends Thread {
 
 
             /* updating queue stats */
-            stats._handleQueueTx(generatedTx);
+                stats._handleQueueTx(generatedTx);
 
             /* 2- Executing the transaction */
-            successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
-            stats._handleEndTx(generatedTx, successful);
+                successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
+                stats._handleEndTx(generatedTx, successful);
 
-            blockIfInactive();
-            log.info("Consumer = { active: " + active + " ; running: " + running);
+                blockIfInactive();
+                log.info("Consumer = { active: " + active + " ; running: " + running + "}");
+            }
         }
+        log.info("Out of the while");
     }
 
     public void consume(ClosedSystem system) {
@@ -139,10 +142,12 @@ public class Consumer extends Thread {
             dequeueTimestamp = -1;
 
             RequestType request = stressor.takeFromQueue();
-            dequeueTimestamp = System.nanoTime();
+            if(request.getTransactionType() != 9999){
 
-            tx = stressor.generateTransaction(request, threadIndex);
-            GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
+                dequeueTimestamp = System.nanoTime();
+
+                tx = stressor.generateTransaction(request, threadIndex);
+                GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
 //                        if PassiveReplication so skip whether:
@@ -157,18 +162,21 @@ public class Consumer extends Thread {
 
 
             /* updating queue stats */
-            stats._handleQueueTx(generatedTx);
+                stats._handleQueueTx(generatedTx);
 
             /* 2- Executing the transaction */
-            successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
-            stats._handleEndTx(generatedTx, successful);
+                successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
+                stats._handleEndTx(generatedTx, successful);
 
-            // notify the producer
-            notifyProducer(generatedTx.getRequestType().getProducer());
-            //tx.notifyProducer();
+                // notify the producer
+                notifyProducer(generatedTx.getRequestType().getProducer());
+                //tx.notifyProducer();
 
-            blockIfInactive();
+                blockIfInactive();
+                log.info("Consumer = { active: " + active + " ; running: " + running + "}");
+            }
         }
+        log.info("Out of the while");
     }
 
     public void consume(MuleSystem system){
