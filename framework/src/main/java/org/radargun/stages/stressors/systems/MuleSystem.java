@@ -39,6 +39,8 @@ public class MuleSystem implements SystemType {
     public long getThinkTime(){ return thinkTime; }
 
     public RateDistribution getRateDistribution(){ return this.rateDistribution; }
-    public void setRateDistribution(String rate){ this.rateDistribution = RateDistribution.valueOf(rate.toUpperCase()); }
+    public void setRateDistribution(String rate){
+        rateDistribution = RateDistribution.valueOf(rate.toUpperCase());
+    }
 
 }

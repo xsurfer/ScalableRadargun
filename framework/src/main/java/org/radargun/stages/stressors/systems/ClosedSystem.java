@@ -18,6 +18,8 @@ public class ClosedSystem implements IProducerSystem {
 
     private long thinkTime = 0;
 
+    private RateDistribution rateDistribution = RateDistribution.EXPONENTIAL;
+
     @Override
     public String getType() {
         return SystemType.CLOSED;
@@ -53,5 +55,10 @@ public class ClosedSystem implements IProducerSystem {
 
     public long getPopulation(){ return population; }
     public void setPopulation(int val){ population = val; }
+
+    public RateDistribution getRateDistribution(){ return this.rateDistribution; }
+    public void setRateDistribution(String rate){
+        rateDistribution = RateDistribution.valueOf(rate.toUpperCase());
+    }
 
 }

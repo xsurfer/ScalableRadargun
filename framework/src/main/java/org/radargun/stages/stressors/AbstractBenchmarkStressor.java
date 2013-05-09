@@ -445,7 +445,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
             */
 
             producerRates = GroupProducerRateFactory.createClients(system.getPopulation(),
-                                                                   AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                                                                   system.getRateDistribution(),
                                                                    cacheWrapper.getNumMembers(),
                                                                    parameters.getNodeIndex(),
                                                                    system.getThinkTime());

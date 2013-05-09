@@ -1,5 +1,6 @@
 package org.radargun.stages.stressors.producer;
 
+import org.radargun.stages.stressors.systems.RateDistribution;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 /**
@@ -14,16 +15,16 @@ public class GroupProducerRateFactory {
    private final int numberOfNodes;
    private final int nodeIndex;
    private final int avgSleepTime;
-   private final AbstractWorkloadGenerator.RateDistribution rateDistribution;
+   private final RateDistribution rateDistribution;
 
    /**
-    * @param rateDistribution the rateDistribution type (exponential, uniform)
+    * @param rateDistribution the defaultRate type (exponential, uniform)
     * @param globalLambda  the global system lambda (a.k.a arrival rate) in transactions per seconds
     * @param numberOfNodes the number of nodes in the system (>= 1)
     * @param nodeIndex     the node index [0..numberOfNodes - 1]
     * @param avgSleepTime  The average sleeping time desire for a producer
     */
-   public GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution rateDistribution,
+   public GroupProducerRateFactory(RateDistribution rateDistribution,
                                    double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
       if (numberOfNodes < 1) {
          throw new IllegalArgumentException("Number of nodes must be higher or equals than 1");
@@ -95,7 +96,7 @@ public class GroupProducerRateFactory {
      * @return an array of producers
      */
     public static ProducerRate[] createClients(long populationSize,
-                                                     AbstractWorkloadGenerator.RateDistribution rateDistribution,
+                                                     RateDistribution rateDistribution,
                                                      int numberOfNodes,
                                                      int nodeIndex,
                                                      long thinkTime ) {
