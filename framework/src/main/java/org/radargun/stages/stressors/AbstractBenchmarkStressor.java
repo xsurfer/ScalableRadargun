@@ -235,8 +235,31 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
      * @return
      */
     public final Map<String, String> stress(MuleSystem system){
-        this.system = system;
-        return null;
+
+        validateTransactionsWeight();
+        initialization();
+        if( initBenchmarkTimer() ){
+            if ( parameters.getStatsSamplingInterval() > 0 ) {
+                statSampler = new StatSampler( parameters.getStatsSamplingInterval() );
+            }
+
+            log.info("Mule System");
+            log.info("Executing: " + this.toString());
+
+            if (statSampler != null) { statSampler.start(); log.trace("Sampler started"); }
+
+            executeOperations();
+
+            log.info("Stopping Sampler");
+            if (statSampler != null) {
+                statSampler.cancel();
+                log.info("Sampler Stopped");
+            }
+            return processResults(consumers);
+        } else {
+            log.warn("Execution time <= 0. This slave will execute on next stage");
+            return null;
+        }
     }
 
 
