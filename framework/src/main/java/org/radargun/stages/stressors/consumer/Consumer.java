@@ -11,10 +11,7 @@ import org.radargun.stages.stressors.exceptions.ApplicationException;
 import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.ProducerRate;
 import org.radargun.stages.stressors.producer.RequestType;
-import org.radargun.stages.stressors.systems.ClosedSystem;
-import org.radargun.stages.stressors.systems.MuleSystem;
-import org.radargun.stages.stressors.systems.OpenSystem;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.*;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,7 +70,7 @@ public class Consumer extends Thread {
             try {
                 // TODO renderlo customizable
                 this.backOffSleeper =
-                        ProducerRate.createInstance(AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
+                        ProducerRate.createInstance(RateDistribution.EXPONENTIAL,
                                 Math.pow((double) parameters.getBackOffTime(), -1D)
                         );
             } catch (ProducerRate.ProducerRateException e) {
@@ -179,7 +176,13 @@ public class Consumer extends Thread {
         log.info("Out of the while");
     }
 
-    public void consume(MuleSystem system){
+    public void consume(MuleSystem system) {
+        ProducerRate rate;
+        try {
+            rate = ProducerRate.createInstance( system.getRateDistribution(), system.getThinkTime() );
+        } catch (ProducerRate.ProducerRateException e) {
+            throw new RuntimeException(e);
+        }
 
         ITransaction tx;
 
@@ -198,13 +201,7 @@ public class Consumer extends Thread {
             successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
             stats._handleEndTx(createdTx, successful);
-
-            // sleep think time
-            try {
-                Thread.sleep(system.getThinkTime());
-            } catch (InterruptedException e) {
-                log.warn("Interrupt!");
-            }
+            rate.sleep();
 
             blockIfInactive();
         }

@@ -3,6 +3,7 @@ package org.radargun.stages.stressors.systems.workloadGenerators;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.stages.stressors.systems.RateDistribution;
 import org.radargun.utils.Utils;
 import org.radargun.utils.WorkerThreadFactory;
 
@@ -328,23 +329,5 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         }
     }
 
-
-
-
-    /******************************/
-    /*** RATE DISTRIBUTION ENUM ***/
-    /******************************/
-
-    public enum RateDistribution {
-        UNIFORM("UniformRate"), EXPONENTIAL("ExponentialRate");
-        private String value;
-
-        RateDistribution(String value) {
-            this.value = value;
-        }
-
-        public String getDistributionRateName(){ return this.value; }
-
-    }
 
 }

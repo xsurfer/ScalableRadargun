@@ -9,7 +9,7 @@ import org.radargun.stages.stressors.AbstractBenchmarkStressor;
  */
 
 public class OpenProducer extends Producer {
-    private final ProducerRate rate;
+    protected final ProducerRate rate;
 
     public OpenProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id) {
         super(id, stressor);

@@ -11,7 +11,9 @@ import java.util.Map;
  */
 public class MuleSystem implements SystemType {
 
-    private long thinktime = 0;
+    private long thinkTime = 0;
+
+    private RateDistribution rateDistribution = RateDistribution.EXPONENTIAL;
 
     @Override
     public String getType() {
@@ -33,7 +35,10 @@ public class MuleSystem implements SystemType {
         stressor.finishBenchmark(this);
     }
 
-    public void setThinktime(long val){ thinktime = val; }
-    public long getThinkTime(){ return thinktime; }
+    public void setThinkTime(long val){ thinkTime = val; }
+    public long getThinkTime(){ return thinkTime; }
+
+    public RateDistribution getRateDistribution(){ return this.rateDistribution; }
+    public void setRateDistribution(String rate){ this.rateDistribution = RateDistribution.valueOf(rate.toUpperCase()); }
 
 }

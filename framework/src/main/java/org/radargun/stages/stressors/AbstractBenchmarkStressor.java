@@ -454,8 +454,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
         List<Producer> producers = new ArrayList<Producer>();
         for (int i = 0; i < producerRates.length; ++i) {
-            producers.add(i, new ClosedProducer(this,system.getThinkTime(),i));
-                    //(this, producerRates[i], i));
+            producers.add(i, new ClosedProducer(this, producerRates[i], i));
+            //(this, producerRates[i], i));
         }
         return producers;
 

@@ -9,19 +9,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * E-mail: perfabio87@gmail.com
  * Date: 4/18/13
  */
-public class ClosedProducer extends Producer {
+public class ClosedProducer extends OpenProducer {
 
     private long thinkTime;
     private AtomicBoolean notified = new AtomicBoolean(false);
 
-    public ClosedProducer(AbstractBenchmarkStressor stressor, long tt, int id) {
-        super(id, stressor);
-        this.thinkTime = tt;
-    }
+//    public ClosedProducer(AbstractBenchmarkStressor stressor, long tt, int id) {
+//        super(id, stressor);
+//
+//    }
 
-    @Override
-    protected double getSleepTime() {
-        return (double) thinkTime;
+    public ClosedProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id) {
+        super(stressor, rate, id);
     }
 
     @Override
@@ -36,11 +35,7 @@ public class ClosedProducer extends Producer {
             }
         }
         // sleep think time
-        try {
-            Thread.sleep(thinkTime);
-        } catch (InterruptedException e) {
-            log.warn("Interrupt!");
-        }
+        rate.sleep();
     }
 
     public void doNotify(){

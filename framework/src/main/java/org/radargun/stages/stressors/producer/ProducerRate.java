@@ -2,6 +2,7 @@ package org.radargun.stages.stressors.producer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.stressors.systems.RateDistribution;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 import java.lang.reflect.Constructor;
@@ -25,7 +26,7 @@ public abstract class ProducerRate {
         public ProducerRateException(Exception e) { super(e); }
     }
 
-    public static ProducerRate createInstance(AbstractWorkloadGenerator.RateDistribution producerRateEnum, double producerLambda) throws ProducerRateException{
+    public static ProducerRate createInstance(RateDistribution producerRateEnum, double producerLambda) throws ProducerRateException{
         ProducerRate obj;
         String producerRateString = producerRateEnum.getDistributionRateName();
         if (producerRateString.indexOf('.') < 0) {
