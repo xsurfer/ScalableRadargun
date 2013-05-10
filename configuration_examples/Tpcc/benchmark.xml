@@ -1,0 +1,112 @@
+<bench-config>
+    <master
+            bindAddress="${127.0.0.1:master.address}"
+            port="${2103:master.port}"/>
+
+    <!-- dynamic attribute allows to accept slaves at runtime.
+         New slaves will reach the current running stage skipping
+         skippable stages and executing the other ones.
+         If dynamic is false, it'll ignore slaves trying to join at runtime -->
+    <benchmark
+            initSize="1"
+            maxSize="1"
+            increment="1">
+
+        <DestroyWrapper
+                id="a"
+                runOnAllSlaves="true"
+                skippable="true"/>
+        <StartCluster
+                id="b"
+                staggerSlaveStartup="false"
+                delayAfterFirstSlaveStarts="5000"
+                delayBetweenStartingSlaves="1000"
+                skippable="false"/>
+        <ClusterValidation
+                id="c"
+                passiveReplication="false"
+                partialReplication="false"
+                skippable="true"/>
+        <TpccPopulation
+                id="d"
+                preloadedFromDB="false"
+                numWarehouses="1"
+                cLastMask="0"
+                olIdMask="0"
+                cIdMask="0"
+                threadParallelLoad="true"
+                batchLevel="50"
+                numLoaderThreads="2"
+                oneWarmup="true"
+                skippable="true"/>
+        <GarbageCollection
+                id="e"
+                skippable="true"/>
+        <!--GC only here because eraseNewKeys already includes a gc phase-->
+        <ResetStats
+                id="f"
+                skippable="true"/>
+        <CacheSize
+                id="g"
+                statName="CACHE_SIZE_BEFORE_BENCH"
+                skippable="true"/>
+        <TpccBenchmark
+                id="h"
+                statsSamplingInterval="30000"
+                numOfThreads="1"
+                perThreadSimulTime="60"
+                accessSameWarehouse="false"
+                paymentWeight="43"
+                orderStatusWeight="53"
+                retryOnAbort="true"
+                backOffTime="0"
+                perThreadTrackNewKeys="true"
+                skippable="true"
+                scalable="true">
+                <!--OpenSystem>
+                  <Ramp
+                    rateDistribution="exponential"
+                    granularity="5000"
+                    initTime="0"
+                    slope="1"
+                    yintercept="0"
+                    maxArrivalRate="3000" /-->
+  
+            <!--Trace
+                    rateDistribution="exponential"
+                    granularity="1"
+                    initTime="0"
+                    file="trace.log"
+                    maxArrivalRate="3000" /-->
+            <!--Sin
+                    rateDistribution="exponential"
+                    granularity="500"
+                    initTime="0"
+                    amplitude="1000"
+                    maxArrivalRate="3000" /-->
+                <!--/OpenSystem-->
+                
+                
+              <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
+              
+              <MuleSystem thinkTime="2000" rateDistribution="exponential" />
+                
+
+        </TpccBenchmark>
+
+
+    </benchmark>
+
+
+    <products>
+        <infinispan4>
+            <config name="provaPC.xml"/>
+        </infinispan4>
+    </products>
+    <reports>
+        <!--report enabled="false" name="Reports"/-->
+    </reports>
+
+</bench-config>
+
+
