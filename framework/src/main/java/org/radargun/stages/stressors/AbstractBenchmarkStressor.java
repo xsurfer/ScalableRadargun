@@ -98,9 +98,6 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         this.benchmarkStage = benchmarkStage;
         this.system = system;
         this.parameters = parameters;
-
-
-
     }
 
 

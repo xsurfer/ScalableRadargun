@@ -16,10 +16,8 @@ public class VacationPopulationStage extends AbstractDistStage {
     public DistStageAck executeOnSlave() {
 	DefaultDistStageAck ack = newDefaultStageAck( this.getClass().getName() );
 	CacheWrapper wrapper = slaveState.getCacheWrapper();
-	if (wrapper == null) {
-	    log.info("Not executing any test as the wrapper is not set up on this slave ");
-	    return ack;
-	}
+    if(wrapper==null)
+        throw new IllegalArgumentException("Not executing any test as the wrapper is not set up on this slave!");
 
 	long startTime = System.currentTimeMillis();
 	populate(wrapper);
@@ -30,6 +28,7 @@ public class VacationPopulationStage extends AbstractDistStage {
     }
     
     private void populate(CacheWrapper wrapper) {
+
 	VacationPopulationStressor vacationStressor = new VacationPopulationStressor();
 	vacationStressor.setRelations(relations);
 	vacationStressor.stress(wrapper);

@@ -145,9 +145,9 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
             throw new IllegalStateException("Not running test on this slave as the wrapper hasn't been configured");
         }
 
-        log.info("Starting TpccBenchmarkStage: " + this.toString());
+        log.info("Starting BenchmarkStage: " + this.toString());
 
-        trackNewKeys();
+        //trackNewKeys();
 
         stressor = createStressor();
 

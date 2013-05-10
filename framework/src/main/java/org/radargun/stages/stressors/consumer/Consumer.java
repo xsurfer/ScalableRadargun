@@ -177,9 +177,12 @@ public class Consumer extends Thread {
     }
 
     public void consume(MuleSystem system) {
+        log.info("Consuming in mule system scenario");
         ProducerRate rate;
         try {
-            rate = ProducerRate.createInstance( system.getRateDistribution(), system.getThinkTime() );
+            rate = ProducerRate.createInstance(system.getRateDistribution(), Math.pow((double) system.getThinkTime(), -1D) );
+
+            log.info("{ Distribution = " + system.getRateDistribution().toString() + ", ThinkTime = " + system.getThinkTime() );
         } catch (ProducerRate.ProducerRateException e) {
             throw new RuntimeException(e);
         }
@@ -201,7 +204,10 @@ public class Consumer extends Thread {
             successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
             stats._handleEndTx(createdTx, successful);
+            log.info("Asleeped: " + System.currentTimeMillis() );
             rate.sleep();
+            log.info("Awaked: " + System.currentTimeMillis() );
+
 
             blockIfInactive();
         }

@@ -12,14 +12,12 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 
     private static final String SIZE_INFO = "SIZE_INFO";
 
-    private transient CacheWrapper cacheWrapper;
-
     //public static int THREADS;
 
     private int clients;
 
     /* number of threads per node */
-    private int localThreads;
+    //private int localThreads;
 
     private int readOnly;
 
@@ -124,8 +122,8 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
     public int getClients() { return clients; }
     public void setClients(int clients) { this.clients = clients; }
 
-    public int getLocalThreads() { return localThreads; }
-    public void setLocalThreads(int localThreads) { this.localThreads = localThreads; }
+//    public int getLocalThreads() { return localThreads; }
+//    public void setLocalThreads(int localThreads) { this.localThreads = localThreads; }
 
     public int getNumber() { return number; }
     public void setNumber(int number) { this.number = number; }
