@@ -115,7 +115,7 @@ public class GroupProducerRateFactory {
 
         for (int i = 0; i < myClients; ++i) {
             try {
-                producers[i] = ProducerRate.createInstance(rateDistribution, 1/thinkTime);
+                producers[i] = ProducerRate.createInstance(rateDistribution, Math.pow((double) thinkTime, -1D));
             } catch (ProducerRate.ProducerRateException e) {
                 throw new RuntimeException(e);
             }
