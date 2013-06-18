@@ -490,12 +490,14 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                     cacheWrapper.getNumMembers(),
                     parameters.getNodeIndex(),
                     AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
+            log.info("Created " + producerRates.length + " producerRates");
         }
 
         List<Producer> producers = new ArrayList<Producer>();
         for (int i = 0; i < producerRates.length; ++i) {
             producers.add(i, new OpenProducer(this, producerRates[i], i));
         }
+        log.info("So we should have a equal number of producers: " + producers.size() );
         return producers;
     }
 
@@ -634,7 +636,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                             if(!system.getType().equals(SystemType.OPEN))
                                 throw new IllegalStateException("Arrival rate changed on a not Open system!!");
                             else
-                                log.info("Arrival rate changed");
+                                log.info("Arrival rate changed:" + ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() );
 
                             if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
                                 this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();

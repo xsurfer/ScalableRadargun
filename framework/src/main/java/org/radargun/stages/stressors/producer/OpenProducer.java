@@ -28,7 +28,7 @@ public class OpenProducer extends Producer {
 
     @Override
     protected RequestType createRequestType(int reqType) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new RequestType(System.nanoTime(), reqType);
     }
 
     @Override

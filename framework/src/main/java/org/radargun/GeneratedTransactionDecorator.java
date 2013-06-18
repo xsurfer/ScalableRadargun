@@ -19,9 +19,9 @@ public class GeneratedTransactionDecorator extends TransactionDecorator {
         this.dequeueTimestamp = dequeueTimestamp;
     }
 
-    public void notifyProducer(){
-        requestType.getProducer().doNotify();
-    }
+//    public void notifyProducer(){
+//        requestType.getProducer().doNotify();
+//    }
 
     public long getEnqueueTimestamp(){ return requestType.getEnqueueTimestamp(); }
 
