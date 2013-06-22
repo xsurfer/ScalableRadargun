@@ -401,5 +401,10 @@ public class Consumer implements Runnable {
         }
     }
 
+    @Override
+    public String toString(){
+        return new String("Sono un consumer, il mio index è: " + threadIndex);
+    }
+
 
 }

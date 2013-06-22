@@ -299,10 +299,20 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         startTime = System.currentTimeMillis();
         startPoint.countDown();
         blockWhileRunning();
+        log.info("Shutting down consumerExecutorService");
         consumerExecutorService.shutdown();
 
         try {
-            consumerExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            log.info("aspettando la fine dei thread in consumerExecutorService");
+            if( consumerExecutorService.awaitTermination(60, TimeUnit.NANOSECONDS) ){
+                log.info("ANCORA NON SONO TERMINATI I PRODUCER! Li forzo a morire");
+                List<Runnable> runnablesNotEnded = consumerExecutorService.shutdownNow();
+                log.info("Here you have buggus threads:");
+                for (Runnable runnable : runnablesNotEnded){
+                    log.info( runnable.toString() );
+                }
+            }
+            log.info("tutti i thread in consumerExecutorService sono terminati");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
