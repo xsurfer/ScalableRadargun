@@ -259,10 +259,16 @@ public class ElasticMaster extends Master {
             if (value == -1) {
                 log.warn("Slave stopped! Index: " + slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
                 key.cancel();
-                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
-                    throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
+                if (!localSlaves.remove(socketChannel)) {
+                    throw new IllegalStateException("Socket " + socketChannel + " should have been there (localSlaves)!");
                 }
-                releaseResourcesAndExit();
+                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
+                    throw new IllegalStateException("Socket " + socketChannel + " should have been there(slaves)!");
+                }
+                if(ElasticMaster.this.slave2Index.remove(socketChannel)==null){
+                    throw new IllegalStateException("Index belonged to " + socketChannel + " should have been there!");
+                }
+                //releaseResourcesAndExit();
             } else if (byteBuffer.limit() >= 4) {
                 int expectedSize = byteBuffer.getInt(0);
                 if ((expectedSize + 4) > byteBuffer.capacity()) {
