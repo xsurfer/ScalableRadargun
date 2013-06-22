@@ -321,6 +321,7 @@ public class Consumer implements Runnable {
     protected TransactionDecorator regenerate(TransactionDecorator transaction, int threadIndex, boolean lastSuccessful) {
 
         if (!lastSuccessful && !parameters.isRetrySameXact()) {
+            log.info("Rigenero la transazione");
             this.backoffIfNecessary();
             ITransaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()), threadIndex);
 

@@ -214,7 +214,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
             log.info("Executing: " + this.toString());
 
             log.info("Starting Producers");
-            updateProducer(system);
+            stopCreateStartProducers(system);
 
             if (statSampler != null) { statSampler.start(); log.trace("Sampler started"); }
 
@@ -337,92 +337,106 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     protected final void finishBenchmark() {
         if (running.compareAndSet(true, false)) {
-            log.info("Running è: " + running.get());
             system.finishBenchmark(this);
-            log.info("Running è: " + running.get());
         }
     }
 
     public synchronized void finishBenchmark(OpenSystem system) {
-        log.info("Running è (deve essere FALSE else errore): " + running.get());
-        log.trace("Stopping workload generator");
-        system.getWorkloadGenerator().stop();
 
-        log.trace("Stopping consumers");
-        stopConsumers();
+        if( !running.get() ) {
+            log.trace("Stopping workload generator");
+            system.getWorkloadGenerator().stop();
 
-        log.trace("Stopping producers");
-        stopProducers();
+            log.trace("Stopping consumers");
+            stopConsumers();
 
-        log.trace("Waking up waiting thread");
-        notifyAll();
+            log.trace("Stopping producers");
+            stopProducers();
+
+            log.trace("Waking up waiting thread");
+            notifyAll();
+        }
     }
 
     public synchronized void finishBenchmark(ClosedSystem system) {
-        stopConsumers();
+        if( !running.get() ){
+            log.trace("Stopping consumers");
+            stopConsumers();
 
-        log.trace("Stopping producers");
-        stopProducers();
+            log.trace("Stopping producers");
+            stopProducers();
 
-        log.trace("Waking up waiting thread");
-        notifyAll();
+            log.trace("Waking up waiting thread");
+            notifyAll();
+        }
     }
 
     public synchronized void finishBenchmark(MuleSystem system) {
-        stopConsumers();
+        if( !running.get() ){
+            stopConsumers();
 
-        log.trace("Waking up waiting thread");
-        notifyAll();
+            log.trace("Waking up waiting thread");
+            notifyAll();
+        }
     }
 
     private void stopConsumers() {
-        log.info("Running è: " + running.get());
-        synchronized(consumers){
-            for (Consumer stressor : consumers) {
-                stressor.finish();
+        // Stoppare i consumer significa finire il benchmark
+        if( !running.get() ){
+            log.info("Stopping Consumers...");
+            synchronized(consumers){
+                for (Consumer consumer : consumers) {
+                    consumer.finish();
+                }
             }
         }
     }
 
     private void stopProducers() {
-        log.info("Running è: " + running.get());
-        synchronized(producers){
-            for (Producer producer : producers) {
-                producer.interrupt();
-            }
-        }
-    }
-
-    private void startProducers() {
-        log.info("Starting producers. Running è: " + running.get());
-
-        if (running.get()) {
+        if( !running.get() ){
+            log.info("Stopping Producers...");
             synchronized(producers){
-                producersExecutorService = Executors.newFixedThreadPool( producers.size() ,new WorkerThreadFactory("Producer",false) );
                 for (Producer producer : producers) {
-                    producersExecutorService.execute(producer);
+                    producer.interrupt();
                 }
-                producersExecutorService.shutdown();
             }
         }
     }
 
-    private void updateProducer(IProducerSystem system) {
+    private void stopCreateStartProducers(IProducerSystem system) {
         synchronized (running){
             if (running.get()) {
-                log.info("Stopping old producer");
-                stopProducers();
                 synchronized(producers){
+                    if(producers!=null && producers.size()>0){
+                        stopProducers();
+                    }
+
+                    log.info("Creating new producers...");
                     producers.clear();
                     producers.addAll(system.createProducers(this));
+
+                    log.info("Starting new (" + producers.size() + ") producers...");
+                    producersExecutorService = Executors.newFixedThreadPool( producers.size() ,new WorkerThreadFactory("Producer",false) );
+                    for (Producer producer : producers) {
+                        log.info("STARTING: " + producer);
+                        producersExecutorService.execute(producer);
+                    }
+                    producersExecutorService.shutdown();
                 }
-                log.info("Starting " + producers.size() + " producers");
-                startProducers();
             }
         }
     }
 
-    public List<Producer> createProducers(ClosedSystem system) {
+//    private synchronized void updateProducer(IProducerSystem system) {
+//        synchronized (running){
+//            if (running.get()) {
+//
+//                }
+//            }
+//        }
+//    }
+
+    public synchronized List<Producer> createProducers(ClosedSystem system) {
         //throw new IllegalStateException("Still not implemented");
 
         log.info("Creating/Updating producers closed system");
@@ -487,7 +501,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
      * Class in charge of create or update the Producer in base of arrival rate. So for the open system
      *
      */
-    public List<Producer> createProducers(OpenSystem system) {
+    public synchronized List<Producer> createProducers(OpenSystem system) {
 
         log.info("Creating/Updating producers");
 
@@ -654,7 +668,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                     switch (cmd) {
                         case CacheWrapper.VIEW_CHANGED:
                             log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-                            updateProducer( (IProducerSystem) system );
+                            stopCreateStartProducers( (IProducerSystem) system );
                             break;
                         case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
 
@@ -665,7 +679,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
                             if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
                                 this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
-                                updateProducer( (OpenSystem) system );
+                                stopCreateStartProducers( (OpenSystem) system );
                             }
                             break;
                         default:

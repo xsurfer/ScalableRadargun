@@ -15,12 +15,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class Producer implements Runnable {
 
     protected static Log log = LogFactory.getLog(Producer.class);
+    private final int id;
     private AtomicBoolean running = new AtomicBoolean(false);
     AbstractBenchmarkStressor stressor;
 
-    public Producer(int id, AbstractBenchmarkStressor stressor) {
+    public Producer(int _id, AbstractBenchmarkStressor stressor) {
+        id = _id;
         this.stressor = stressor;
-
     }
 
     public void run() {
@@ -63,5 +64,10 @@ public abstract class Producer implements Runnable {
             stressor.addToQueue(request);
             // ora il producer è pronto per morire
         }
+    }
+
+    @Override
+    public String toString(){
+        return "Sono il Producer con id: " + id;
     }
 }
