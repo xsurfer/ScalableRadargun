@@ -12,15 +12,14 @@ import org.radargun.stages.stressors.systems.*;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
+import org.radargun.utils.WorkerThreadFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -39,6 +38,11 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     public static final int AVERAGE_PRODUCER_SLEEP_TIME = 10;
 
 
+    /* ***************** */
+    /* *** EXECUTORS *** */
+    /* ***************** */
+
+    ExecutorService consumerExecutorService;
 
     /* ****************** */
     /* *** ATTRIBUTES *** */
@@ -281,22 +285,28 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
         startPoint = new CountDownLatch(1);
         parameters.setStartPoint(startPoint);
+
+        consumerExecutorService = Executors.newFixedThreadPool(parameters.getNumOfThreads(), new WorkerThreadFactory("Consumer", false) );
+
+
         for (int threadIndex = 0; threadIndex < parameters.getNumOfThreads(); threadIndex++) {
             S consumer = createConsumer(threadIndex);
             consumers.add(consumer);
-            consumer.start();
+
+            consumerExecutorService.execute(consumer);
         }
         log.info("Cache wrapper info is: " + cacheWrapper.getInfo());
         startTime = System.currentTimeMillis();
         startPoint.countDown();
         blockWhileRunning();
-        for (Consumer consumer : consumers) {
-            try {
-                consumer.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+        consumerExecutorService.shutdown();
+
+        try {
+            consumerExecutorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+
         log.info("Fine executeOperations");
         endTime = System.currentTimeMillis();
         //return consumers;
@@ -654,8 +664,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     public final synchronized int getNumberOfActiveThreads() {
         int count = 0;
-        for (Consumer stressor : consumers) {
-            if (stressor.isActive()) {
+        for (Consumer consumer : consumers) {
+            if (consumer.isActive()) {
                 count++;
             }
         }
@@ -683,7 +693,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
             int threadIdx = consumers.size();
             while (numOfThreads-- > 0) {
                 S consumer = createConsumer(threadIdx++);
-                consumer.start();
+                consumerExecutorService.execute(consumer);
                 consumers.add(consumer);
             }
         } else {

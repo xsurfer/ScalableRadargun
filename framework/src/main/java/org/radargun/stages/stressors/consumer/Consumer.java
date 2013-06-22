@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * E-mail: perfabio87@gmail.com
  * Date: 4/24/13
  */
-public class Consumer extends Thread {
+public class Consumer implements Runnable {
 
     private static Log log = LogFactory.getLog(Consumer.class);
 
@@ -56,7 +56,7 @@ public class Consumer extends Thread {
                     AbstractBenchmarkStressor stressor,
                     StressorParameter parameters) {
 
-        super("Stressor-" + threadIndex);
+
 
         this.cacheWrapper = cacheWrapper;
         this.system = system;
@@ -231,9 +231,9 @@ public class Consumer extends Thread {
     protected void synchronize(){
         try {
             parameters.getStartPoint().await();
-            log.info("Starting thread: " + getName());
+            log.info("Starting thread: " + Thread.currentThread().getName());
         } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting for starting in " + getName());
+            log.warn("Interrupted while waiting for starting in " + Thread.currentThread().getName());
         }
     }
 
