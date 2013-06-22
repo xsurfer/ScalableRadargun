@@ -201,17 +201,7 @@ public class ElasticMaster extends Master {
                         SelectionKey key = keysIt.next();
                         keysIt.remove();
 
-                        //---
-                        //controllo se la chiave appartiene all'insime di slave di questo QuickExecutor
-//                    if(this.slaves.contains((SocketChannel) key.channel())){
-//                        int slaveNumber = ElasticMaster.getInstance().slave2Index.get((SocketChannel) key.channel());
-//                        log.debug("ACK ricevuto da uno Slave" + slaveNumber);
-//                        keysIt.remove();
-//                    }
-//                    else {
-//                        continue;
-//                    }
-                        //---
+
 
                         if (!key.isValid()) {
                             log.trace("Key not valid, skipping!");
@@ -262,13 +252,26 @@ public class ElasticMaster extends Master {
                 if (!localSlaves.remove(socketChannel)) {
                     throw new IllegalStateException("Socket " + socketChannel + " should have been there (localSlaves)!");
                 }
-//                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
-//                    throw new IllegalStateException("Socket " + socketChannel + " should have been there(slaves)!");
-//                }
                 if(ElasticMaster.this.slave2Index.remove(socketChannel)==null){
                     throw new IllegalStateException("Index belonged to " + socketChannel + " should have been there!");
                 }
-                //releaseResourcesAndExit();
+                if(localSlaves.size()<1){
+                    log.warn("All slaves dead BEFORE the end of the benchmark");
+                    releaseResourcesAndExit();
+                } else {
+                    int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() -1;
+                    log.debug("Decremento state.getCurrentMainDistStage().setActiveSlavesCount da: " +
+                            ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() +
+                            " a " +
+                            newSize);
+                    ElasticMaster.this.state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
+
+                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " +
+                            ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() +
+                            " to " + ElasticMaster.this.slaves.size());
+                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
+                }
+
             } else if (byteBuffer.limit() >= 4) {
                 int expectedSize = byteBuffer.getInt(0);
                 if ((expectedSize + 4) > byteBuffer.capacity()) {
