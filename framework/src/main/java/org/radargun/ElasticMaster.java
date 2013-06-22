@@ -255,6 +255,7 @@ public class ElasticMaster extends Master {
                 if(ElasticMaster.this.slave2Index.remove(socketChannel)==null){
                     throw new IllegalStateException("Index belonged to " + socketChannel + " should have been there!");
                 }
+                reOrderSlave2Index();
                 if(localSlaves.size()<1){
                     log.warn("All slaves dead BEFORE the end of the benchmark");
                     releaseResourcesAndExit();

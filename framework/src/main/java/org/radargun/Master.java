@@ -151,6 +151,17 @@ public class Master {
       log.info("Connection established from " + slaves.size() + " slaves.");
    }
 
+    protected void reOrderSlave2Index(){
+        for(SocketChannel slave : slaves){
+            int index = slaves.indexOf(slave);
+            if( !slave2Index.containsKey(slave) ){
+                throw new IllegalStateException("Socket " + slave + " should have been there!");
+            }
+            slave2Index.put(slave, index);
+        }
+        log.info("Slave2Index has been reordered");
+    }
+
    private void startCommunicationWithSlaves() throws Exception {
       while (true) {
          communicationSelector.select();
