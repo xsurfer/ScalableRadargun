@@ -2,6 +2,7 @@ package org.radargun.stages;
 
 import org.radargun.jmx.annotations.MBean;
 
+import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
@@ -219,6 +220,12 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 
     public TpccBenchmarkStage clone() {
         return (TpccBenchmarkStage) super.clone();
+    }
+
+    @Override
+    @ManagedOperation(description = "Stop the current benchmark")
+    public void stopBenchmark() {
+        stressor.stopBenchmark();
     }
 
 }

@@ -1,6 +1,7 @@
 package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
+import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressorParameter;
@@ -51,6 +52,12 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
     @Override
     public AbstractBenchmarkStressor createStressor() {
         return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
+    }
+
+    @Override
+    @ManagedOperation(description = "Stop the current benchmark")
+    public void stopBenchmark() {
+        stressor.stopBenchmark();
     }
 
 //    /* NEW EXECUTE by FABIO */

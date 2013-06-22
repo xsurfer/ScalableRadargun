@@ -2,6 +2,7 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
+import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
@@ -24,6 +25,8 @@ import static org.radargun.utils.Utils.numberFormat;
  * E-mail: perfabio87@gmail.com
  * Date: 3/23/13
  */
+
+@MBean(objectName = "AbstractBenchmarkStage", description = "Abstract benchmark stage")
 public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
@@ -314,9 +317,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     }
 
     @ManagedOperation(description = "Stop the current benchmark")
-    public final void stopBenchmark() {
-        stressor.stopBenchmark();
-    }
+    public abstract void stopBenchmark();
 
 
 
