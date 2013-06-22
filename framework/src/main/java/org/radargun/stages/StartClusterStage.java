@@ -26,7 +26,7 @@ public class StartClusterStage extends AbstractDistStage {
 
 
    private String config;
-   private final int TRY_COUNT = 180;
+   private final int TRY_COUNT = 20; // abbassato perchè nello scaling può succedere che in alcuni casi non va bene
 
 
    private static final String PREV_PRODUCT = "StartClusterStage.previousProduct";
