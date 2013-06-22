@@ -68,10 +68,10 @@ public abstract class TransactionDecorator implements ITransaction {
 
     public ITransaction getInnerTransaction(){ return tx; }
 
-    public long getStartTimestamp(){ if(startTimestamp == -1) throw new IllegalArgumentException("startTimestamp not set"); return startTimestamp; }
+    public long getStartTimestamp(){ if(startTimestamp == -1) log.warn("startTimestamp not set"); return startTimestamp; }
     public void setStartTimestamp(long val) { this.startTimestamp = val; }
 
-    public long getEndTimestamp(){ if(endTimestamp == -1) throw new IllegalArgumentException("endTimestamp not set"); return endTimestamp; }
+    public long getEndTimestamp(){ if(endTimestamp == -1) log.warn("endTimestamp not set"); return endTimestamp; }
     public void setEndTimestamp(long val) { this.endTimestamp = val; }
 
 }
