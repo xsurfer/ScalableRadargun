@@ -44,6 +44,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     ExecutorService consumerExecutorService;
 
+    ExecutorService producersExecutorService;
+
     /* ****************** */
     /* *** ATTRIBUTES *** */
     /* ****************** */
@@ -386,18 +388,21 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         log.info("Running è: " + running.get());
         synchronized(producers){
             for (Producer producer : producers) {
-            producer.interrupt();
+                producer.interrupt();
             }
         }
     }
 
     private void startProducers() {
-        log.info("Running è: " + running.get());
+        log.info("Starting producers. Running è: " + running.get());
+
         if (running.get()) {
             synchronized(producers){
+                producersExecutorService = Executors.newFixedThreadPool( producers.size() ,new WorkerThreadFactory("Producer",false) );
                 for (Producer producer : producers) {
-                    producer.start();
+                    producersExecutorService.execute(producer);
                 }
+                producersExecutorService.shutdown();
             }
         }
     }

@@ -4,29 +4,37 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
  * Date: 4/18/13
  */
 
-public abstract class Producer extends Thread {
+public abstract class Producer implements Runnable {
 
     protected static Log log = LogFactory.getLog(Producer.class);
-    private boolean running = false;
+    private AtomicBoolean running = new AtomicBoolean(false);
     AbstractBenchmarkStressor stressor;
 
     public Producer(int id, AbstractBenchmarkStressor stressor) {
-        super("Producer-" + id);
         this.stressor = stressor;
-        setDaemon(true);
+
     }
 
     public void run() {
-        if (log.isDebugEnabled()) {
-            log.debug("Starting " + getName() + " with rate of " + getSleepTime());
+        if( !running.compareAndSet(false,true) ){
+            log.warn("Someone is trying to execute a producer already started!! " +
+                    "Thread name:" + Thread.currentThread().getName() + ". Skipping");
+            return;
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Starting " + Thread.currentThread().getName() + " with rate of " + getSleepTime());
+            }
         }
-        while (assertRunning()) {
+
+        while ( running.get() ) {
 
             int reqType = stressor.nextTransaction();
             RequestType request = createRequestType(reqType);
@@ -34,8 +42,10 @@ public abstract class Producer extends Thread {
             stressor.addToQueue(request);
             stressor.countJobs.incrementAndGet();
             sleep();
+            // chiamando interrupt si imposta la variable running a false, facendo uscire il thread dal ciclo.
+            // >>> PER EVITARE ULTERIORI GIRI DA PARTE DEL PRODUCER, TENERE LA CHIAMATA sleep() A FONDO CICLO <<<
         }
-        log.info("Ending producer");
+        log.info(Thread.currentThread().getName() + " ended");
     }
 
     protected abstract double getSleepTime();
@@ -46,23 +56,12 @@ public abstract class Producer extends Thread {
 
     public abstract void doNotify();
 
-    protected synchronized boolean assertRunning() {
-        return running;
-    }
 
-    @Override
-    public synchronized void start() {
-        if (running) return;
-        running = true;
-        super.start();
-    }
-
-    @Override
-    public synchronized void interrupt() {
-        if (!running) return;
-        running = false;
-        RequestType request = createRequestType(9999);
-        stressor.addToQueue(request);
-        super.interrupt();
+    public void interrupt() {
+        if( running.compareAndSet(true,false) ){
+            RequestType request = createRequestType(9999);
+            stressor.addToQueue(request);
+            // ora il producer è pronto per morire
+        }
     }
 }
