@@ -262,9 +262,9 @@ public class ElasticMaster extends Master {
                 if (!localSlaves.remove(socketChannel)) {
                     throw new IllegalStateException("Socket " + socketChannel + " should have been there (localSlaves)!");
                 }
-                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
-                    throw new IllegalStateException("Socket " + socketChannel + " should have been there(slaves)!");
-                }
+//                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
+//                    throw new IllegalStateException("Socket " + socketChannel + " should have been there(slaves)!");
+//                }
                 if(ElasticMaster.this.slave2Index.remove(socketChannel)==null){
                     throw new IllegalStateException("Index belonged to " + socketChannel + " should have been there!");
                 }
