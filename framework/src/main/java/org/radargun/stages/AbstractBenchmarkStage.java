@@ -26,7 +26,7 @@ import static org.radargun.utils.Utils.numberFormat;
  * Date: 3/23/13
  */
 
-@MBean(objectName = "AbstractBenchmarkStage", description = "Abstract benchmark stage")
+@MBean(objectName = "AbstractBenchmark", description = "Abstract benchmark stage")
 public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
