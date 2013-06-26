@@ -132,7 +132,7 @@ public class ElasticMaster extends Master {
                 startCommunicationWithSlaves();
                 finalize();
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 
