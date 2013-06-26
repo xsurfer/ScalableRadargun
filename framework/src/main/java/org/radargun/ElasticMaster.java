@@ -249,30 +249,10 @@ public class ElasticMaster extends Master {
             if (value == -1) {
                 log.warn("Slave stopped! Index: " + slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
                 key.cancel();
-                if (!localSlaves.remove(socketChannel)) {
-                    throw new IllegalStateException("Socket " + socketChannel + " should have been there (localSlaves)!");
+                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
+                    throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
                 }
-                if(ElasticMaster.this.slave2Index.remove(socketChannel)==null){
-                    throw new IllegalStateException("Index belonged to " + socketChannel + " should have been there!");
-                }
-                reOrderSlave2Index();
-                if(localSlaves.size()<1){
-                    log.warn("All slaves dead BEFORE the end of the benchmark");
-                    releaseResourcesAndExit();
-                } else {
-                    int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() -1;
-                    log.debug("Decremento state.getCurrentMainDistStage().setActiveSlavesCount da: " +
-                            ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() +
-                            " a " +
-                            newSize);
-                    ElasticMaster.this.state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
-
-                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " +
-                            ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() +
-                            " to " + ElasticMaster.this.slaves.size());
-                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
-                }
-
+                releaseResourcesAndExit();
             } else if (byteBuffer.limit() >= 4) {
                 int expectedSize = byteBuffer.getInt(0);
                 if ((expectedSize + 4) > byteBuffer.capacity()) {
@@ -305,6 +285,63 @@ public class ElasticMaster extends Master {
             }
 
 
+        }
+
+        protected void reOrderSlave2Index(){
+            for(SocketChannel slave : slaves){
+                int index = slaves.indexOf(slave);
+                if( !slave2Index.containsKey(slave) ){
+                    throw new IllegalStateException("Socket " + slave + " should have been there!");
+                }
+                slave2Index.put(slave, index);
+            }
+            log.info("Slave2Index has been reordered");
+        }
+
+
+        public void manageStoppedSlave(List<Integer> deadSlaveIndexList){
+
+            if (deadSlaveIndexList.size() > 0) {
+                for (Integer i : deadSlaveIndexList) {
+                    log.info("Removing slave " + i + " because stopped by JMX");
+                    SocketChannel toDelete = ElasticMaster.this.slaves.remove(i.intValue());
+                    try {
+                        toDelete.socket().close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                log.debug("New size of slaves: " + ElasticMaster.this.slaves.size());
+                log.info("Re-mapping hash map");
+                reOrderSlave2Index();
+                log.debug("New size of slave2Index: " + ElasticMaster.this.slave2Index.size());
+
+                if(localSlaves.size()<1){
+                    log.warn("All slaves dead BEFORE the end of the benchmark");
+                    releaseResourcesAndExit();
+                } else {
+
+
+                    log.info("Updating the currentFixedBenchmark().getSize");
+                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + ElasticMaster.this.slaves.size());
+                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
+
+                    /*
+                    int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() -1;
+                    log.debug("Decremento state.getCurrentMainDistStage().setActiveSlavesCount da: " +
+                            ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() +
+                            " a " +
+                            newSize);
+                    //ElasticMaster.this.state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
+
+                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " +
+                            ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() +
+                            " to " + ElasticMaster.this.slaves.size());
+                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
+                    */
+                }
+            }
         }
 
         protected void prePrepareNextStage(){}
@@ -360,27 +397,8 @@ public class ElasticMaster extends Master {
             // Analyze the acks in order to find some slave stopped
             if (ElasticMaster.this.state.getCurrentDistStage() instanceof AbstractBenchmarkStage) {
                 List<Integer> deadSlaveIndexList = ElasticMaster.this.state.sizeForNextStage(localResponses, ElasticMaster.this.slaves);
-                if (deadSlaveIndexList.size() > 0) {
-                    for (Integer i : deadSlaveIndexList) {
-                        log.info("Removing slave " + i + " because stopped by JMX");
-                        SocketChannel deleted = ElasticMaster.this.slaves.remove(i.intValue());
-                        try {
-                            deleted.socket().close();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    log.debug("New size of slaves: " + ElasticMaster.this.slaves.size());
-                    log.info("Re-mapping hash map");
-                    ElasticMaster.this.slave2Index.clear();
-                    for (int j = 0; j < ElasticMaster.this.slaves.size(); j++) {
-                        ElasticMaster.this.slave2Index.put(ElasticMaster.this.slaves.get(j), j);
-                    }
-                    log.debug("New size of slave2Index: " + ElasticMaster.this.slave2Index.size());
-                    log.info("Updating the currentFixedBenchmark().getSize");
-                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + ElasticMaster.this.slaves.size());
-                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
-                }
+                manageStoppedSlave(deadSlaveIndexList);
+
             }
         }
     }
