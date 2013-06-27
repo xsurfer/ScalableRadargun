@@ -301,6 +301,9 @@ public class ElasticMaster extends Master {
 
         public void manageStoppedSlave(List<Integer> deadSlaveIndexList){
 
+            // ordino in ordine discendente in modo che vado a eliminare prima le socket maggiori
+            Collections.sort(deadSlaveIndexList, Collections.reverseOrder());
+
             if (deadSlaveIndexList.size() > 0) {
                 for (Integer i : deadSlaveIndexList) {
                     log.info("Removing slave " + i + " because stopped by JMX");
