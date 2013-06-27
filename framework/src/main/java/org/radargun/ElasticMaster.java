@@ -310,19 +310,17 @@ public class ElasticMaster extends Master {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+                    log.info("Re-mapping hash map");
+                    reOrderSlave2Index();
                 }
 
                 log.debug("New size of slaves: " + ElasticMaster.this.slaves.size());
-                log.info("Re-mapping hash map");
-                reOrderSlave2Index();
                 log.debug("New size of slave2Index: " + ElasticMaster.this.slave2Index.size());
 
                 if(localSlaves.size()<1){
                     log.warn("All slaves dead BEFORE the end of the benchmark");
                     releaseResourcesAndExit();
                 } else {
-
-
                     log.info("Updating the currentFixedBenchmark().getSize");
                     log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + ElasticMaster.this.slaves.size());
                     ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
