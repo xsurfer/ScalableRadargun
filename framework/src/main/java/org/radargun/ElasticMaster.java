@@ -288,11 +288,9 @@ public class ElasticMaster extends Master {
         }
 
         protected void reOrderSlave2Index(){
+            slave2Index.clear();
             for(SocketChannel slave : slaves){
                 int index = slaves.indexOf(slave);
-                if( !slave2Index.containsKey(slave) ){
-                    throw new IllegalStateException("Socket " + slave + " should have been there!");
-                }
                 slave2Index.put(slave, index);
             }
             log.info("Slave2Index has been reordered");

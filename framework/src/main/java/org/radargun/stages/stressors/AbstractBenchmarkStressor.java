@@ -343,6 +343,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     public synchronized void finishBenchmark(OpenSystem system) {
 
+        // TODO aspettare la fine delle tx in coda
+
         if( !running.get() ) {
             log.trace("Stopping workload generator");
             system.getWorkloadGenerator().stop();
@@ -355,6 +357,12 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
             log.trace("Waking up waiting thread");
             notifyAll();
+
+            try {
+                cacheWrapper.tearDown();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
