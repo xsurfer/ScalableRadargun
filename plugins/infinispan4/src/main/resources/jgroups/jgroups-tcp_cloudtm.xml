@@ -1,13 +1,73 @@
-<config xmlns="urn:org:jgroups" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/JGroups-3.1.xsd">
-<TCP bind_port="7800" recv_buf_size="${tcp.recv_buf_size:20M}" send_buf_size="${tcp.send_buf_size:640K}" use_send_queues="true" sock_conn_timeout="300" loopback="false" discard_incompatible_packets="true" enable_bundling="false" enable_unicast_bundling="false" enable_diagnostics="true" thread_naming_pattern="cl" thread_pool.enabled="true" thread_pool.min_threads="8" thread_pool.max_threads="64" thread_pool.keep_alive_time="30000" thread_pool.queue_enabled="true" thread_pool.queue_max_size="10000" thread_pool.rejection_policy="discard" oob_thread_pool.enabled="true" oob_thread_pool.min_threads="8" oob_thread_pool.max_threads="64" oob_thread_pool.keep_alive_time="30000" oob_thread_pool.queue_enabled="true" oob_thread_pool.queue_max_size="10000" oob_thread_pool.rejection_policy="discard"/>
-<MPING mcast_addr="${jgroups.udp.mcast_addr:228.10.10.10}" mcast_port="${jgroups.udp.mcast_port:46655}" ip_ttl="${jgroups.udp.ip_ttl:8}" num_initial_members="5" break_on_coord_rsp="true" stagger_timeout="3000" timeout="15000"/>
-<MERGE2 max_interval="30000" min_interval="10000"/>
-<FD_SOCK/>
-<BARRIER/>
-<pbcast.NAKACK2 use_mcast_xmit="false" discard_delivered_msgs="true"/>
-<UNICAST2 max_stable_msgs="100" xmit_interval="1000" conn_expiry_timeout="0" max_bytes="10M" stable_interval="10000"/>
-<pbcast.STABLE stability_delay="2000" desired_avg_gossip="10000" max_bytes="10M" cap="0.001"/>
-<pbcast.GMS print_local_addr="true" join_timeout="3000" max_bundling_time="500" view_bundling="true"/>
-<tom.TOA/>
-<pbcast.STATE_TRANSFER/>
+<config xmlns="urn:org:jgroups"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/JGroups-3.3.xsd">
+    <TCP
+            bind_port="${jgroups.tcp.port:7800}"
+            loopback="false"
+            port_range="30"
+            recv_buf_size="20m"
+            send_buf_size="640k"
+            discard_incompatible_packets="true"
+            enable_bundling="false"
+            use_send_queues="true"
+            sock_conn_timeout="300"
+            enable_diagnostics="false"
+
+            thread_pool.enabled="true"
+            thread_pool.min_threads="2"
+            thread_pool.max_threads="64"
+            thread_pool.keep_alive_time="30000"
+            thread_pool.queue_enabled="true"
+            thread_pool.queue_max_size="100"
+            thread_pool.rejection_policy="discard"
+
+            oob_thread_pool.enabled="true"
+            oob_thread_pool.min_threads="2"
+            oob_thread_pool.max_threads="128"
+            oob_thread_pool.keep_alive_time="30000"
+            oob_thread_pool.queue_enabled="true"
+            oob_thread_pool.queue_max_size="100"
+            oob_thread_pool.rejection_policy="discard"
+            />
+    <!-- If no IP-multicast is available, use TCPGOSSIP instead of MPING -->
+    <TCPGOSSIP
+            initial_hosts="${jgroups.gossip_bind_addr:localhost[15800]}"
+            num_initial_members="3"
+            break_on_coord_rsp="true"
+            />
+    <!--MPING
+            bind_addr="${jgroups.bind_addr:127.0.0.1}"
+            break_on_coord_rsp="true"
+            mcast_addr="${jgroups.udp.mcast_addr:224.0.0.2}"
+            mcast_port="${jgroups.udp.mcast_port:46655}"
+            ip_ttl="${jgroups.udp.ip_ttl:8}"
+            num_initial_members="3"
+            timeout="5000"
+            /-->
+    <MERGE2
+            max_interval="30000"
+            min_interval="10000"
+            />
+    <FD_SOCK/>
+    <BARRIER/>
+    <pbcast.NAKACK2
+            use_mcast_xmit="true"
+            discard_delivered_msgs="true"
+            />
+    <UNICAST3
+            xmit_interval="1000"
+            />
+    <pbcast.STABLE
+            stability_delay="1000"
+            desired_avg_gossip="50000"
+            max_bytes="10m"
+            />
+    <pbcast.GMS
+            print_local_addr="true"
+            join_timeout="3000"
+            max_bundling_time="500"
+            view_bundling="true"
+            />
+    <SEQUENCER/>
+    <tom.TOA/>
 </config>

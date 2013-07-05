@@ -49,6 +49,8 @@ public class InfinispanWrapper implements CacheWrapper {
    private boolean perThreadTrackNewKeys = false;
    private static final int maxSleep = 2000;
    private static final boolean takeAllStats = false;
+   private boolean ignorePutResult = false;
+
 
    private InfinispanListener listener;
 
@@ -62,6 +64,7 @@ public class InfinispanWrapper implements CacheWrapper {
    private static Log log = LogFactory.getLog(InfinispanWrapper.class);
    DefaultCacheManager cacheManager;
    private Cache<Object, Object> cache;
+   private Cache<Object, Object> writeCache;
    TransactionManager tm;
    boolean started = false;
    String config;
@@ -70,6 +73,11 @@ public class InfinispanWrapper implements CacheWrapper {
    Method isPassiveReplicationMethod = null;
 
    private List<StatisticComponent> statisticComponents;
+
+
+   public void setIgnorePutResult(boolean b) {
+      this.ignorePutResult = b;
+   }
 
    public void setUp(String config, boolean isLocal, int nodeIndex, TypedProperties confAttributes) throws Exception {
       this.config = config;
@@ -85,6 +93,11 @@ public class InfinispanWrapper implements CacheWrapper {
             throw new IllegalStateException("The requested cache(" + cacheName + ") is not defined. Defined cache " +
                     "names are " + cacheNames);
          cache = cacheManager.getCache(cacheName);
+         log.warn("IgnorePutResult is " + ignorePutResult);
+         if (ignorePutResult)
+            writeCache = cache.getAdvancedCache().withFlags(Flag.IGNORE_RETURN_VALUES);
+         else
+            writeCache = cache;
          started = true;
          tm = cache.getAdvancedCache().getTransactionManager();
          log.info("Using transaction manager: " + tm);
@@ -97,14 +110,16 @@ public class InfinispanWrapper implements CacheWrapper {
             isPassiveReplicationMethod = null;
          }
           this.listener = new InfinispanListener();
-          cache.addListener( listener );
+          cacheManager.addListener( listener );
       }
       log.debug("Loading JGroups from: " + org.jgroups.Version.class.getProtectionDomain().getCodeSource().getLocation());
       log.info("JGroups version: " + org.jgroups.Version.printDescription());
       log.info("Using config attributes: " + confAttributes);
       blockForRehashing();
-      log.warn("Beware! I am getting rid of the EvenConsistentHash");
+      //log.warn("Beware! Relying on the default hash function");
       // injectEvenConsistentHash(confAttributes);
+      //injectEvenConsistentHash(confAttributes);
+
 
       for (int i = 0; i < MAX_THREADS; i++) {
          this.perThreadNewKeys[i] = new LinkedList<Object>();
@@ -120,9 +135,25 @@ public class InfinispanWrapper implements CacheWrapper {
       }
    }
 
+
+   public List<Address> members() {
+      return cache.getAdvancedCache().getRpcManager().getTransport().getMembers();
+   }
+
    public void put(String bucket, Object key, Object value) throws Exception {
-      if (cache.put(key, value) == null && this.trackNewKeys)
-         this.newKeys.add(key);
+
+      writeCache.put(key, value);
+
+      /*
+      try {
+         if (cache.put(key, value) == null && this.trackNewKeys)
+            this.newKeys.add(key);
+      } catch (Exception e) {
+         log.warn(e.getMessage());
+         log.warn("Error on key " + key);
+         throw e;
+      }
+      */
    }
 
    @Override
@@ -245,7 +276,22 @@ public class InfinispanWrapper implements CacheWrapper {
 
       }
    }
-  */
+
+
+    private void injectEvenConsistentHash(TypedProperties confAttributes) {
+        if(cache.getCacheConfiguration().clustering().cacheMode().isDistributed()){
+            ConsistentHash ch = cache.getAdvancedCache().getDistributionManager().getConsistentHash();
+            if (ch instanceof UniformContendedStringHash) {
+                log.warn("Starting my hash");
+                ch.setCaches(new HashSet(this.members()));
+            }
+            else{
+                log.warn("ConsistentHash of class "+ch);
+            }
+
+        }
+    }
+   */
    private void assertTm() {
       if (tm == null) throw new RuntimeException("No configured TM!");
    }
@@ -316,15 +362,6 @@ public class InfinispanWrapper implements CacheWrapper {
 
    @Override
    public Map<String, String> getAdditionalStats() {
-      if (takeAllStats) {
-         try {
-            return getAllStats();
-         } catch (Exception e) {
-            log.warn("ARGH");
-            e.printStackTrace();
-            return new HashMap<String, String>();     //empty
-         }
-      }
       Map<String, String> results = new HashMap<String, String>();
       MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
       String cacheComponentString = getCacheComponentBaseString(mBeanServer);
@@ -344,19 +381,21 @@ public class InfinispanWrapper implements CacheWrapper {
 
    @Override
    public boolean isPassiveReplication() {
-
+      //TODO handle the case for v5!!!
+        /*
+        try {
+            //DIEGO's
+            return this.cache.getAdvancedCache().getConfiguration().isPassiveReplication();
+        } catch (Exception e) {
+        */
       try {
-         //DIEGO's
-         return this.cache.getAdvancedCache().getConfiguration().isPassiveReplication();
-      } catch (Exception e) {
-         try {
-            //PEDRO's
-            return isPassiveReplicationMethod != null && (isPassiveReplicationWithSwitch() ||
-                    (Boolean) isPassiveReplicationMethod.invoke(cache.getConfiguration()));
-         } catch (Exception ee) {
-            log.debug("isPassiveReplication method not found or can't be invoked. Assuming *no* passive replication in use");
-         }
+         //PEDRO's
+         return isPassiveReplicationMethod != null && (isPassiveReplicationWithSwitch() ||
+                 (Boolean) isPassiveReplicationMethod.invoke(cache.getConfiguration()));
+      } catch (Exception ee) {
+         log.debug("isPassiveReplication method not found or can't be invoked. Assuming *no* passive replication in use");
       }
+      //}
 
       return false;
 
@@ -619,16 +658,16 @@ public class InfinispanWrapper implements CacheWrapper {
 
    @Override
    public void put(String bucket, Object key, Object value, int threadId) throws Exception {
+
+      writeCache.put(key, value);
+      /*
       if (perThreadTrackNewKeys) {
-         log.info("NewPut with perThreadTrackNewKeys");
          if (cache.put(key, value) == null) {
-            log.info("NewPut with perThreadTrackNewKeysAdding");
             this.perThreadNewKeys[threadId].add(key);
-            log.info("NewPut with perThreadTrackNewKeysAdded");
          }
-         log.info("I Sux newput something with ThreadTrackNewKeys");
       } else
          put(bucket, key, value);
+         */
    }
 
    @Override
@@ -656,17 +695,6 @@ public class InfinispanWrapper implements CacheWrapper {
 
     public void addObserver(Observer o){
         listener.addObserver(o);
-    }
-
-    @Listener
-    public class InfinispanListener extends Observable {
-        @ViewChanged
-        public void viewChanged(ViewChangedEvent e) {
-            // reconfiguration is needed
-            log.trace("View Changed! New size: " + InfinispanWrapper.this.getNumMembers() );
-            setChanged();
-            notifyObservers( new Integer(CacheWrapper.VIEW_CHANGED) );
-        }
     }
 
 }

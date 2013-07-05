@@ -121,7 +121,7 @@ public class Consumer implements Runnable {
                 stats._handleEndTx(generatedTx, successful);
 
                 blockIfInactive();
-                log.info("Consumer = { active: " + active + " ; running: " + running + "}");
+                log.trace("Consumer = { active: " + active + " ; running: " + running + "}");
             }
         }
         log.info("Out of the while");
@@ -170,7 +170,7 @@ public class Consumer implements Runnable {
                 //tx.notifyProducer();
 
                 blockIfInactive();
-                log.info("Consumer = { active: " + active + " ; running: " + running + "}");
+                log.trace("Consumer = { active: " + active + " ; running: " + running + "}");
             }
         }
         log.info("Out of the while");
@@ -233,7 +233,7 @@ public class Consumer implements Runnable {
             parameters.getStartPoint().await();
             log.info("Starting thread: " + Thread.currentThread().getName());
         } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting for starting in " + Thread.currentThread().getName());
+            throw new RuntimeException(e);
         }
     }
 
@@ -258,7 +258,7 @@ public class Consumer implements Runnable {
             try {
                 tx.executeTransaction(cacheWrapper);
                 stats._handleSuccessLocalTx(tx);
-                log.info("Thread " + threadIndex + " successfully completed locally a transaction of type " +
+                log.trace("Thread " + threadIndex + " successfully completed locally a transaction of type " +
                         tx.getType() + " btw, successful is " + successful);
 
             } catch (Throwable e) {
@@ -267,7 +267,7 @@ public class Consumer implements Runnable {
                 if (log.isDebugEnabled()) {
                     log.debug("Exception while executing transaction.", e);
                 } else {
-                    log.warn("Exception while executing transaction of type: " + tx.getType() + " " + e.getMessage());
+                    log.trace("Exception while executing transaction of type: " + tx.getType() + " " + e.getMessage());
                 }
 
                 if (e instanceof ApplicationException) {
@@ -287,7 +287,7 @@ public class Consumer implements Runnable {
             try {
                 cacheWrapper.endTransaction(successful, threadIndex);
                 if (successful) {
-                    log.info("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
+                    log.trace("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
                             tx.getType() + " Btw, successful is " + successful);
                 }
             } catch (Throwable e) {
@@ -301,7 +301,7 @@ public class Consumer implements Runnable {
                 if (log.isDebugEnabled()) {
                     log.debug("Error while committing", e);
                 } else {
-                    log.warn("Error while committing: " + e.getMessage());
+                    log.trace("Error while committing: " + e.getMessage());
                 }
             }
 
@@ -327,7 +327,7 @@ public class Consumer implements Runnable {
 
             transaction.regenerate(newTransaction);
             //copyTimeStampInformation(transaction, newTransaction);
-            log.info("Thread " + threadIndex + ": regenerating a transaction of type " + transaction.getType() +
+            log.trace("Thread " + threadIndex + ": regenerating a transaction of type " + transaction.getType() +
                     " into a transaction of type " + newTransaction.getType());
             return transaction;
         }
@@ -340,7 +340,7 @@ public class Consumer implements Runnable {
         if (parameters.getBackOffTime() != 0) {
             stats.inc(StressorStats.NUM_BACK_OFFS);
             long backedOff = backOffSleeper.sleep();
-            log.info("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
+            log.trace("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
             stats.put(StressorStats.BACKED_OFF_TIME, backedOff);
         }
     }

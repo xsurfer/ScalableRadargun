@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-            <version>5.0.0-DIEGO</version>
+             <version>5.2.6-cloudtm-SNAPSHOT</version>
         </dependency>
 
         <!--dependency>

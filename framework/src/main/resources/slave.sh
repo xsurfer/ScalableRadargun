@@ -94,7 +94,7 @@ CONF="-master $MASTER"
 
 add_fwk_to_classpath
 
-BIND_ADDRESS=`hostname`
+BIND_ADDRESS=`hostname -i`
 D_VARS="-Djava.net.preferIPv4Stack=true" 
 D_VARS="${D_VARS} -Dlog4j.file.prefix=${LOG4J_PREFIX}" 
 D_VARS="${D_VARS} -Dbind.address=${BIND_ADDRESS}" 
@@ -117,5 +117,4 @@ echo "--------------------------------------------------------------------------
 nohup java ${JVM_OPTS} ${D_VARS} -classpath $CP org.radargun.Slave ${CONF} >> ${LOCAL_PREFIX}stdout_slave_${HOST_NAME}.out.$$ 2>&1 &
 echo "... done! Slave process started on host ${HOST_NAME}!"
 echo ""
-
 

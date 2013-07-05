@@ -22,18 +22,23 @@ package org.radargun.stages;/*
  */
 
 import org.radargun.stages.stressors.SyntheticPutGetStressor;
+import org.radargun.stages.synthetic.XACT_RETRY;
+
 
 import java.util.Map;
 
 /**
- * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 20/03/13
+ * @author Diego Didona, didona@gsd.inesc-id.pt Date: 20/03/13
  */
 public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
 
    private int updateXactWrites = 1;
    private int readOnlyXactSize = 1;
    private int updateXactReads = 1;
+   private boolean allowBlindWrites = false;
+   private XACT_RETRY retryMode = XACT_RETRY.NO_RETRY;
+   private int readsBeforeFirstWrite = 1;
+
 
    protected Map<String, String> doWork() {
       log.info("Starting " + getClass().getSimpleName() + ": " + this);
@@ -51,11 +56,32 @@ public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
       putGetStressor.setupdateXactWrites(updateXactWrites);
       putGetStressor.setReadOnlyXactSize(readOnlyXactSize);
       putGetStressor.setUpdateXactReads(updateXactReads);
+      putGetStressor.setAllowBlindWrites(allowBlindWrites);
+      putGetStressor.setStatsSamplingInterval(statsSamplingInterval);
+      putGetStressor.setXact_retry(retryMode);
+      putGetStressor.setReadsBeforeFirstWrite(readsBeforeFirstWrite);
       return putGetStressor.stress(cacheWrapper);
+   }
+
+   public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
+      this.readsBeforeFirstWrite = readsBeforeFirstWrite;
+   }
+
+   public XACT_RETRY getRetryMode() {
+      return retryMode;
+   }
+
+   public void setRetryMode(XACT_RETRY retryMode) {
+      this.retryMode = retryMode;
    }
 
    public int getUpdateXactWrites() {
       return updateXactWrites;
+   }
+
+
+   public boolean isAllowBlindWrites() {
+      return allowBlindWrites;
    }
 
    public int getReadOnlyXactSize() {
@@ -78,12 +104,20 @@ public class SyntheticBenchmarkStage extends WebSessionBenchmarkStage {
       this.updateXactWrites = updateXactWrites;
    }
 
+   public void setAllowBlindWrites(boolean allowBlindWrites) {
+      this.allowBlindWrites = allowBlindWrites;
+   }
+
+   public void setRetryMode(String retry) {
+      this.retryMode = XACT_RETRY.valueOf(retry);
+   }
+
    @Override
    public String toString() {
       return "SyntheticBenchmarkStage{" +
-              "updateXactWrites=" + updateXactWrites +
-              ", readOnlyXactSize=" + readOnlyXactSize +
-              ", updateXactReads=" + updateXactReads +
-              '}';
+            "updateXactWrites=" + updateXactWrites +
+            ", readOnlyXactSize=" + readOnlyXactSize +
+            ", updateXactReads=" + updateXactReads +
+            '}';
    }
 }

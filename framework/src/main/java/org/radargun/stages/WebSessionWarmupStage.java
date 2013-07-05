@@ -17,7 +17,8 @@ import java.util.Set;
  */
 public class WebSessionWarmupStage extends WebSessionBenchmarkStage {
 
-   private static final Set<String> WARMED_UP_CONFIGS = new HashSet<String>(2);
+    private static final Set<String> WARMED_UP_CONFIGS = new HashSet<String>(2);
+    private boolean runOnlyOnMaster = true;
 
    @Override
    public DistStageAck executeOnSlave() {
@@ -30,43 +31,61 @@ public class WebSessionWarmupStage extends WebSessionBenchmarkStage {
          return result;
       }
 
-      String configName = cacheWrapper.getClass().getName() + " - " + cacheWrapper.getInfo();
-
-      if (!WARMED_UP_CONFIGS.contains(configName)) {
-
-         try {
-            long startTime = System.currentTimeMillis();
-            doWork();
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("The warmup took: " + (duration / 1000) + " seconds.");
-            result.setPayload(duration);
-            WARMED_UP_CONFIGS.add(configName);
+        String configName = cacheWrapper.getClass().getName() + " - " + cacheWrapper.getInfo();
+        boolean skip = false;
+        if (!WARMED_UP_CONFIGS.contains(configName)) {
+            //DIE
+            if (runOnlyOnMaster && !cacheWrapper.isCoordinator()) {
+                log.warn("Skipping Warmup as I am not the master node");
+                skip = true;
+            } else {
+                log.warn("Warming up as I am the master");
+            }
+            try {
+                long startTime = System.currentTimeMillis();
+                if (!skip) {
+                    log.warn("Warmin' up..."+cacheWrapper.getCacheSize()+" elements in the cache");
+                    doWork();
+                    log.warn("Ding! Supper's ready! "+cacheWrapper.getCacheSize()+" elements in cache");
+                }
+                long duration = System.currentTimeMillis() - startTime;
+                log.info("The warmup took: " + (duration / 1000) + " seconds.");
+                result.setPayload(duration);
+                WARMED_UP_CONFIGS.add(configName);
+                return result;
+            } catch (Exception e) {
+                log.warn("Exception while running " + getClass().getSimpleName(), e);
+                result.setError(true);
+                result.setRemoteException(e);
+                return result;
+            }
+        } else {
+            log.info("Skipping warmup, this has already been done for this configuration on this node.");
             return result;
-         } catch (Exception e) {
-            log.warn("Exception while running " + getClass().getSimpleName(), e);
-            result.setError(true);
-            result.setRemoteException(e);
-            return result;
-         }
-      } else {
-         log.info("Skipping warmup, this has already been done for this configuration on this node.");
-         return result;
-      }
-   }
+        }
+    }
 
-   @Override
-   public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
-      logDurationInfo(acks);
-      for (DistStageAck ack : acks) {
-         DefaultDistStageAck dAck = (DefaultDistStageAck) ack;
-         if (dAck.isError())
-            log.warn("Caught error on slave " + dAck.getSlaveIndex() + " when running " + getClass().getSimpleName() + ".  Error details:" + dAck.getErrorMessage());
-      }
-      return true;
-   }
+    @Override
+    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
+        logDurationInfo(acks);
+        for (DistStageAck ack : acks) {
+            DefaultDistStageAck dAck = (DefaultDistStageAck) ack;
+            if (dAck.isError())
+                log.warn("Caught error on slave " + dAck.getSlaveIndex() + " when running " + getClass().getSimpleName() + ".  Error details:" + dAck.getErrorMessage());
+        }
+        return true;
+    }
 
-   @Override
-   public String toString() {
-      return "Warmup for " + super.toString();
-   }
+    @Override
+    public String toString() {
+        return "Warmup for " + super.toString();
+    }
+
+    public boolean isRunOnlyOnMaster() {
+        return runOnlyOnMaster;
+    }
+
+    public void setRunOnlyOnMaster(boolean runOnlyOnMaster) {
+        this.runOnlyOnMaster = runOnlyOnMaster;
+    }
 }

@@ -22,7 +22,7 @@ import static org.radargun.utils.Utils.numberFormat;
 public class WebSessionBenchmarkStage extends AbstractDistStage {
 
    private static final String SIZE_INFO = "SIZE_INFO";
-   private int opsCountStatusLog = 5000;
+   protected int opsCountStatusLog = 5000;
 
    public static final String SESSION_PREFIX = "SESSION";
 
@@ -67,6 +67,8 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
    protected int transactionSize = 1;
 
    protected long durationMillis = -1;
+
+   protected long statsSamplingInterval = 0L;
 
    protected Map<String, String> doWork() {
       log.info("Starting " + getClass().getSimpleName() + ": " + this);
@@ -223,7 +225,16 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
       this.durationMillis = Utils.string2Millis(duration);
    }
 
-   @Override
+
+    public long getStatsSamplingInterval() {
+        return statsSamplingInterval;
+    }
+
+    public void setStatsSamplingInterval(long statsSamplingInterval) {
+        this.statsSamplingInterval = statsSamplingInterval;
+    }
+
+    @Override
    public String toString() {
       return "WebSessionBenchmarkStage {" +
               "opsCountStatusLog=" + opsCountStatusLog +

@@ -3,6 +3,7 @@ package org.radargun.stages.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
+import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
 
 import java.util.*;
@@ -59,9 +60,9 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
     */
    protected int nodeIndex = -1;
 
-   private int transactionSize = 1;
+   protected int transactionSize = 1;
 
-   private boolean useTransactions = false;
+   protected boolean useTransactions = false;
 
    private boolean commitTransactions = true;
 
@@ -72,12 +73,15 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
    protected KeyGenerator keyGenerator;
 
 
+   protected long statsSamplingInterval = 0;
+
+
    protected CacheWrapper cacheWrapper;
    private static Random r = new Random();
    private volatile long startNanos;
    protected volatile CountDownLatch startPoint;
    protected volatile StressorCompletion completion;
-
+   protected StatSampler sampler = null;
 
    public Map<String, String> stress(CacheWrapper wrapper) {
       this.cacheWrapper = wrapper;
@@ -89,11 +93,22 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
          completion = new OperationCountCompletion(new AtomicInteger(numberOfRequests));
       }
 
+
+      if (statsSamplingInterval > 0) {
+         sampler = new StatSampler(statsSamplingInterval);
+         log.trace("Starting sampler with samplingInterval " + statsSamplingInterval);
+         sampler.start();
+      }
       List<Stressor> stressors;
       try {
          stressors = executeOperations();
       } catch (Exception e) {
+         e.printStackTrace();
          throw new RuntimeException(e);
+      } finally {
+         if (sampler != null) {
+            sampler.cancel();
+         }
       }
       return processResults(stressors);
    }
@@ -137,10 +152,9 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
          results.put("TX_PER_SEC", str(txPerSec));
       }
       log.info("Finished generating report. Nr of failed operations on this node is: " + failures +
-              ". Test duration is: " + Utils.getNanosDurationString(System.nanoTime() - startNanos));
+                     ". Test duration is: " + Utils.getNanosDurationString(System.nanoTime() - startNanos));
       return results;
    }
-
 
 
    protected List<Stressor> executeOperations() throws Exception {
@@ -169,7 +183,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
 
       private ArrayList<Object> pooledKeys = new ArrayList<Object>(numberOfKeys);
 
-      private int threadIndex;
+      protected int threadIndex;
       private int nrFailures;
       private long readDuration = 0;
       private long writeDuration = 0;
@@ -469,8 +483,8 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
             log.trace("i=" + i + ", elapsedTime=" + elapsedNanos);
          }
          log.info("Thread index '" + threadIndex + "' executed " + (i + 1) + " operations. Elapsed time: " +
-                 Utils.getNanosDurationString((long) elapsedNanos) + ". Estimated remaining: " + Utils.getNanosDurationString((long) estimatedRemaining) +
-                 ". Estimated total: " + Utils.getNanosDurationString((long) estimatedTotal));
+                        Utils.getNanosDurationString((long) elapsedNanos) + ". Estimated remaining: " + Utils.getNanosDurationString((long) estimatedRemaining) +
+                        ". Estimated total: " + Utils.getNanosDurationString((long) estimatedTotal));
       }
 
       protected void avoidJit(Object result) {
@@ -502,17 +516,21 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       private volatile long lastPrint = -1;
 
       TimeStressorCompletion(long durationMillis) {
-         this.durationMillis = durationMillis;
-         startTime = nowMillis();
+
+         this.durationMillis = TimeUnit.MILLISECONDS.toNanos(durationMillis);
+         startTime = nowNano();
+         log.trace("DurationMillis " + durationMillis + " startTime " + startTime);
       }
 
       @Override
       boolean moreToRun() {
-         return nowMillis() <= startTime + durationMillis;
+         long now = nowNano();
+         log.trace("Current Time " + nowNano() + " endTime " + (startTime + durationMillis) + " still to go: " + (startTime + durationMillis - now));
+         return now <= startTime + durationMillis;
       }
 
       public void logProgress(int i, Object result, int threadIndex) {
-         long nowMillis = nowMillis();
+         long nowMillis = TimeUnit.NANOSECONDS.toMillis(nowNano());
 
          //make sure this info is not printed more frequently than 20 secs
          int logFrequency = 20;
@@ -529,7 +547,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
                long remaining = Math.max(0, (startTime + durationMillis) - nowMillis);
 
                log.info("Number of ops executed so far: " + i + ". Elapsed time: " + Utils.getMillisDurationString(elapsedMillis) + ". Remaining: " + Utils.getMillisDurationString(remaining) +
-                       ". Total: " + Utils.getMillisDurationString(durationMillis));
+                              ". Total: " + Utils.getMillisDurationString(durationMillis));
             }
          }
       }
@@ -538,27 +556,36 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
          return TimeUnit.MILLISECONDS.toSeconds(nowMillis - lastPrint);
       }
 
-      private long nowMillis() {
-         return TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+      private long nowNano() {
+         return (System.nanoTime());
       }
+   }
+
+
+   public long getStatsSamplingInterval() {
+      return statsSamplingInterval;
+   }
+
+   public void setStatsSamplingInterval(long statsSamplingInterval) {
+      this.statsSamplingInterval = statsSamplingInterval;
    }
 
    @Override
    public String toString() {
       return "PutGetStressor{" +
-              "opsCountStatusLog=" + opsCountStatusLog +
-              ", numberOfRequests=" + numberOfRequests +
-              ", numberOfKeys=" + numberOfKeys +
-              ", sizeOfValue=" + sizeOfValue +
-              ", writePercentage=" + writePercentage +
-              ", numOfThreads=" + numOfThreads +
-              ", cacheWrapper=" + cacheWrapper +
-              ", nodeIndex=" + nodeIndex +
-              ", useTransactions=" + useTransactions +
-              ", transactionSize=" + transactionSize +
-              ", commitTransactions=" + commitTransactions +
-              ", durationMillis=" + durationMillis +
-              "}";
+            "opsCountStatusLog=" + opsCountStatusLog +
+            ", numberOfRequests=" + numberOfRequests +
+            ", numberOfKeys=" + numberOfKeys +
+            ", sizeOfValue=" + sizeOfValue +
+            ", writePercentage=" + writePercentage +
+            ", numOfThreads=" + numOfThreads +
+            ", cacheWrapper=" + cacheWrapper +
+            ", nodeIndex=" + nodeIndex +
+            ", useTransactions=" + useTransactions +
+            ", transactionSize=" + transactionSize +
+            ", commitTransactions=" + commitTransactions +
+            ", durationMillis=" + durationMillis +
+            "}";
    }
 }
 

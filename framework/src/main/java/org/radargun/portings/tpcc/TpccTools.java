@@ -12,11 +12,11 @@ public final class TpccTools {
 
    public static final double WAREHOUSE_YTD = 300000.00;
 
-   public static final int NB_MAX_DISTRICT = 10;
+   public static final int NB_MAX_DISTRICT = 1; // todo mettere a 10
 
-   public static final long NB_MAX_ITEM = 100000;
+   public static final long NB_MAX_ITEM = 100000; // todo mettere a 100000
 
-   public static final int NB_MAX_CUSTOMER = 3000;
+   public static final int NB_MAX_CUSTOMER = 3000; // todo mettere a 3000
 
    public static final int NB_MAX_ORDER = 3000;
 

@@ -160,12 +160,17 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
             results = stressor.stress();
 
             if (results != null) {
+
                 String sizeInfo = "size info: " + cacheWrapper.getInfo() +
                         ", clusterSize:" + super.getActiveSlaveCount() +
                         ", nodeIndex:" + super.getSlaveIndex() +
                         ", cacheSize: " + cacheWrapper.getCacheSize();
                 log.info(sizeInfo);
                 results.put(SIZE_INFO, sizeInfo);
+                if( Boolean.parseBoolean(results.get("STOPPED")) ){
+                    log.info("Cache has been torn down!");
+                    cacheWrapper.tearDown();
+                }
             }
             result.setPayload(results);
             return result;
@@ -317,7 +322,14 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     }
 
     @ManagedOperation(description = "Stop the current benchmark")
-    public abstract void stopBenchmark();
+    public void stopBenchmark() {
+        stressor.stopBenchmark();
+    }
+
+    @ManagedOperation(description = "Notify the slave that a new slave is ready to execute txs")
+    public void changeNumNodes() {
+        stressor.changeNumberNodes();
+    }
 
 
 

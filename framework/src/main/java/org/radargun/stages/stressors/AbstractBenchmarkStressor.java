@@ -50,7 +50,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     /* *** ATTRIBUTES *** */
     /* ****************** */
 
-    private static Log log = LogFactory.getLog(AbstractCacheWrapperStressor.class);
+    private static Log log = LogFactory.getLog(AbstractBenchmarkStressor.class);
 
     public AtomicLong countJobs = new AtomicLong(0L);
 
@@ -158,7 +158,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     }
 
     public final Map<String, String> stress(OpenSystem system){
-        cacheWrapper.addObserver(this);
+        //cacheWrapper.addObserver(this);  This is not useful anymore. Slaves are notified by jmx
 
         log.trace("Registring this Stressor to the WorkLoadGenerator (Observable)");
         system.getWorkloadGenerator().addObserver(this);
@@ -202,7 +202,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
      * @return
      */
     public final Map<String, String> stress(ClosedSystem system ){
-        cacheWrapper.addObserver(this); // se cambia il numero di nodi, allora cambia il numero di producer sul nodo!!
+        //cacheWrapper.addObserver(this);  This is not useful anymore. Slaves are notified by jmx
+
         validateTransactionsWeight();
         initialization();
         if( initBenchmarkTimer() ){
@@ -357,12 +358,6 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
             log.trace("Waking up waiting thread");
             notifyAll();
-
-            try {
-                cacheWrapper.tearDown();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
@@ -674,10 +669,6 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                     Integer cmd = (Integer) arg;
 
                     switch (cmd) {
-                        case CacheWrapper.VIEW_CHANGED:
-                            log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-                            stopCreateStartProducers( (IProducerSystem) system );
-                            break;
                         case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
 
                             if(!system.getType().equals(SystemType.OPEN))
@@ -691,10 +682,9 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
                             }
                             break;
                         default:
-                            log.warn("Unrecognized argument");
+                            log.warn("Unrecognized argument: " + cmd);
                             break;
                     }
-
             }
         }
     }
@@ -782,6 +772,15 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         this.stoppedByJmx = true;
         finishBenchmarkTimer.cancel();
         finishBenchmark();
+    }
+
+    public void changeNumberNodes(){
+
+        log.warn("************************************************************");
+        log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
+        log.warn("************************************************************");
+
+        stopCreateStartProducers( (IProducerSystem) system );
     }
 
 

@@ -1,4 +1,4 @@
-package org.radargun.stages.stressors;/*
+package org.radargun.stages;/*
  * INESC-ID, Instituto de Engenharia de Sistemas e Computadores Investigação e Desevolvimento em Lisboa
  * Copyright 2013 INESC-ID and/or its affiliates and other
  * contributors as indicated by the @author tags. All rights reserved.
@@ -26,20 +26,34 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 20/03/13
+ *         Date: 23/05/13
  */
-public class ContentionStringKeyGenerator extends StringKeyGenerator{
+public class ScriptInvocationStage extends AbstractMasterStage {
 
-   private static final Log log  = LogFactory.getLog(ContentionStringKeyGenerator.class);
+   private final static Log log = LogFactory.getLog(ScriptInvocationStage.class);
 
-   @Override
-   public Object generateKey(int threadIndex, int keyIndex) {
-      return super.generateKey(CONTEND, keyIndex);    //To change body of overridden methods use File | Settings | File Templates.
+   private String pathToScript = "~/pedroGun/beforeBenchmark.sh";
+
+   public String getPathToScript() {
+      return pathToScript;
    }
 
-   @Override
-   public Object generateKey(int nodeIndex, int threadIndex, int keyIndex) {
-      log.trace("Key "+super.generateKey(CONTEND, CONTEND, keyIndex));
-      return super.generateKey(CONTEND, CONTEND, keyIndex);    //To change body of overridden methods use File | Settings | File Templates.
+   public void setPathToScript(String pathToScript) {
+      this.pathToScript = pathToScript;
    }
+
+
+   @Override
+   public boolean execute() throws Exception {
+      try {
+         Runtime.getRuntime().exec(pathToScript);
+         log.info("Script " + pathToScript + " started successfully");
+         return Boolean.TRUE;
+      } catch (Exception e) {
+         log.warn("Error starting script " + pathToScript + ". " + e.getMessage());
+         return Boolean.FALSE;
+      }
+   }
+
+
 }

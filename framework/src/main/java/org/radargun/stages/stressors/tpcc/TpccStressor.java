@@ -197,7 +197,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
             TpccTools.C_OL_I_ID = (Long) cacheWrapper.get(null, "C_OL_ID");
 
         } catch (Exception e) {
-            log.error("Error", e);
+            throw new RuntimeException(e);
         }
     }
 

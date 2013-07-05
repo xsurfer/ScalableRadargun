@@ -68,9 +68,18 @@
         <priority value="WARN"/>
     </category>
 
-    <category name="org.radargun.stages.stressors">
+    <category name="org.radargun.stages.stressors.producer">
         <priority value="INFO"/>
     </category>
+
+    <category name="org.radargun.stages.stressors.consumer">
+        <priority value="INFO"/>
+    </category>
+
+    <category name="org.radargun.portings.tpcc">
+        <priority value="OFF"/>
+    </category>
+
     <category name="org.radargun.portings.tpcc.TpccPopulation">
         <priority value="INFO"/>
     </category>
@@ -85,9 +94,11 @@
     <category name="org.infinispan">
         <priority value="OFF"/>
     </category>
+
     <category name="org.radargun.cachewrappers.InfinispanWrapper">
         <priority value="WARN"/>
     </category>
+
     <category name="org.radargun.portings.tpcc.domain">
         <priority value="OFF"/>
     </category>

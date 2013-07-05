@@ -13,8 +13,6 @@ import java.io.File;
  */
 public class LaunchMaster {
 
-   private static Log log = LogFactory.getLog(LaunchMaster.class);
-
    public static void main(String[] args) throws Exception {
 
       File currentDir = new File(".");
@@ -62,6 +60,5 @@ public class LaunchMaster {
 
    private static void out(String message) {
       System.out.println(message);
-      log.info(message);
    }
 }

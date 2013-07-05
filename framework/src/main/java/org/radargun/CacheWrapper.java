@@ -154,4 +154,6 @@ public interface CacheWrapper {
 
    void addObserver(Observer o);
 
+   void setIgnorePutResult(boolean b);
+
 }

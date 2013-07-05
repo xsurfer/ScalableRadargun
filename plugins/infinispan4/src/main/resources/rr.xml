@@ -23,7 +23,7 @@
                 useLockStriping="false"
                 lockAcquisitionTimeout="0"/>
         <transaction
-                transactionManagerLookupClass="org.infinispan.transaction.lookup.DummyTransactionManagerLookup"
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
                 useEagerLocking="false"
                 transactionMode="TRANSACTIONAL"
                 syncRollbackPhase="false"
@@ -42,7 +42,7 @@
         <customStats sampleServiceTimes="true"/>
 	<deadlockDetection
                 enabled="false"/>
-        <clustering mode="d">
+        <clustering mode="r">
             <sync
                     replTimeout="15000" />
             <hash
@@ -52,7 +52,6 @@
                     onRehash="false"
                     lifespan="600000"
                     invalidationThreshold="0" />
-            <stateTransfer fetchInMemoryState="true"/>
         </clustering>
         <customInterceptors>
             <interceptor
@@ -72,7 +71,7 @@
                 useLockStriping="false"
                 lockAcquisitionTimeout="0"/>
         <transaction
-                transactionManagerLookupClass="org.infinispan.transaction.lookup.DummyTransactionManagerLookup"
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
                 useEagerLocking="false"
                 transactionMode="TRANSACTIONAL"
                 syncRollbackPhase="false"
@@ -91,7 +90,7 @@
 	<customStats sampleServiceTimes="true"/>
         <deadlockDetection
                 enabled="false"/>
-        <clustering mode="d">
+        <clustering mode="r">
             <sync
                     replTimeout="15000" />
             <hash
@@ -101,7 +100,6 @@
                     onRehash="false"
                     lifespan="600000"
                     invalidationThreshold="0" />
-	    <stateTransfer fetchInMemoryState="true"/>
         </clustering>
         <customInterceptors>
              <interceptor

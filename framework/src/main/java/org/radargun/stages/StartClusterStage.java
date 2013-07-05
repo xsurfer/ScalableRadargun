@@ -32,7 +32,12 @@ public class StartClusterStage extends AbstractDistStage {
    private static final String PREV_PRODUCT = "StartClusterStage.previousProduct";
    private static final String CLASS_LOADER = "StartClusterStage.classLoader";
    private TypedProperties confAttributes;
+   private boolean ignorePutResult = false;
 
+
+   public void setIgnorePutResult(String ignorePutResult) {
+      this.ignorePutResult = Boolean.parseBoolean(ignorePutResult);
+   }
 
    public StartClusterStage() {
       super.setExitBenchmarkOnSlaveFailure(true);
@@ -51,6 +56,7 @@ public class StartClusterStage extends AbstractDistStage {
          String plugin = Utils.getCacheWrapperFqnClass(productName);
           log.info("plugin: " + plugin );
          wrapper = (CacheWrapper) createInstance(plugin);
+         wrapper.setIgnorePutResult(this.ignorePutResult);
          wrapper.setUp(config, false, slaveIndex, confAttributes);
          slaveState.setCacheWrapper(wrapper);
          if (performClusterSizeValidation) {

@@ -222,10 +222,6 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
         return (TpccBenchmarkStage) super.clone();
     }
 
-    @Override
-    @ManagedOperation(description = "Stop the current benchmark")
-    public void stopBenchmark() {
-        stressor.stopBenchmark();
-    }
+
 
 }

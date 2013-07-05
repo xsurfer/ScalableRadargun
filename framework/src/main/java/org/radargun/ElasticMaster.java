@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.config.MasterConfig;
 import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
 import org.radargun.utils.WorkerThreadFactory;
 
@@ -276,10 +277,28 @@ public class ElasticMaster extends Master {
                     byteBuffer.clear();
                     /* controllo se l'ack appartiene allo stage corrente */
                     log.info(ack.getStageName() + " =?= " + ElasticMaster.this.state.getCurrentDistStage().getClass().getName());
+
                     if (ack.getStageName().compareTo(ElasticMaster.this.state.getCurrentDistStage().getClass().getName()) == 0) {
                         /* TODO: controllare se l'ack proviene da uno slave noto */
                         localResponses.add(ack);
                         log.debug("ACK added: same stage");
+
+                        // Controllo se l'ack che è ricevuto contiene il flag STOPPED a true, nel caso notifico gli slave
+                        if(ack instanceof DefaultDistStageAck){
+                            DefaultDistStageAck wAck = (DefaultDistStageAck) ack;
+                            Object payload = wAck.getPayload();
+                            if(payload instanceof Map){
+                                Map<String, Object> results = (Map<String, Object>) payload;
+                                Object stoppedByJmxObj = results.get("STOPPED");
+                                if (stoppedByJmxObj != null){
+                                    boolean stoppedByJmx = Boolean.parseBoolean(stoppedByJmxObj.toString());
+                                    if(stoppedByJmx){
+                                        changeNumSlavesNotify();
+                                    }
+                                }
+                            }
+                        }
+
                     } else {
                         log.debug("ACK dropped: different stage");
                     }
@@ -289,6 +308,23 @@ public class ElasticMaster extends Master {
             }
 
 
+        }
+
+        protected void changeNumSlavesNotify(){
+            log.info("Notifying all the slaves to change numNodes");
+
+            for(SocketChannel slave : slaves){
+                String host = slave.socket().getInetAddress().getHostName();
+                String currentBenchmark = ElasticMaster.this.state.getCurrentDistStage().getClass().getName();
+
+                int startIndex = currentBenchmark.lastIndexOf(".")+1;
+                int lastIndex =  currentBenchmark.length()-new String("Stage").length();
+                currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
+
+                log.info("CurrentStage: " + currentBenchmark);
+                NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+                jmxRequest.doRequest();
+            }
         }
 
         protected void reOrderSlave2Index(){
@@ -449,6 +485,9 @@ public class ElasticMaster extends Master {
                 ElasticMaster.this.slavesReadyToMerge.add(slave);
             }
             ElasticMaster.this.clusterExecutorThread.communicationSelector.wakeup();
+
+            changeNumSlavesNotify();
+
             log.info("Sent data to master, killing!");
         }
 
