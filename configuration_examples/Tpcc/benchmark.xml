@@ -35,8 +35,8 @@
                 olIdMask="0"
                 cIdMask="0"
                 threadParallelLoad="true"
-                batchLevel="50"
-                numLoaderThreads="2"
+                batchLevel="200"
+                numLoaderThreads="4"
                 oneWarmup="true"
                 skippable="true"/>
         <GarbageCollection
@@ -53,8 +53,8 @@
         <TpccBenchmark
                 id="h"
                 statsSamplingInterval="30000"
-                numOfThreads="1"
-                perThreadSimulTime="60"
+                numOfThreads="2"
+                perThreadSimulTime="6000"
                 accessSameWarehouse="false"
                 paymentWeight="43"
                 orderStatusWeight="53"
@@ -63,15 +63,15 @@
                 perThreadTrackNewKeys="true"
                 skippable="true"
                 scalable="true">
-                <!--OpenSystem>
-                  <Ramp
-                    rateDistribution="exponential"
-                    granularity="5000"
-                    initTime="0"
-                    slope="1"
-                    yintercept="0"
-                    maxArrivalRate="3000" /-->
-  
+            <!--OpenSystem>
+              <Ramp
+                rateDistribution="exponential"
+                granularity="5000"
+                initTime="0"
+                slope="1"
+                yintercept="0"
+                maxArrivalRate="100" /-->
+
             <!--Trace
                     rateDistribution="exponential"
                     granularity="1"
@@ -84,13 +84,13 @@
                     initTime="0"
                     amplitude="1000"
                     maxArrivalRate="3000" /-->
-                <!--/OpenSystem-->
-                
-                
-              <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
-              
-              <MuleSystem thinkTime="2000" rateDistribution="exponential" />
-                
+            <!--/OpenSystem-->
+
+
+            <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
+
+            <MuleSystem thinkTime="0" rateDistribution="exponential" />
+
 
         </TpccBenchmark>
 
@@ -100,7 +100,7 @@
 
     <products>
         <infinispan4>
-            <config name="provaPC.xml"/>
+            <config name="cloudtm.xml"/>
         </infinispan4>
     </products>
     <reports>
@@ -108,5 +108,4 @@
     </reports>
 
 </bench-config>
-
 
