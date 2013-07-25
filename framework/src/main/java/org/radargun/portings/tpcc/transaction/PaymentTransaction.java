@@ -110,7 +110,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
         boolean found = w.load(cacheWrapper);
         if (!found) throw new ElementNotFoundException("W_ID=" + terminalWarehouseID + " not found!");
         w.setW_ytd(paymentAmount);
-        w.threadAwareStore(cacheWrapper, threadId);
+        w.store(cacheWrapper, threadId);
 
 
         District d = new District();
@@ -121,7 +121,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
             throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
 
         d.setD_ytd(paymentAmount);
-        d.threadAwareStore(cacheWrapper, threadId);
+        d.store(cacheWrapper, threadId);
 
 
         Customer c = null;
@@ -173,11 +173,11 @@ public class PaymentTransaction extends AbstractTpccTransaction {
 
             c.setC_data(c_new_data);
 
-            c.threadAwareStore(cacheWrapper, threadId);
+            c.store(cacheWrapper, threadId);
 
 
         } else {
-            c.threadAwareStore(cacheWrapper, threadId);
+            c.store(cacheWrapper, threadId);
 
         }
 
@@ -189,7 +189,7 @@ public class PaymentTransaction extends AbstractTpccTransaction {
         h_data = w_name + "    " + d_name;
 
         History h = new History(c.getC_id(), customerDistrictID, customerWarehouseID, districtID, terminalWarehouseID, new Date(), paymentAmount, h_data);
-        h.threadAwareStore(cacheWrapper, this.slaveIndex, threadId);
+        h.store(cacheWrapper, this.threadId);
 
 
     }

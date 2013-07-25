@@ -120,16 +120,16 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
       NewOrder no = new NewOrder(o_id, districtID, warehouseID);
 
-      no.threadAwareStore(cacheWrapper,threadId);
+      no.store(cacheWrapper,threadId);
 
       d.setD_next_o_id(d.getD_next_o_id() + 1);
 
-      d.threadAwareStore(cacheWrapper,threadId);
+      d.store(cacheWrapper,threadId);
 
 
       Order o = new Order(o_id, districtID, warehouseID, customerID, new Date(), -1, numItems, allLocal);
 
-      o.threadAwareStore(cacheWrapper,threadId);
+      o.store(cacheWrapper,threadId);
 
 
       // see clause 2.4.2.2 (dot 8)
@@ -175,7 +175,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
          s.setS_ytd(s.getS_ytd() + ol_quantity);
          s.setS_remote_cnt(s.getS_remote_cnt() + s_remote_cnt_increment);
          s.setS_order_cnt(s.getS_order_cnt() + 1);
-         s.threadAwareStore(cacheWrapper,threadId);
+         s.store(cacheWrapper,threadId);
 
 
          // clause 2.4.2.2 (dot 8.3)
@@ -227,7 +227,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
          OrderLine ol = new OrderLine(o_id, districtID, warehouseID, ol_number, ol_i_id, ol_supply_w_id, null,
                  ol_quantity, ol_amount, ol_dist_info);
-         ol.threadAwareStore(cacheWrapper,threadId);
+         ol.store(cacheWrapper,threadId);
       }
 
    }
