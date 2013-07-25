@@ -1,6 +1,6 @@
 <config xmlns="urn:org:jgroups"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="urn:org:jgroups file:schema/JGroups-2.8.xsd">
+        xsi:schemaLocation="urn:org:jgroups file://schema/JGroups-3.3.xsd">
     <TCP
             bind_addr="${jgroups.tcp.address:127.0.0.1}"
             bind_port="${jgroups.tcp.port:7800}"
@@ -50,18 +50,17 @@
     <MERGE2 max_interval="30000"
             min_interval="10000"/>
     <FD_SOCK/>
-   
-   <!-- We are not dealing with failures
-    <FD timeout="3000" max_tries="3"/>
-    <VERIFY_SUSPECT timeout="1500"/>-->
-    <pbcast.NAKACK
+
+    <!-- We are not dealing with failures
+     <FD timeout="3000" max_tries="3"/>
+     <VERIFY_SUSPECT timeout="1500"/>-->
+    <pbcast.NAKACK2
             use_mcast_xmit="false"
-            retransmit_timeout="300,600,1200,2400,4800"
             discard_delivered_msgs="false"/>
-    <UNICAST timeout="300,600,1200"/>
+    <UNICAST3/>
     <pbcast.STABLE stability_delay="1000" desired_avg_gossip="50000"
                    max_bytes="400000"/>
-	<!--Join timeout has to be greater than max_buindling_time-->
+    <!--Join timeout has to be greater than max_buindling_time-->
     <pbcast.GMS max_bundling_time="15000" print_local_addr="false" join_timeout="17000" view_bundling="true"/>
     <SEQUENCER/>
     <tom.TOA/>

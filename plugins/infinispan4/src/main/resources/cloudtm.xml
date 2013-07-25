@@ -35,12 +35,12 @@
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
                 >
-		<recovery enabled="false"/>
-       </transaction>
+            <recovery enabled="false"/>
+        </transaction>
         <jmxStatistics
                 enabled="true"/>
         <customStats sampleServiceTimes="true"/>
-	<deadlockDetection
+        <deadlockDetection
                 enabled="false"/>
         <clustering mode="d">
             <sync
@@ -65,7 +65,7 @@
     </default>
     <namedCache
             name="x">
-     <locking
+        <locking
                 isolationLevel="REPEATABLE_READ"
                 concurrencyLevel="32"
                 writeSkewCheck="false"
@@ -84,11 +84,11 @@
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
                 >
-		<recovery enabled="false"/>
-	</transaction>
+            <recovery enabled="false"/>
+        </transaction>
         <jmxStatistics
                 enabled="true"/>
-	<customStats sampleServiceTimes="true"/>
+        <customStats sampleServiceTimes="true"/>
         <deadlockDetection
                 enabled="false"/>
         <clustering mode="d">
@@ -101,17 +101,17 @@
                     onRehash="false"
                     lifespan="600000"
                     invalidationThreshold="0" />
-	    <stateTransfer fetchInMemoryState="true"/>
+            <stateTransfer fetchInMemoryState="true"/>
         </clustering>
         <customInterceptors>
-             <interceptor
+            <interceptor
                     after="org.infinispan.interceptors.InvocationContextInterceptor"
                     class="org.infinispan.distribution.wrappers.CustomStatsInterceptor"/>
         </customInterceptors>
         <versioning
                 enabled="true"
                 versioningScheme="SIMPLE" />
-	<dataPlacement
+        <dataPlacement
                 enabled="true"
                 objectLookupFactory="org.infinispan.dataplacement.hm.HashMapObjectLookupFactory"
                 maxNumberOfKeysToRequest="1000">
@@ -138,6 +138,6 @@
                         />
             </properties>
         </dataPlacement>
-	</namedCache>
+    </namedCache>
 
 </infinispan>
