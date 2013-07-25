@@ -9,7 +9,7 @@ import org.radargun.stages.stressors.stamp.vacation.VacationStressorParameter;
 import static org.radargun.utils.Utils.numberFormat;
 
 
-public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationStressorParameter> {
+public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressorParameter> {
 
     private static final String SIZE_INFO = "SIZE_INFO";
 
