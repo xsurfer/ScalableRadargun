@@ -25,7 +25,7 @@ import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccStressorParameter> {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressorParameter> {
 
 
     /**

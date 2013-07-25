@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * E-mail: perfabio87@gmail.com
  * Date: 4/24/13
  */
-public class Consumer implements Runnable {
+public class Consumer implements IConsumer {
 
     private static Log log = LogFactory.getLog(Consumer.class);
 
@@ -345,13 +345,6 @@ public class Consumer implements Runnable {
         }
     }
 
-// Fabio: READY TO DELETE
-//    protected void copyTimeStampInformation(TransactionDecorator oldTx, TransactionDecorator newTx){
-//        newTx.setEnqueueTimestamp(oldTx.getEnqueueTimestamp());
-//        newTx.setDequeueTimestamp(oldTx.getDequeueTimestamp());
-//        newTx.setStartTimestamp(oldTx.getStartTimestamp());
-//    }
-
 
     protected boolean startNewTransaction(boolean lastXactSuccessul) {
         return !parameters.isRetryOnAbort() || lastXactSuccessul;
@@ -368,12 +361,12 @@ public class Consumer implements Runnable {
     }
 
 
-    public final synchronized void inactive() {
+    public final synchronized void disable() {
         active.set(false);
     }
 
 
-    public final synchronized void active() {
+    public final synchronized void enable() {
         active.set(true);
         notifyAll();
     }
@@ -387,7 +380,7 @@ public class Consumer implements Runnable {
     }
 
 
-    public final synchronized boolean isActive() {
+    public final synchronized boolean isEnabled() {
         return active.get();
     }
 

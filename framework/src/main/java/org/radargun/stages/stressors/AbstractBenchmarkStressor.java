@@ -284,7 +284,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         return false;
     }
 
-    protected void executeOperations() {
+    protected final void executeOperations() {
 
         startPoint = new CountDownLatch(1);
         parameters.setStartPoint(startPoint);
@@ -546,7 +546,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     //public abstract StressorStats createStatsContainer();
 
-    protected Map<String, String> processResults(List<S> consumers) {
+    protected final Map<String, String> processResults(List<S> consumers) {
 
         long duration = 0;
         StressorStats totalStats = new StressorStats(); //createStatsContainer();
@@ -692,7 +692,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
     public final synchronized int getNumberOfActiveThreads() {
         int count = 0;
         for (Consumer consumer : consumers) {
-            if (consumer.isActive()) {
+            if (consumer.isEnabled()) {
                 count++;
             }
         }
@@ -710,8 +710,8 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         Iterator<S> iterator = consumers.iterator();
         while (numOfThreads > 0 && iterator.hasNext()) {
             Consumer consumer = iterator.next();
-            if (!consumer.isActive()) {
-                consumer.active();
+            if (!consumer.isEnabled()) {
+                consumer.enable();
             }
             numOfThreads--;
         }
@@ -725,7 +725,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
             }
         } else {
             while (iterator.hasNext()) {
-                iterator.next().inactive();
+                iterator.next().disable();
             }
         }
     }

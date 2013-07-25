@@ -27,7 +27,7 @@ import static org.radargun.utils.Utils.numberFormat;
  */
 
 @MBean(objectName = "AbstractBenchmark", description = "Abstract benchmark stage")
-public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor, S extends StressorParameter> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -260,7 +260,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     }
 
     @Override
-    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
+    public final boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
         logDurationInfo(acks);
         boolean success = true;
         Map<Integer, Map<String, Object>> results = new HashMap<Integer, Map<String, Object>>();
