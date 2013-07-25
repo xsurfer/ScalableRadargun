@@ -111,5 +111,33 @@
         <versioning
                 enabled="true"
                 versioningScheme="SIMPLE" />
+	<dataPlacement
+                enabled="true"
+                objectLookupFactory="org.infinispan.dataplacement.hm.HashMapObjectLookupFactory"
+                maxNumberOfKeysToRequest="1000">
+            <properties>
+                <property
+                        name="keyFeatureManager"
+                        value="org.radargun.cachewrappers.TpccKeyFeaturesManager"
+                        />
+                <property
+                        name="location"
+                        value="/tmp/ml"
+                        />
+                <property
+                        name="bfFalsePositiveProb"
+                        value="0.01"
+                        />
+                <property
+                        name="numberOfHashes"
+                        value="10"
+                        />
+                <property
+                        name="timeout"
+                        value="10000"
+                        />
+            </properties>
+        </dataPlacement>
 	</namedCache>
+
 </infinispan>

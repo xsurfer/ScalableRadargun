@@ -780,7 +780,11 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
         log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
         log.warn("************************************************************");
 
-        stopCreateStartProducers( (IProducerSystem) system );
+        if(system instanceof IProducerSystem) {
+            stopCreateStartProducers( (IProducerSystem) system );
+        } else {
+            log.info("Ignoring view changed because working on Mule System");
+        }
     }
 
 

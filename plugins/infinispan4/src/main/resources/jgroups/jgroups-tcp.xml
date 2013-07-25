@@ -63,8 +63,10 @@
                    max_bytes="400000"/>
 	<!--Join timeout has to be greater than max_buindling_time-->
     <pbcast.GMS max_bundling_time="15000" print_local_addr="false" join_timeout="17000" view_bundling="true"/>
+    <SEQUENCER/>
+    <tom.TOA/>
     <!--<UFC max_credits="2000000" min_threshold="0.10"/>
     <MFC max_credits="2000000" min_threshold="0.10"/>
     <FRAG2 frag_size="60000"/>-->
-    <pbcast.STREAMING_STATE_TRANSFER/>
+    <!--pbcast.STREAMING_STATE_TRANSFER/-->
 </config>
