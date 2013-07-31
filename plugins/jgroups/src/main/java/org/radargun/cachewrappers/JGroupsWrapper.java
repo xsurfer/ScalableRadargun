@@ -1,7 +1,5 @@
 package org.radargun.cachewrappers;
 
-import org.jgroups.*;
-import org.jgroups.blocks.*;
 import org.jgroups.logging.Log;
 import org.jgroups.logging.LogFactory;
 import org.jgroups.util.Util;

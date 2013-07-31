@@ -2,8 +2,6 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stages.stressors.producer.ClosedProducer;
-import org.radargun.stages.stressors.producer.RequestType;
 
 /**
  * @author perfabio87@gmail.com

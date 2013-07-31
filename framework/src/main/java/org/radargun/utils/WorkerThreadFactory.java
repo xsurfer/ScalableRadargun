@@ -2,7 +2,6 @@ package org.radargun.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 
 import java.util.concurrent.ThreadFactory;
 

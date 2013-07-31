@@ -4,14 +4,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.ITransaction;
-import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
+import org.radargun.stages.AbstractBenchmarkStage;
+import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.producer.RequestType;
-import org.radargun.stages.stressors.tpcc.consumer.TpccConsumer;
 import org.radargun.stages.stressors.systems.SystemType;
-import java.util.*;
+import org.radargun.stages.stressors.tpcc.consumer.TpccConsumer;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -269,6 +273,59 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
 
     public synchronized final int getOrderStatusWeight() {
         return parameters.getOrderStatusWeight();
+    }
+
+
+
+    public synchronized final void highContention(int payment, int order) {
+        if (!running.get()) {
+            return;
+        }
+        parameters.setPaymentWeight(payment);
+        parameters.setOrderStatusWeight(order);
+
+        log.info("Change to high contention workload:");
+        for (TpccConsumer consumer : consumers) {
+            consumer.getTerminal().change(1, parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
+            //log.info(consumer.getName() + " terminal is " + consumer.getTerminal());
+            log.info("randomContention for consumer: " + consumer.getThreadIndex());
+        }
+    }
+
+    public synchronized final void lowContention(int payment, int order) {
+        if (!running.get()) {
+            return;
+        }
+        if (listLocalWarehouses.isEmpty()) {
+            TpccTools.selectLocalWarehouse(parameters.getNumSlaves(), parameters.getNodeIndex(), listLocalWarehouses);
+        }
+
+        parameters.setPaymentWeight(payment);
+        parameters.setOrderStatusWeight(order);
+
+        log.info("Change to low contention workload:");
+        for (TpccConsumer consumer : consumers) {
+
+            consumer.getTerminal().change(getWarehouseForThread(consumer.getThreadIndex()), parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
+            //log.info(consumer.getName() + " terminal is " + consumer.terminal);
+            log.info("randomContention for consumer: " + consumer.getThreadIndex());
+        }
+    }
+
+    public synchronized final void randomContention(int payment, int order) {
+        if (!running.get()) {
+            return;
+        }
+        parameters.setPaymentWeight(payment);
+        parameters.setOrderStatusWeight(order);
+
+        log.info("Change to random contention workload:");
+        for (TpccConsumer consumer : consumers) {
+            consumer.getTerminal().change(-1, parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
+            //log.info(consumer.getName() + " terminal is " + consumer.terminal);
+            log.info("randomContention for consumer: " + consumer.getThreadIndex());
+        }
+
     }
 
 

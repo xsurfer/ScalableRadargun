@@ -1,10 +1,10 @@
 package org.radargun.portings.stamp.vacation.domain;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
 import org.radargun.CacheWrapper;
 import org.radargun.portings.stamp.vacation.OpacityException;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 
 public class Customer implements Serializable {

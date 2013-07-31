@@ -3,13 +3,17 @@ package org.radargun.stages;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.reporting.ClusterReport;
-import org.radargun.reporting.LineClusterReport;
 import org.radargun.reporting.StepClusterReport;
 import org.radargun.utils.Utils;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 /**
  * Created with IntelliJ IDEA.

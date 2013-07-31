@@ -6,10 +6,10 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.state.MasterState;
 import org.radargun.stages.stressors.StressorParameter;
 import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.state.MasterState;
 
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import static org.radargun.utils.Utils.numberFormat;
  */
 
 @MBean(objectName = "AbstractBenchmark", description = "Abstract benchmark stage")
-public abstract class AbstractBenchmarkStage<S extends StressorParameter> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor,S extends StressorParameter> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -68,7 +68,7 @@ public abstract class AbstractBenchmarkStage<S extends StressorParameter> extend
     protected SystemType system;
 
     /* istanza di AbstractBenchmarkStressor */
-    protected transient AbstractBenchmarkStressor stressor;
+    protected transient T stressor;
 
     protected transient CacheWrapper cacheWrapper;
 
@@ -101,7 +101,7 @@ public abstract class AbstractBenchmarkStage<S extends StressorParameter> extend
 
     protected abstract S createStressorConfiguration();
 
-    public abstract AbstractBenchmarkStressor createStressor();
+    public abstract T createStressor();
 
 
 
@@ -330,8 +330,6 @@ public abstract class AbstractBenchmarkStage<S extends StressorParameter> extend
     public void changeNumNodes() {
         stressor.changeNumberNodes();
     }
-
-
 
 
     /* ***********************/

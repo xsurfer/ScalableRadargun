@@ -13,8 +13,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.radargun.utils.Utils.numberFormat;
-
 /**
  * Support class for distributed mandatoryStages.
  *

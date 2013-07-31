@@ -1,10 +1,9 @@
 package org.radargun.stages;
 
 import org.radargun.jmx.annotations.MBean;
-
+import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
 import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
 
@@ -25,7 +24,7 @@ import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressorParameter> {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccStressorParameter> {
 
 
     /**
@@ -74,7 +73,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressorParam
     }
 
     @Override
-    public AbstractBenchmarkStressor createStressor() {
+    public TpccStressor createStressor() {
         return new TpccStressor(cacheWrapper, this, system, getStressorParameters());
     }
 
@@ -149,6 +148,37 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressorParam
     /* *** METHODS *** */
     /* *************** */
 
+    @ManagedOperation(description = "Change the workload to decrease contention between transactions")
+    public void lowContention(int payment, int order) {
+        stressor.lowContention(payment, order);
+
+    }
+
+    @ManagedOperation(description = "Change the workload to increase contention between transactions")
+    public void highContention(int payment, int order) {
+        stressor.highContention(payment, order);
+    }
+
+    @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
+    public void randomContention(int payment, int order) {
+        stressor.randomContention(payment, order);
+    }
+
+    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
+    public final double getExpectedWritePercentage() {
+        return stressor.getExpectedWritePercentage();
+    }
+
+    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
+    public final int getPaymentWeight() {
+        return stressor.getPaymentWeight();
+    }
+
+    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
+    public final int getOrderStatusWeight() {
+        return stressor.getOrderStatusWeight();
+    }
+
 
 
 
@@ -186,37 +216,6 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressorParam
     public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
         this.perThreadTrackNewKeys = trackNewKeys;
     }
-
-
-//   @ManagedOperation(description = "Change the workload to decrease contention between transactions")
-//   public void lowContention(int payment, int order) {
-//      tpccStressor.lowContention(payment, order);
-//   }
-//
-//   @ManagedOperation(description = "Change the workload to increase contention between transactions")
-//   public void highContention(int payment, int order) {
-//      tpccStressor.highContention(payment, order);
-//   }
-//
-//   @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
-//   public void randomContention(int payment, int order) {
-//      tpccStressor.randomContention(payment, order);
-//   }
-
-//    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
-//    public final double getExpectedWritePercentage() {
-//        return stressor.getExpectedWritePercentage();
-//    }
-//
-//    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
-//    public final int getPaymentWeight() {
-//        return stressor.getPaymentWeight();
-//    }
-//
-//    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
-//    public final int getOrderStatusWeight() {
-//        return stressor.getOrderStatusWeight();
-//    }
 
     public TpccBenchmarkStage clone() {
         return (TpccBenchmarkStage) super.clone();

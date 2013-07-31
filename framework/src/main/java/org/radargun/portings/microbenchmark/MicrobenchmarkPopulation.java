@@ -1,15 +1,11 @@
 package org.radargun.portings.microbenchmark;
 
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.portings.microbenchmark.domain.IntSet;
-import org.radargun.portings.microbenchmark.domain.IntSetLinkedList;
-import org.radargun.portings.microbenchmark.domain.IntSetRBTree;
-import org.radargun.portings.microbenchmark.domain.IntSetSkipList;
-import org.radargun.portings.microbenchmark.domain.IntSetTreeMap;
+import org.radargun.portings.microbenchmark.domain.*;
+
+import java.util.Random;
 
 public class MicrobenchmarkPopulation {
 

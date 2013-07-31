@@ -24,7 +24,6 @@ package org.radargun.stages;/*
 import org.radargun.stages.stressors.SyntheticPutGetStressor;
 import org.radargun.stages.synthetic.XACT_RETRY;
 
-
 import java.util.Map;
 
 /**

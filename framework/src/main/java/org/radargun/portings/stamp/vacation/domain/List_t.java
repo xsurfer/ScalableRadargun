@@ -1,15 +1,11 @@
 package org.radargun.portings.stamp.vacation.domain;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
 import org.radargun.CacheWrapper;
 import org.radargun.portings.stamp.vacation.Cons;
 import org.radargun.portings.stamp.vacation.Vacation;
+
+import java.io.Serializable;
+import java.util.*;
 
 public class List_t<E> implements Serializable{
 

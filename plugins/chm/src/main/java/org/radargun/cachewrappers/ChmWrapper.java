@@ -3,7 +3,6 @@ package org.radargun.cachewrappers;
 import org.radargun.CacheWrapper;
 import org.radargun.utils.TypedProperties;
 
-
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChmWrapper implements CacheWrapper {

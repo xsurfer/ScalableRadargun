@@ -21,11 +21,11 @@
  */
 package org.radargun.cachewrappers;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
 import net.sf.ehcache.Ehcache;
+import net.sf.ehcache.Element;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * @author Mircea.Markus@jboss.com

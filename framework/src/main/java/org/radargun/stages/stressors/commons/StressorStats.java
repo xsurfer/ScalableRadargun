@@ -2,6 +2,7 @@ package org.radargun.stages.stressors.commons;
 
 import org.radargun.TransactionDecorator;
 import org.radargun.stages.stressors.exceptions.ApplicationException;
+
 import java.util.HashMap;
 import java.util.Map;
 

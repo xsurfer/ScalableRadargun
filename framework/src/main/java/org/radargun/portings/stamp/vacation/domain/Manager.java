@@ -1,12 +1,12 @@
 package org.radargun.portings.stamp.vacation.domain;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
 import org.radargun.CacheWrapper;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.OpacityException;
 import org.radargun.portings.stamp.vacation.Vacation;
+
+import java.io.Serializable;
+import java.util.Iterator;
 
 public class Manager implements Serializable {
     public static final String CARS = "carTable";

@@ -1,11 +1,11 @@
 package org.radargun.portings.stamp.vacation.domain;
 
-import java.io.Serializable;
-import java.util.UUID;
-
 import org.radargun.CacheWrapper;
 import org.radargun.portings.stamp.vacation.OpacityException;
 import org.radargun.portings.stamp.vacation.Vacation;
+
+import java.io.Serializable;
+import java.util.UUID;
 
 public class Reservation implements Comparable<Reservation>, Serializable {
     /* final */ int id;

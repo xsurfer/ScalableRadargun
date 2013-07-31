@@ -10,11 +10,13 @@ import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
 import org.radargun.config.ScalingBenchmarkConfig;
 import org.radargun.jmx.JmxRegistration;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.utils.Utils;
 
 import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * State residing on the server, passed to each stage before execution.

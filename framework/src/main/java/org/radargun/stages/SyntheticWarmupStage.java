@@ -23,10 +23,7 @@ package org.radargun.stages;/*
 
 import org.radargun.stressors.SyntheticWarmupOnlyPrimaryStressor;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Diego Didona, didona@gsd.inesc-id.pt

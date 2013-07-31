@@ -1,10 +1,10 @@
 package org.radargun.portings.microbenchmark.domain;
 
+import org.radargun.CacheWrapper;
+
 import java.io.Serializable;
 import java.util.Random;
 import java.util.UUID;
-
-import org.radargun.CacheWrapper;
 
 public class IntSetSkipList implements IntSet, Serializable {
 

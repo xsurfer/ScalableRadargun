@@ -1,7 +1,6 @@
 package org.radargun.stages.stressors.producer;
 
 import org.radargun.stages.stressors.systems.RateDistribution;
-import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 /**
  * Classes that know how to create producers at the desire rate

@@ -2,6 +2,7 @@ package org.radargun.stages.stressors.systems;
 
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
+
 import java.util.Map;
 
 /**

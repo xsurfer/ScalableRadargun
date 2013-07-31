@@ -4,7 +4,6 @@ package org.radargun;
 import org.radargun.utils.TypedProperties;
 
 import java.util.Map;
-import java.util.Observable;
 import java.util.Observer;
 
 /**

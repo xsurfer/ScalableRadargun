@@ -2,8 +2,8 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
-import org.radargun.state.MasterState;
 import org.radargun.stages.stressors.WarmupStressor;
+import org.radargun.state.MasterState;
 
 import java.util.List;
 

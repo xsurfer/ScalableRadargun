@@ -3,7 +3,6 @@ package org.radargun.cachewrappers;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
 import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
-import org.radargun.CacheWrapper;
 
 import java.util.Observable;
 

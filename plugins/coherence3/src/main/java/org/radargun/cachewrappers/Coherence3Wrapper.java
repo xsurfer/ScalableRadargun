@@ -7,7 +7,6 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.utils.TypedProperties;
 
-
 import javax.transaction.Transaction;
 
 /**

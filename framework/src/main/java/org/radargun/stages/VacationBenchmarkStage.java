@@ -2,14 +2,11 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.jmx.annotations.ManagedOperation;
-import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressorParameter;
 
-import static org.radargun.utils.Utils.numberFormat;
 
-
-public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressorParameter> {
+public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationStressorParameter> {
 
     private static final String SIZE_INFO = "SIZE_INFO";
 
@@ -50,7 +47,7 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
     }
 
     @Override
-    public AbstractBenchmarkStressor createStressor() {
+    public VacationStressor createStressor() {
         return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
     }
 

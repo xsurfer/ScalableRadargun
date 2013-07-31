@@ -1,12 +1,12 @@
 package org.radargun.stages.stressors.stamp.vacation;
 
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.portings.stamp.vacation.VacationPopulation;
 import org.radargun.stages.stressors.AbstractCacheWrapperStressor;
+
+import java.util.Map;
 
 public class VacationPopulationStressor extends AbstractCacheWrapperStressor {
     

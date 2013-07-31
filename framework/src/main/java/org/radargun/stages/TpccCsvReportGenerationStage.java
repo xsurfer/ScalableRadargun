@@ -1,6 +1,5 @@
 package org.radargun.stages;
 
-import org.radargun.stages.CsvReportGenerationStage;
 import org.radargun.state.MasterState;
 
 import java.util.Map;

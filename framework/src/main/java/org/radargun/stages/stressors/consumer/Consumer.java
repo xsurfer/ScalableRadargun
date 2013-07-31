@@ -12,7 +12,6 @@ import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.ProducerRate;
 import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.*;
-import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,9 +24,10 @@ public class Consumer implements IConsumer {
 
     private static Log log = LogFactory.getLog(Consumer.class);
 
+
     protected CacheWrapper cacheWrapper;
 
-    protected int threadIndex;
+    protected final int threadIndex;
 
     protected SystemType system;
 
@@ -57,7 +57,7 @@ public class Consumer implements IConsumer {
                     StressorParameter parameters) {
 
 
-
+        this.threadIndex = threadIndex;
         this.cacheWrapper = cacheWrapper;
         this.system = system;
         this.stage = stage;
@@ -397,7 +397,11 @@ public class Consumer implements IConsumer {
 
     @Override
     public String toString(){
-        return new String("Sono un consumer, il mio index è: " + threadIndex);
+        return new String("I'm a consumer, index: " + threadIndex);
+    }
+
+    public int getThreadIndex(){
+        return threadIndex;
     }
 
 

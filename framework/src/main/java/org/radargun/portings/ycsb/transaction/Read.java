@@ -1,13 +1,13 @@
 package org.radargun.portings.ycsb.transaction;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.radargun.CacheWrapper;
 import org.radargun.portings.ycsb.ByteIterator;
 import org.radargun.portings.ycsb.RandomByteIterator;
 import org.radargun.portings.ycsb.StringByteIterator;
 import org.radargun.portings.ycsb.YCSB;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Read extends YCSBTransaction {
 

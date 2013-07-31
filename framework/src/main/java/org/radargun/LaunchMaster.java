@@ -1,8 +1,6 @@
 package org.radargun;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.radargun.config.ConfigParser;
 import org.radargun.config.MasterConfig;
 
