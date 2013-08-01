@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.DistStage;
 import org.radargun.DistStageAck;
+import org.radargun.SlaveSocketChannel;
 import org.radargun.config.MasterConfig;
 import org.radargun.state.MasterState;
 import org.radargun.state.SlaveState;
@@ -115,7 +116,7 @@ public abstract class AbstractDistStage implements DistStage {
      * @param slaves All the slaves actually running the test
      * @return List of slaveIndex stopped by JMX
      */
-    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves){
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SlaveSocketChannel> slaves){
         if(acks.size() != slaves.size())
             log.warn("Number of acks and number of slaves SHOULD be ugual. It has to be different just in case SupportExecutor is running");
         return new ArrayList<Integer>();

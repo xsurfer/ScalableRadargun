@@ -2,10 +2,7 @@ package org.radargun.state;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.DistStage;
-import org.radargun.DistStageAck;
-import org.radargun.MasterStage;
-import org.radargun.Stage;
+import org.radargun.*;
 import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
 import org.radargun.config.ScalingBenchmarkConfig;
@@ -112,7 +109,7 @@ public class MasterState extends StateBase {
       }
    }
 
-    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves) {
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SlaveSocketChannel> slaves) {
         List<Integer> ret = currentDistStage.get().sizeForNextStage(acks, slaves);
         this.sizeForNextStage = slaves.size() - ret.size();
         return ret;

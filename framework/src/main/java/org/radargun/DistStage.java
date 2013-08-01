@@ -54,7 +54,7 @@ public interface DistStage extends Stage, Serializable {
      */
     boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState);
 
-    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves);
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SlaveSocketChannel> slaves);
 
     public DistStage clone();
 

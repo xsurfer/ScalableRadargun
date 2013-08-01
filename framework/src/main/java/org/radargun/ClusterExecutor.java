@@ -7,6 +7,7 @@ import org.radargun.state.MasterState;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -29,8 +30,8 @@ public class ClusterExecutor extends Executor {
 
     protected static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
 
-    private Map<SocketChannel, ByteBuffer> writeBufferMap = new HashMap<SocketChannel, ByteBuffer>();
-    private Map<SocketChannel, ByteBuffer> readBufferMap = new HashMap<SocketChannel, ByteBuffer>();
+    private Map<SlaveSocketChannel, ByteBuffer> writeBufferMap = new HashMap<SlaveSocketChannel, ByteBuffer>();
+    private Map<SlaveSocketChannel, ByteBuffer> readBufferMap = new HashMap<SlaveSocketChannel, ByteBuffer>();
 
     private List<DistStageAck> responses = new ArrayList<DistStageAck>();
 
@@ -42,8 +43,7 @@ public class ClusterExecutor extends Executor {
 
     private MasterState state;
 
-    private List<SocketChannel> slaves = new ArrayList<SocketChannel>();
-    private final Map<SocketChannel, Integer> slave2Index = new HashMap<SocketChannel, Integer>();
+    private List<SlaveSocketChannel> slaves = new ArrayList<SlaveSocketChannel>();
 
 
     public ClusterExecutor(MasterState state){
@@ -78,11 +78,10 @@ public class ClusterExecutor extends Executor {
         return readyToScale.get();
     }
 
-    public boolean addSlave(SocketChannel slave){
+    public boolean addSlave(SlaveSocketChannel slave){
         if( clusterCountDownLatch.getCount() > 0 ){
             log.debug("Adding a new slave to ClusterExecutor!");
             slaves.add(slave);
-            slave2Index.put(slave, slaves.size()-1);
             readBufferMap.put(slave, ByteBuffer.allocate(DEFAULT_READ_BUFF_CAPACITY));
 
             clusterCountDownLatch.countDown();
@@ -91,19 +90,82 @@ public class ClusterExecutor extends Executor {
         return false;
     }
 
+    public void mergeSlave(List<SocketChannel> slaves){
+        for (SocketChannel sc : slaves) {
+            try {
+                sc.configureBlocking(false);
+                sc.register(communicationSelector, SelectionKey.OP_READ);
+            } catch (IOException e) {
+                log.info(e, e);
+                throw new RuntimeException(e);
+            }
+        }
+        communicationSelector.wakeup();
+    }
 
 
-    protected void preSerialization(DistStage toSerialize){
+
+    private void preSerialization(DistStage toSerialize){
         state.setCurrentMainDistStage(toSerialize);
     }
 
-    @Override
+
+    private void manageStoppedSlave(SlaveSocketChannel slaveSocketChannel){
+        log.info("Removing slave " + slaveSocketChannel.getId() + " because stopped by JMX or unexpectedly died");
+        try {
+            slaveSocketChannel.getSocketChannel().socket().close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        slaves.remove(slaveSocketChannel);
+
+
+        log.debug("New size of slaves: " + slaves.size());
+
+        if( slaves.size()<1 ){
+            log.warn("All slaves dead BEFORE the end of the benchmark");
+            releaseResourcesAndExit();
+        } else {
+            log.info("Updating the currentFixedBenchmark().getSize");
+            log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + slaves.size());
+
+            state.getCurrentMainDistStage().setActiveSlavesCount(slaves.size());
+            state.getCurrentBenchmark().currentFixedBenchmark().setSize(slaves.size());
+
+                    /*
+                    int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() -1;
+                    log.debug("Decremento state.getCurrentMainDistStage().setActiveSlavesCount da: " +
+                            ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() +
+                            " a " +
+                            newSize);
+                    //ElasticMaster.this.state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
+
+                    log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " +
+                            ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().getSize() +
+                            " to " + ElasticMaster.this.slaves.size());
+                    ElasticMaster.this.state.getCurrentBenchmark().currentFixedBenchmark().setSize(ElasticMaster.this.slaves.size());
+                    */
+        }
+    }
+
+    private void manageStoppedSlaves(List<Integer> deadSlaveIndexList){
+
+        // ordino in ordine discendente in modo che vado a eliminare prima le socket maggiori
+        Collections.sort(deadSlaveIndexList, Collections.reverseOrder());
+
+        if (deadSlaveIndexList.size() > 0) {
+            for (Integer i : deadSlaveIndexList) {
+                SocketChannel toDelete = slaves.remove(i);
+                manageStoppedSlave(toDelete);
+            }
+        }
+    }
+
     protected void prePrepareNextStage(){
         // Analyze the acks in order to find some slave stopped
         if ( state.getCurrentDistStage() instanceof AbstractBenchmarkStage ) {
-            List<Integer> deadSlaveIndexList = state.sizeForNextStage(localResponses, slaves);
+            List<Integer> deadSlaveIndexList = state.sizeForNextStage(responses, slaves);
             manageStoppedSlaves(deadSlaveIndexList);
-
         }
     }
 
@@ -123,11 +185,12 @@ public class ClusterExecutor extends Executor {
         writeBufferMap.clear();
         DistStage toSerialize;
         for (int i = 0; i < noSlaves; i++) {
-            SocketChannel slave = slaves.get(i);
-            slave.configureBlocking(false);
-            slave.register(communicationSelector, SelectionKey.OP_WRITE);
+            SlaveSocketChannel slave = slaves.get(i);
+            slave.getSocketChannel().configureBlocking(false);
+            slave.getSocketChannel().register(communicationSelector, SelectionKey.OP_WRITE);
             toSerialize = currentStage.clone();
             toSerialize.initOnMaster(state, i);
+            preSerialization(toSerialize);
             if (i == 0) {//only log this once
                 if (log.isDebugEnabled())
                     log.debug("Starting '" + toSerialize.getClass().getSimpleName() + "' on " + toSerialize.getActiveSlaveCount() + " slave nodes. Details: " + toSerialize);
@@ -163,6 +226,15 @@ public class ClusterExecutor extends Executor {
         }
     }
 
+    private SlaveSocketChannel socketChannel2slaveSocketChannel(SocketChannel socketChannel){
+        for (SlaveSocketChannel slaveSocketChannel : slaves){
+            if( socketChannel.equals(slaveSocketChannel.getSocketChannel()) ) {
+                return slaveSocketChannel;
+            }
+        }
+        return null;
+    }
+
     private void readStageAck(SelectionKey key) throws Exception {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
@@ -170,7 +242,11 @@ public class ClusterExecutor extends Executor {
         int value = socketChannel.read(byteBuffer);
 
         if (value == -1) {
-            log.warn("Slave stopped! Index: " + slave2Index.get(socketChannel) + ". Remote socket is: " + socketChannel);
+            SlaveSocketChannel slaveSocketChannel = socketChannel2slaveSocketChannel(socketChannel);
+            if(slaveSocketChannel==null)
+                throw new RuntimeException("SlaveSocketChannel not found!!!");
+
+            log.warn("Slave stopped! Index: " + slaveSocketChannel.getId() + ". Remote socket is: " + socketChannel);
             key.cancel();
             if (!slaves.remove(socketChannel)) {
                 throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
@@ -202,6 +278,7 @@ public class ClusterExecutor extends Executor {
                 log.error("Exiting because issues processing current stage: " + state.getCurrentDistStage());
                 releaseResourcesAndExit();
             }
+            prePrepareNextStage();
             prepareNextStage();
         }
     }

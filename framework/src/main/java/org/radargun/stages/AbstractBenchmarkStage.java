@@ -2,6 +2,7 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.DistStageAck;
+import org.radargun.SlaveSocketChannel;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
@@ -222,7 +223,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
      * @param slaves All the slaves actually running the test
      * @return List of slaveIndex stopped by JMX
      */
-    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SocketChannel> slaves){
+    public List<Integer> sizeForNextStage(List<DistStageAck> acks, List<SlaveSocketChannel> slaves){
         List<Integer> ret = new ArrayList<Integer>();
 
         if(acks.size() != slaves.size())

@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
@@ -26,6 +27,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Discoverer {
 
     private static Log log = LogFactory.getLog(ClusterExecutor.class);
+
+    private AtomicInteger slaveCounter = new AtomicInteger(0);
 
     protected static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
 
@@ -84,7 +87,7 @@ public class Discoverer {
         try {
             discoverySelector.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.fatal(e,e);
         }
     }
 
@@ -122,9 +125,10 @@ public class Discoverer {
                 log.fatal(e,e);
             }
 
+            SlaveSocketChannel slaveSocketChannel = new SlaveSocketChannel(slaveCounter.getAndIncrement(), socketChannel);
 
             try {
-                elasticMaster.slaveJoined(socketChannel);
+                elasticMaster.slaveJoined(slaveSocketChannel);
             }   catch (Exception e) {
                 log.fatal(e,e);
             }

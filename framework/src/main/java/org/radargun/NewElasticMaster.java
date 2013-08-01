@@ -78,7 +78,7 @@ public class NewElasticMaster {
         }
     }
 
-    public void slaveJoined(SocketChannel socketChannel){
+    public void slaveJoined(SlaveSocketChannel socketChannel){
         if( !clusterExecutor.isRunning() ){
             log.info("Slave added to ClusterExecutor");
             clusterExecutor.addSlave(socketChannel);
