@@ -15,6 +15,7 @@ import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -26,7 +27,7 @@ public class DomConfigParser extends ConfigParser {
 
     private static Log log = LogFactory.getLog(DomConfigParser.class);
 
-    public MasterConfig parseConfig(String config) throws Exception {
+    public MasterConfig parseConfig(String config) throws ParserConfigurationException {
         //the content in the new file is too dynamic, let's just use DOM for now
 
         DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();

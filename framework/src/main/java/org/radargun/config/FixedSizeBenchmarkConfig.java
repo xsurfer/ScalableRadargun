@@ -154,9 +154,11 @@ public class FixedSizeBenchmarkConfig implements Cloneable {
             DistStage distStage = (DistStage) stage;
             if (!distStage.isRunOnAllSlaves()) {
                 //log.debug("size for this fixed benchmark is: " + size);
+                log.info("a ****** ActiveSlaveCount:" + size);
                 distStage.setActiveSlavesCount(size);
             } else {
                 if (maxSize <= 0) throw new IllegalStateException("Make sure you set the maxSize first!");
+                log.info("b ****** ActiveSlaveCount:" + maxSize);
                 distStage.setActiveSlavesCount(maxSize);
             }
         }

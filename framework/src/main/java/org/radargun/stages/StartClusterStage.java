@@ -59,7 +59,7 @@ public class StartClusterStage extends AbstractDistStage {
          slaveState.setCacheWrapper(wrapper);
          if (performClusterSizeValidation) {
             for (int i = 0; i < TRY_COUNT; i++) {
-               int numMembers = wrapper.getNumMembers();   // numero di nodi NELLA CACHE
+               int numMembers = wrapper.getNumMembers();
                if (numMembers != getActiveSlaveCount()) {
                   String msg = "Number of members=" + numMembers + " is not the one expected: " + getActiveSlaveCount();
                   log.info(msg);

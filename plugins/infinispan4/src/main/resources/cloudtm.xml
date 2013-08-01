@@ -11,7 +11,7 @@
             <properties>
                 <property
                         name="configurationFile"
-                        value="jgroups/jgroups-tcp.xml" />
+                        value="jgroups/jgroups-tcp_cloudtm.xml" />
             </properties>
         </transport>
     </global>

@@ -11,7 +11,7 @@ import java.io.File;
  */
 public class LaunchMaster {
 
-   public static void main(String[] args) throws Exception {
+   public static void main(String[] args) {
 
       File currentDir = new File(".");
       String message = "Running in directory: " + currentDir.getAbsolutePath();
@@ -23,8 +23,13 @@ public class LaunchMaster {
 
       ConfigParser configParser = ConfigParser.getConfigParser();
        //configParser è DomConfigParser
-      MasterConfig masterConfig = configParser.parseConfig(config);
-      Master server = new ElasticMaster(masterConfig);
+       MasterConfig masterConfig = null;
+       try {
+           masterConfig = configParser.parseConfig(config);
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+       NewElasticMaster server = new NewElasticMaster(masterConfig);
       server.start();
    }
 

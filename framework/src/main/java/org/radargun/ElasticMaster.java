@@ -108,8 +108,8 @@ public class ElasticMaster extends Master {
 
 
         /**
-         * This variable is used for the Cluster Executor Thread to check if we have terminated
-         * and is used from the Support Executor Threads t
+         * This variable is used for the Cluster ClusterExecutor Thread to check if we have terminated
+         * and is used from the Support ClusterExecutor Threads t
          */
         protected volatile boolean stopped = false;
         private Selector communicationSelector;
@@ -164,7 +164,7 @@ public class ElasticMaster extends Master {
             DistStage toSerialize;
             for (int i = 0; i < noSlavesToSend; i++) {
                 // different way to retrieve the slave. This is most generic avoiding to reimplement it for SupportExecutor
-                SocketChannel slave = ElasticMaster.this.slaves.get(ElasticMaster.this.slave2Index.get(localSlaves.get(i)));
+                SocketChannel slave = ElasticMaster.this.slaves.get( ElasticMaster.this.slave2Index.get( localSlaves.get(i) ) );
 
                 slave.configureBlocking(false);
                 slave.register(communicationSelector, SelectionKey.OP_WRITE);
@@ -211,6 +211,7 @@ public class ElasticMaster extends Master {
                         if (key.isWritable()) {
                             if (log.isTraceEnabled()) log.trace("Received writable key:" + key);
                             sendStage(key);
+                            log.info("SlavesCountForCurrentStage: " + ElasticMaster.this.state.getSlavesCountForCurrentStage() );
                             if (processedSlaves == ElasticMaster.this.state.getSlavesCountForCurrentStage()) {
                                 log.trace("Successfully completed broadcasting stage " + ElasticMaster.this.state.getCurrentDistStage());
                                 postStageBroadcast();
@@ -238,7 +239,6 @@ public class ElasticMaster extends Master {
         }
 
         private void readStageAck(SelectionKey key) throws Exception {
-            // TODO: riportare le modifiche fatte nell'altro sorgente che permettono di distinguere gli ACK in base allo stage
             SocketChannel socketChannel = (SocketChannel) key.channel();
 
             ByteBuffer byteBuffer = ElasticMaster.this.readBufferMap.get(socketChannel);
@@ -252,11 +252,6 @@ public class ElasticMaster extends Master {
                 key.cancel();
                 manageStoppedSlave(socketChannel);
 
-                /* I've managed slave death so... AVOID TO DIE */
-//                if (!ElasticMaster.this.slaves.remove(socketChannel)) {
-//                    throw new IllegalStateException("Socket " + socketChannel + " should have been there!");
-//                }
-//                releaseResourcesAndExit();
 
             } else if (byteBuffer.limit() >= 4) {
                 int expectedSize = byteBuffer.getInt(0);
@@ -343,6 +338,8 @@ public class ElasticMaster extends Master {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            slaves.remove(socket);
+
             log.info("Re-mapping hash map");
             reOrderSlave2Index();
 
@@ -463,10 +460,14 @@ public class ElasticMaster extends Master {
 
         @Override
         protected void init() {
+            log.info( "??????????????????????? SUPPORT EXECUTOR INIT ???????????????????????");
             //Runtime.getRuntime().addShutdownHook(new ShutDownHook(Thread.currentThread().getName() + " process"));
 
             // int newSize = ElasticMaster.this.masterConfig.getSlaveCount() + localSlaves.size();
+
+            log.info( "localSlave: " + localSlaves.size() );
             int newSize = ElasticMaster.this.state.getCurrentMainDistStage().getActiveSlaveCount() + localSlaves.size();
+            log.info( "newSize: " + localSlaves.size() );
 
             log.info("Updating current benchmark state");
 
@@ -555,11 +556,11 @@ public class ElasticMaster extends Master {
 
     private class Discoverer {
 
-        private Log log;
+        private Log log = LogFactory.getLog(this.getClass());
         private Selector discoverySelector;
 
         private Discoverer() {
-            log = LogFactory.getLog(this.getClass());
+
         }
 
         public void run() {

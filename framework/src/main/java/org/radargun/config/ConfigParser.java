@@ -1,5 +1,7 @@
 package org.radargun.config;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 /**
  * Abstracts the logic of parsing an configuration file.
  *
