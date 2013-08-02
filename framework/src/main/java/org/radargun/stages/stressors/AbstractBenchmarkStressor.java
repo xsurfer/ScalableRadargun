@@ -778,6 +778,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
         log.warn("************************************************************");
         log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
+        log.info("Slave info: cacheSize " + cacheWrapper.getCacheSize() );
         log.warn("************************************************************");
 
         if(system instanceof IProducerSystem) {

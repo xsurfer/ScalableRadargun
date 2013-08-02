@@ -59,8 +59,12 @@ public abstract class AbstractDistStage implements DistStage {
         assert masterConfig != null;
         this.totalSlavesCount = masterState.getConfig().getSlaveCount();
         if (isRunOnAllSlaves()) {
-            log.debug(Thread.currentThread().getName() + " - " + "from initOnMaster: setActiveSlavesCount" );
-            setActiveSlavesCount(totalSlavesCount);
+            RuntimeException t = new RuntimeException("RunOnAllSlaves no more available on ScalableRadargun");
+            log.warn(t,t);
+            throw t;
+
+            //log.debug(Thread.currentThread().getName() + " - " + "from initOnMaster: setActiveSlavesCount" );
+            //setActiveSlavesCount(totalSlavesCount);
         }
     }
 
@@ -156,6 +160,8 @@ public abstract class AbstractDistStage implements DistStage {
      * +    }
      */
 
+
+
     public int getActiveSlaveCount() {
         return activeSlavesCount;
     }
@@ -164,6 +170,8 @@ public abstract class AbstractDistStage implements DistStage {
         log.debug(Thread.currentThread().getName() + " - " + "AbstractDistStage.setActiveSlavesCount - da " + this.activeSlavesCount + " a " + activeSlaves );
         this.activeSlavesCount = activeSlaves;
     }
+
+
 
 //    public int getActiveScalingSlavesCount() {
 //        return activeScalingSlavesCount;

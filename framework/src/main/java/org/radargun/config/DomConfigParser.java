@@ -2,7 +2,7 @@ package org.radargun.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.Master;
+import org.radargun.NewElasticMaster;
 import org.radargun.Stage;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
@@ -130,7 +130,7 @@ public class DomConfigParser extends ConfigParser {
         MasterConfig masterConfig;
         Element masterEl = (Element) configRoot.getElementsByTagName("master").item(0);
         String bindAddress = ConfigHelper.getStrAttribute(masterEl, "bindAddress");
-        int port = masterEl.getAttribute("port") != null ? ConfigHelper.getIntAttribute(masterEl, "port") : Master.DEFAULT_PORT;
+        int port = masterEl.getAttribute("port") != null ? ConfigHelper.getIntAttribute(masterEl, "port") : NewElasticMaster.DEFAULT_PORT;
         masterConfig = new MasterConfig(port, bindAddress, prototype.getMaxSize());
         return masterConfig;
     }

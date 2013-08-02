@@ -17,7 +17,6 @@ public class SlaveSocketChannel {
     private final int id;
     private final SocketChannel socketChannel;
 
-
     public SlaveSocketChannel(int id, SocketChannel socketChannel){
         this.id = id;
         this.socketChannel = socketChannel;
@@ -29,6 +28,26 @@ public class SlaveSocketChannel {
 
     public SocketChannel getSocketChannel(){
         return socketChannel;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SlaveSocketChannel that = (SlaveSocketChannel) o;
+
+        if (id != that.id) return false;
+        if (!socketChannel.equals(that.socketChannel)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + socketChannel.hashCode();
+        return result;
     }
 
 }

@@ -137,7 +137,6 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         if (started == null || !started) {
             masterState.put(SCRIPT_LAUNCH, startScript());
         }
-        this.setInitTimeStamp();
     }
 
 
@@ -158,6 +157,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         DefaultDistStageAck result = new DefaultDistStageAck(slaveIndex, slaveState.getLocalAddress(), this.getClass().getName());
         try {
             Map<String, String> results;
+            log.info("Slave info: cacheSize " + cacheWrapper.getCacheSize() );
             results = stressor.stress();
 
             if (results != null) {
@@ -199,12 +199,15 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public void updateTimes(AbstractBenchmarkStage currentMainStage) {
         log.info("Updating perThreadSimulTime");
 
-        long totalSimulTime = (currentMainStage).getPerThreadSimulTime();
-        long currentMainStageInitTs = (currentMainStage).getInitTimeStamp();
+        long totalSimulTime = this.getPerThreadSimulTime();
+        long currentMainStageInitTs = currentMainStage.getInitTimeStamp();
         long toExecuteInitTs = this.getInitTimeStamp();
         long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
         long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning / 1000);
-        if (secondToExecute < 0) { secondToExecute = 0; }
+
+        if (secondToExecute < 0) {
+            secondToExecute = 0;
+        }
 
         log.info("This stage will execute for: " + secondToExecute);
         this.setPerThreadSimulTime(secondToExecute);

@@ -195,7 +195,7 @@ public class Slave {
 
     public static void main(String[] args) throws Exception {
         String masterHost = null;
-        int masterPort = Master.DEFAULT_PORT;
+        int masterPort = NewElasticMaster.DEFAULT_PORT;
         String slaveHost = null;
         int slavePort = 0;
         for (int i = 0; i < args.length - 1; i++) {
@@ -236,7 +236,7 @@ public class Slave {
 
     private static void printUsageAndExit() {
         System.out.println("Usage: start_local_slave.sh -master <host>:port");
-        System.out.println("       -master: The host(and optional port) on which the master resides. If port is missing it defaults to " + Master.DEFAULT_PORT);
+        System.out.println("       -master: The host(and optional port) on which the master resides. If port is missing it defaults to " + NewElasticMaster.DEFAULT_PORT);
         ShutDownHook.exit(1);
     }
 }

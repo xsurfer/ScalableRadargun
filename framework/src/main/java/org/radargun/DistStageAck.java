@@ -20,4 +20,6 @@ public interface DistStageAck extends Serializable {
 //    public long getInitialTs();
 
     public String getStageName();
+
+    public boolean isStoppedByJMX();
 }

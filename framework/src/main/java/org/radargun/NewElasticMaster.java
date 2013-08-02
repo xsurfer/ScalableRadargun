@@ -9,7 +9,6 @@ import org.radargun.utils.WorkerThreadFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -21,23 +20,24 @@ import java.util.concurrent.*;
 public class NewElasticMaster {
 
     private static Log log = LogFactory.getLog(NewElasticMaster.class);
+
     public static final int DEFAULT_PORT = 2103;
 
     private MasterConfig masterConfig;
-    private volatile MasterState state;
 
     private ServerSocketChannel serverSocketChannel;
 
     private Discoverer discoverer;
     private ClusterExecutor clusterExecutor;
+    private ExecutorService supportExecutorService;
 
     private CountDownLatch clusterCountDownLatch;
 
+    private final Set<SlaveSocketChannel> slaves = Collections.synchronizedSet(new HashSet<SlaveSocketChannel>());
+
+
     public NewElasticMaster(MasterConfig masterConfig) {
-
         this.masterConfig = masterConfig;
-        state = new MasterState(masterConfig);
-
         setShutDownHook();
     }
 
@@ -53,8 +53,6 @@ public class NewElasticMaster {
             discoverer.start(); //runDiscovery();
 
             startClusterExecutor();
-            //prepareNextStage();
-            //startCommunicationWithSlaves();
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
@@ -63,14 +61,26 @@ public class NewElasticMaster {
     }
 
     private void startClusterExecutor(){
-        clusterExecutor = new ClusterExecutor(state);
-        ExecutorService service = Executors.newSingleThreadExecutor(new WorkerThreadFactory("ClusterExecutor", true));
+        try {
+            clusterCountDownLatch.await();
+        } catch (InterruptedException e) {
+            log.warn(e,e);  //ignore
+        }
 
+        // 1) create the clusterExecutor
+        clusterExecutor = new ClusterExecutor(new MasterState(masterConfig), new HashSet<SlaveSocketChannel>(slaves) );
+
+        // 2) empty slaves
+        slaves.clear();
+
+        // 3) start the clusterExecutor
+        ExecutorService service = Executors.newSingleThreadExecutor(new WorkerThreadFactory("ClusterExecutor", true));
         Future<Boolean> future = service.submit(clusterExecutor);
         service.shutdown();
 
+        // 4) wait till cluster executor doesn't finish
         try {
-            future.get();           // wait here while benchmark doesn't finish!!
+            future.get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
@@ -78,36 +88,25 @@ public class NewElasticMaster {
         }
     }
 
-    public void slaveJoined(SlaveSocketChannel socketChannel){
-        if( !clusterExecutor.isRunning() ){
-            log.info("Slave added to ClusterExecutor");
-            clusterExecutor.addSlave(socketChannel);
-        } else if( clusterExecutor.isReadyToScale() ) {
-            // lancia un nuovo supportExecutor
-            log.info("Slave need to be added to a SupportExecutor");
+    public void slaveJoined(SlaveSocketChannel slaveSocketChannel){
 
+        slaves.add(slaveSocketChannel);
 
-            int newSize = state.getCurrentMainDistStage().getActiveSlaveCount() + 1;
-            log.info( "newSize: " + newSize );
-
-            log.info("Updating current benchmark state");
-
-            log.debug("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + state.getCurrentMainDistStage().getActiveSlaveCount() + " to " + newSize);
-            state.getCurrentMainDistStage().setActiveSlavesCount(newSize);
-
-            log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + newSize);
-            state.getCurrentBenchmark().currentFixedBenchmark().setSize(newSize);
-
-
+        if(clusterCountDownLatch.getCount()>0){
+            clusterCountDownLatch.countDown();
         } else {
-            try {
-                socketChannel.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            log.warn("Logica qui per tirare su un support executor");
+
+            for (SlaveSocketChannel scc : slaves){
+                clusterExecutor.addSlave(scc);
             }
+
+            supportExecutorService = Executors.newSingleThreadExecutor(new WorkerThreadFactory("SupportExecutor", false));
+            supportExecutorService.submit( new SupportExecutor( new MasterState(masterConfig), new HashSet<SlaveSocketChannel>(slaves), clusterExecutor ) );
+            supportExecutorService.shutdown();
+
+            slaves.clear();
         }
-
-
     }
 
     private void startServerSocket() throws IOException {

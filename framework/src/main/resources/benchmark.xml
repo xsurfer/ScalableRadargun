@@ -12,9 +12,9 @@
             maxSize="1"
             increment="1">
 
+        <!--runOnAllSlaves="true"-->
         <DestroyWrapper
                 id="a"
-                runOnAllSlaves="true"
                 skippable="true"/>
         <StartCluster
                 id="b"
@@ -108,4 +108,3 @@
     </reports>
 
 </bench-config>
-

@@ -2,7 +2,7 @@ package org.radargun.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.Master;
+import org.radargun.NewElasticMaster;
 import org.radargun.config.jaxb.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.systems.SystemType;
@@ -39,7 +39,7 @@ public class JaxbConfigParser extends ConfigParser {
 
    private MasterConfig getMasterConfig(BenchConfig benchConfig) {
       org.radargun.config.jaxb.Master master = benchConfig.getMaster();
-      int port = master.getPort() != null ? toInt(master.getPort()) : Master.DEFAULT_PORT;
+      int port = master.getPort() != null ? toInt(master.getPort()) : NewElasticMaster.DEFAULT_PORT;
       MasterConfig masterConfig = new MasterConfig(port, master.getBind(), toInt(master.getSlavesCount()));
       for (ScalingBenchmark sb : benchConfig.getScalingBenchmark()) {
          ScalingBenchmarkConfig sbc = new ScalingBenchmarkConfig();
