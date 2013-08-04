@@ -1,15 +1,11 @@
 package org.radargun.stages;
 
-import org.radargun.DistStageAck;
-import org.radargun.SlaveSocketChannel;
 import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
+import org.radargun.stages.stressors.tpcc.TpccParameter;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
-import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
-
-import java.util.List;
 
 
 /**
@@ -28,7 +24,7 @@ import java.util.List;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccStressorParameter> {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccParameter> {
 
 
     /**
@@ -65,8 +61,8 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     /* ****************** */
 
     @Override
-    protected TpccStressorParameter createStressorConfiguration(){
-        TpccStressorParameter parameters = new TpccStressorParameter();
+    protected TpccParameter createStressorConfiguration(){
+        TpccParameter parameters = new TpccParameter();
         parameters.setPaymentWeight(paymentWeight);
         parameters.setOrderStatusWeight(orderStatusWeight);
         parameters.setAccessSameWarehouse(accessSameWarehouse);
@@ -99,7 +95,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 //        stressor.setNodeIndex(getSlaveIndex());
 //        stressor.setNumSlaves(getActiveSlaveCount());
 //        stressor.setNumOfThreads(this.numOfThreads);
-//        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+//        stressor.setSimulationTimeSec(this.perThreadSimulTime);
 //        stressor.setStatsSamplingInterval(statsSamplingInterval);
 //        stressor.setBackOffTime(backOffTime);
 //        stressor.setRetryOnAbort(retryOnAbort);

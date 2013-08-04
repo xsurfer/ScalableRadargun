@@ -19,7 +19,7 @@ public interface SystemType extends Serializable {
 
     public String getType();
 
-    //public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, AbstractBenchmarkStressor stressor, StressorParameter parameters);
+    //public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, AbstractBenchmarkStressor stressor, Parameter parameters);
 
     public Map<String, String> stress(AbstractBenchmarkStressor stressor);
 

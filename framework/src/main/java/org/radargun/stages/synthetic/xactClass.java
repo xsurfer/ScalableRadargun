@@ -8,5 +8,16 @@ package org.radargun.stages.synthetic;
  */
 public enum xactClass {
 
-   RO, WR
+    RO(0), WR(1);
+
+    private int id;
+
+    private xactClass(int id){
+        this.id = id;
+    }
+
+    public int getId(){
+        return id;
+    }
+
 }

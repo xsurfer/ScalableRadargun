@@ -1,0 +1,57 @@
+package org.radargun.stages.stressors.producer;
+
+import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.syntethic.SyntheticParameter;
+import org.radargun.stages.synthetic.xactClass;
+
+import java.util.Random;
+
+/**
+ * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
+ * Date: 8/3/13
+ * Time: 5:33 PM
+ */
+public class SyntheticProducer extends Producer {
+
+    private Random rnd = new Random();
+    private SyntheticParameter params;
+    private Producer producer;
+
+    public SyntheticProducer(int _id,
+                             AbstractBenchmarkStressor stressor,
+                             Producer producer,
+                             SyntheticParameter params) {
+        super(_id, stressor, params);
+        this.producer = producer;
+        this.params = params;
+
+    }
+
+    @Override
+    protected double getSleepTime() {
+        return producer.getSleepTime();
+    }
+
+    @Override
+    protected void sleep() {
+        producer.sleep();
+    }
+
+    @Override
+    protected RequestType createRequestType(int reqType) {
+        return producer.createRequestType(reqType);
+    }
+
+    @Override
+    public void doNotify() {
+        producer.doNotify();
+    }
+
+    @Override
+    protected int nextTransaction() {
+        if (!params.getCacheWrapper().isTheMaster() || (1 + rnd.nextInt(100)) > params.getWritePercentage())
+            return xactClass.RO.getId();
+        return xactClass.WR.getId();
+    }
+
+}

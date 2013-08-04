@@ -1,13 +1,13 @@
 package org.radargun.stages.stressors.stamp.vacation;
 
-import org.radargun.stages.stressors.StressorParameter;
+import org.radargun.stages.stressors.Parameter;
 
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
  * Date: 5/7/13
  */
-public class VacationStressorParameter extends StressorParameter {
+public class VacationParameter extends Parameter {
 
     private int queryPerTx;
 

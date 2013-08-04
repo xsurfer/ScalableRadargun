@@ -8,6 +8,7 @@ import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.SystemType;
 import org.radargun.stages.stressors.tpcc.consumer.TpccConsumer;
@@ -27,7 +28,7 @@ import java.util.Map;
 * @author Fabio Perfetti (refactored)
 */
 
-public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParameter, TpccConsumer> {
+public class TpccStressor extends AbstractBenchmarkStressor<TpccParameter, TpccConsumer, Producer> {
 
 
     private static Log log = LogFactory.getLog(TpccStressor.class);
@@ -40,7 +41,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccStressorParameter parameters) {
+    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccParameter parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
     }
 
@@ -94,15 +95,15 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
 
     }
 
-
+    @Override
     protected void initialization(){
         updateNumberOfItemsInterval();
         initializeToolsParameters();
         calculateLocalWarehouses();
     }
 
-
-    public int nextTransaction() {
+    @Override
+    public int nextTransaction(int threadIndex) {
         TpccTerminal terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), 0);
 
         return terminal.chooseTransactionType(
@@ -118,6 +119,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
         */
     }
 
+    @Override
     public ITransaction generateTransaction(RequestType type, int threadIndex) {
         TpccConsumer consumer = this.consumers.get(threadIndex);
         ITransaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
@@ -231,7 +233,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
     @Override
     public String toString() {
         return "TpccStressor{" +
-                "updateTimes=" + parameters.getPerThreadSimulTime() +
+                "updateTimes=" + parameters.getSimulationTimeSec() +
                 ", paymentWeight=" + parameters.getPaymentWeight() +
                 ", orderStatusWeight=" + parameters.getOrderStatusWeight() +
                 ", accessSameWarehouse=" + parameters.isAccessSameWarehouse() +
@@ -287,7 +289,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccStressorParamete
         log.info("Change to high contention workload:");
         for (TpccConsumer consumer : consumers) {
             consumer.getTerminal().change(1, parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
-            //log.info(consumer.getName() + " terminal is " + consumer.getTerminal());
+            //log.info(consumer.getName() + " terminal is " + consumer.getFactory());
             log.info("randomContention for consumer: " + consumer.getThreadIndex());
         }
     }

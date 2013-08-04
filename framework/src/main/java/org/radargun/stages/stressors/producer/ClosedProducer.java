@@ -45,6 +45,11 @@ public class ClosedProducer extends OpenProducer {
         }
     }
 
+    @Override
+    protected int nextTransaction() {
+        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     protected RequestType createRequestType(int reqType){
         return new RequestType(System.nanoTime(), reqType, this);
     }

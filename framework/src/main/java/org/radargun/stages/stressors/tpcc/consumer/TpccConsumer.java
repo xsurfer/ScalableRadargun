@@ -6,7 +6,7 @@ import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.systems.SystemType;
-import org.radargun.stages.stressors.tpcc.TpccStressorParameter;
+import org.radargun.stages.stressors.tpcc.TpccParameter;
 
 /**
  * Created by: Fabio Perfetti
@@ -17,7 +17,8 @@ public class TpccConsumer extends Consumer {
 
     private final TpccTerminal terminal;
 
-    public TpccConsumer(int localWarehouseID, int threadIndex, CacheWrapper cacheWrapper, SystemType system, AbstractBenchmarkStage stage, AbstractBenchmarkStressor stressor, TpccStressorParameter parameters) {
+    public TpccConsumer(int localWarehouseID, int threadIndex, CacheWrapper cacheWrapper, SystemType system, AbstractBenchmarkStage stage, AbstractBenchmarkStressor stressor, TpccParameter parameters) {
+
         super(cacheWrapper, threadIndex, system, stage, stressor, parameters);
         this.terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), localWarehouseID);
     }

@@ -10,8 +10,8 @@ import java.util.List;
  * E-mail: perfabio87@gmail.com
  * Date: 5/6/13
  */
-public abstract interface IProducerSystem extends SystemType {
+public abstract interface IProducerSystem<T extends Producer> extends SystemType {
 
-    public List<Producer> createProducers(AbstractBenchmarkStressor stressor);
+    public List<T> createProducers(AbstractBenchmarkStressor stressor);
 
 }

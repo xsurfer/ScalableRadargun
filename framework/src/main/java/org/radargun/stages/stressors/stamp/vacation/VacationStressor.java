@@ -13,9 +13,10 @@ import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.producer.RequestType;
+import org.radargun.stages.stressors.producer.VacationProducer;
 import org.radargun.stages.stressors.systems.SystemType;
 
-public class VacationStressor extends AbstractBenchmarkStressor<VacationStressorParameter, Consumer> {
+public class VacationStressor extends AbstractBenchmarkStressor<VacationParameter, Consumer, VacationProducer> {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 
@@ -28,7 +29,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationStressor
     /* *** CONSTRUCTOR *** */
     /* ****************** */
 
-    public VacationStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, VacationStressorParameter parameters) {
+    public VacationStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, VacationParameter parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
         randomPtr = new Random();
         randomPtr.random_alloc();
@@ -44,43 +45,8 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationStressor
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
-    public int nextTransaction() {
 
-        int r = randomPtr.posrandom_generate() % 100;
-        int action = selectAction(r, parameters.getPercentUser());
-        //RequestType requestType = new RequestType(System.nanoTime(),action);
 
-        return action;
-    }
-
-    @Override
-    public ITransaction generateTransaction(RequestType type, int threadIndex) {
-
-        int action = type.getTransactionType();
-        ITransaction result = null;
-
-        if (action == Definitions.ACTION_MAKE_RESERVATION) {
-            result = new MakeReservationOperation(randomPtr, parameters.getQueryPerTx(), parameters.getQueryRange(), parameters.getRelations(), parameters.getReadOnlyPerc());
-        } else if (action == Definitions.ACTION_DELETE_CUSTOMER) {
-            result = new DeleteCustomerOperation(randomPtr, parameters.getQueryRange(), parameters.getRelations());
-        } else if (action == Definitions.ACTION_UPDATE_TABLES) {
-            result = new UpdateTablesOperation(randomPtr, parameters.getQueryPerTx(), parameters.getQueryRange(), parameters.getRelations());
-        } else {
-            assert (false);
-        }
-
-        return result;
-    }
-
-    @Override
-    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-        int r = randomPtr.posrandom_generate() % 100;
-        int action = selectAction(r, parameters.getPercentUser());
-        RequestType requestType = new RequestType(System.nanoTime(),action);
-
-        return generateTransaction(requestType, threadId);
-    }
 
     @Override
     protected double getWriteWeight() {
@@ -126,15 +92,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationStressor
     /* *** METHODS *** */
     /* *************** */
 
-    public int selectAction(int r, int percentUser) {
-        if (r < percentUser) {
-            return Definitions.ACTION_MAKE_RESERVATION;
-        } else if ((r & 1) == 1) {
-            return Definitions.ACTION_DELETE_CUSTOMER;
-        } else {
-            return Definitions.ACTION_UPDATE_TABLES;
-        }
-    }
+
 
 //    @Override
 //    public Map<String, String> stress(CacheWrapper wrapper) {

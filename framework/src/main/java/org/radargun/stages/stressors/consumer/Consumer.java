@@ -5,13 +5,14 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.StressorParameter;
+import org.radargun.stages.stressors.Parameter;
 import org.radargun.stages.stressors.commons.StressorStats;
 import org.radargun.stages.stressors.exceptions.ApplicationException;
 import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.ProducerRate;
 import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.synthetic.XACT_RETRY;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,7 +36,7 @@ public class Consumer implements IConsumer {
 
     protected AbstractBenchmarkStressor stressor;
 
-    protected StressorParameter parameters;
+    protected Parameter parameters;
 
     public StressorStats stats;
 
@@ -54,7 +55,7 @@ public class Consumer implements IConsumer {
                     SystemType system,
                     AbstractBenchmarkStage stage,
                     AbstractBenchmarkStressor stressor,
-                    StressorParameter parameters) {
+                    Parameter parameters) {
 
 
         this.threadIndex = threadIndex;
@@ -256,7 +257,7 @@ public class Consumer implements IConsumer {
             tx = regenerate(tx, threadIndex, successful);
             cacheWrapper.startTransaction();
             try {
-                tx.executeTransaction(cacheWrapper);
+//                tx.executeTransaction(cacheWrapper);
                 stats._handleSuccessLocalTx(tx);
                 log.trace("Thread " + threadIndex + " successfully completed locally a transaction of type " +
                         tx.getType() + " btw, successful is " + successful);
@@ -320,8 +321,8 @@ public class Consumer implements IConsumer {
 
     protected TransactionDecorator regenerate(TransactionDecorator transaction, int threadIndex, boolean lastSuccessful) {
 
-        if (!lastSuccessful && !parameters.isRetrySameXact()) {
-            log.info("Rigenero la transazione");
+        if (!lastSuccessful && parameters.getRetryOnAbort().equals(XACT_RETRY.RETRY_SAME_CLASS) ) {
+            log.info("Regenerating transaction!");
             this.backoffIfNecessary();
             ITransaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()), threadIndex);
 

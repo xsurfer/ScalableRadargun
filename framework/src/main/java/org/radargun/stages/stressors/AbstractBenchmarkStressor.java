@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *         E-mail: perfabio87@gmail.com
  *         Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S extends Consumer> extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends Parameter, S extends Consumer, V extends Producer> extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -77,7 +77,7 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     protected BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
 
-    protected final List<Producer> producers = Collections.synchronizedList(new ArrayList<Producer>());
+    protected final List<V> producers = Collections.synchronizedList(new ArrayList<V>());
 
     protected final List<S> consumers = Collections.synchronizedList(new LinkedList<S>());
 
@@ -122,11 +122,11 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
 
     protected abstract void validateTransactionsWeight();
 
-    public abstract int nextTransaction();
+    //public abstract int nextTransaction(int threadIndex);
 
-    public abstract ITransaction generateTransaction(RequestType type, int threadIndex);
+    //public abstract ITransaction generateTransaction(RequestType type, int threadIndex);
 
-    public abstract ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    //public abstract ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
 
     protected abstract double getWriteWeight();
 
@@ -272,13 +272,13 @@ public abstract class AbstractBenchmarkStressor<T extends StressorParameter, S e
      * @return true if timer is setted, false otherwise
      */
     private boolean initBenchmarkTimer() {
-        if (parameters.getPerThreadSimulTime() > 0) {
+        if (parameters.getSimulationTimeSec() > 0) {
             finishBenchmarkTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     finishBenchmark();
                 }
-            }, parameters.getPerThreadSimulTime() * 1000);
+            }, parameters.getSimulationTimeSec() * 1000);
             return true;
         }
         return false;

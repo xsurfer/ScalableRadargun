@@ -1,13 +1,13 @@
 package org.radargun.stages.stressors.tpcc;
 
-import org.radargun.stages.stressors.StressorParameter;
+import org.radargun.stages.stressors.Parameter;
 
 /**
  * Created by: Fabio Perfetti
  * E-mail: perfabio87@gmail.com
  * Date: 5/6/13
  */
-public class TpccStressorParameter extends StressorParameter {
+public class TpccParameter extends Parameter {
 
     /**
      * percentage of Payment transactions

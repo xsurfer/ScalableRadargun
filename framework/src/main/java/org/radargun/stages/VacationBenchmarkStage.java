@@ -2,11 +2,11 @@ package org.radargun.stages;
 
 import org.radargun.CacheWrapper;
 import org.radargun.jmx.annotations.ManagedOperation;
+import org.radargun.stages.stressors.stamp.vacation.VacationParameter;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
-import org.radargun.stages.stressors.stamp.vacation.VacationStressorParameter;
 
 
-public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationStressorParameter> {
+public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationParameter> {
 
     private static final String SIZE_INFO = "SIZE_INFO";
 
@@ -34,8 +34,8 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 
 
     @Override
-    protected VacationStressorParameter createStressorConfiguration() {
-        VacationStressorParameter parameters = new VacationStressorParameter();
+    protected VacationParameter createStressorConfiguration() {
+        VacationParameter parameters = new VacationParameter();
 
         parameters.setQueryPerTx(number);
         parameters.setPercentUser(user);
@@ -74,7 +74,7 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 //        stressor.setNodeIndex(getSlaveIndex());
 //        stressor.setNumSlaves(getActiveSlaveCount());
 //        stressor.setNumOfThreads(this.numOfThreads);
-//        stressor.setPerThreadSimulTime(this.perThreadSimulTime);
+//        stressor.setSimulationTimeSec(this.perThreadSimulTime);
 //        stressor.setStatsSamplingInterval(statsSamplingInterval);
 //        stressor.setBackOffTime(backOffTime);
 //        stressor.setRetryOnAbort(retryOnAbort);

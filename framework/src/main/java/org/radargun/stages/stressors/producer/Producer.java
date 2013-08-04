@@ -3,6 +3,7 @@ package org.radargun.stages.stressors.producer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.Parameter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -12,16 +13,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Date: 4/18/13
  */
 
-public abstract class Producer implements Runnable {
+public abstract class Producer<T extends AbstractBenchmarkStressor, S extends Parameter> implements IProducer  {
 
     protected static Log log = LogFactory.getLog(Producer.class);
-    private final int id;
+    protected final int id;
     private AtomicBoolean running = new AtomicBoolean(false);
-    AbstractBenchmarkStressor stressor;
+    protected T stressor;
+    protected S parameter;
 
-    public Producer(int _id, AbstractBenchmarkStressor stressor) {
+
+    public Producer(int _id, T stressor, S parameter, TransactionFactory) {
         id = _id;
         this.stressor = stressor;
+        this.parameter = parameter;
     }
 
     public void run() {
@@ -36,7 +40,7 @@ public abstract class Producer implements Runnable {
         }
 
         while ( running.get() ) {
-            int reqType = stressor.nextTransaction();
+            int reqType = nextTransaction();
             RequestType request = createRequestType(reqType);
 
             stressor.addToQueue(request);
@@ -56,6 +60,7 @@ public abstract class Producer implements Runnable {
 
     public abstract void doNotify();
 
+    protected abstract int nextTransaction();
 
     public void interrupt() {
         if( running.compareAndSet(true,false) ){

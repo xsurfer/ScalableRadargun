@@ -2,6 +2,8 @@ package org.radargun.stages.synthetic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.TransactionFactory;
+import org.radargun.stages.stressors.Parameter;
 
 /**
  * // TODO: Document this
@@ -9,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
  * @author diego
  * @since 4.0
  */
-public abstract class XactFactory <T extends XactParam, R extends Xact> {
+public abstract class XactFactory <T extends Parameter, R>  {
 
 
    protected final T params;
@@ -20,5 +22,5 @@ public abstract class XactFactory <T extends XactParam, R extends Xact> {
       log.trace("Factory built "+params);
    }
 
-   public abstract R  buildXact(R last);
+   public abstract R createTransaction(int txId);
 }

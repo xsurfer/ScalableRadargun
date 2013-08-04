@@ -7,12 +7,12 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.StressorParameter;
+import org.radargun.stages.stressors.Parameter;
 import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.synthetic.XACT_RETRY;
 import org.radargun.state.MasterState;
 
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +28,7 @@ import static org.radargun.utils.Utils.numberFormat;
  */
 
 @MBean(objectName = "AbstractBenchmark", description = "Abstract benchmark stage")
-public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor,S extends StressorParameter> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor,S extends Parameter> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */
@@ -77,7 +77,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
      * If true, a transaction t is regenerated until it commits, unless it throws a "NotSuchElementException"
      * In this case, the transaction is aborted for good.
      */
-    protected boolean retryOnAbort = false;
+    protected XACT_RETRY retryOnAbort = XACT_RETRY.NO_RETRY;
 
     protected boolean retrySameXact = false;
 
@@ -118,11 +118,11 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
 
         S parameters = createStressorConfiguration();
 
+        parameters.setCacheWrapper(cacheWrapper);
         parameters.setNodeIndex(getSlaveIndex());
         parameters.setBackOffTime(backOffTime);
-        parameters.setRetryOnAbort(retryOnAbort);
-        parameters.setRetryOnAbort(retrySameXact);
-        parameters.setPerThreadSimulTime(perThreadSimulTime);
+        parameters.setRetryOnAbort( retryOnAbort );
+        parameters.setSimulationTimeSec(perThreadSimulTime);
         parameters.setNumOfThreads(numOfThreads);
         parameters.setNumSlaves(getActiveSlaveCount());
         parameters.setStatsSamplingInterval(statsSamplingInterval);
@@ -346,8 +346,8 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         this.backOffTime = backOffTime;
     }
 
-    public void setRetryOnAbort(boolean retryOnAbort) {
-        this.retryOnAbort = retryOnAbort;
+    public void setRetryOnAbort(String retryOnAbort) {
+        this.retryOnAbort = XACT_RETRY.valueOf(retryOnAbort);
     }
 
     public void setRetrySameXact(boolean b){

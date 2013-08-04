@@ -1,6 +1,7 @@
 package org.radargun.stages.synthetic;
 
 import org.radargun.CacheWrapper;
+import org.radargun.ITransaction;
 
 import java.util.Arrays;
 
@@ -10,89 +11,101 @@ import java.util.Arrays;
  * @author diego
  * @since 4.0
  */
-public class SyntheticXact extends Xact {
+public class SyntheticXact implements ITransaction {
 
-   private long initResponseTime;
-   private long initServiceTime;
-   public xactClass clazz;
-   private boolean isCommit;  //we track only commit-abort without considering also xact that can abort because of application logic (and might be not restarted, then)
-   private CacheWrapper cache;
-   XactOp[] ops;
+    private long initResponseTime;
+    private long initServiceTime;
+    public int clazz;
+    private boolean isCommit;  //we track only commit-abort without considering also xact that can abort because of application logic (and might be not restarted, then)
+    XactOp[] ops;
 
-
-   public SyntheticXact(CacheWrapper wrapper) {
-      initResponseTime = System.nanoTime();
-      initServiceTime = initResponseTime;
-      cache = wrapper;
-   }
+    private boolean isReadOnly;
 
 
-   public CacheWrapper getCache() {
-      return cache;
-   }
+    public SyntheticXact(boolean isreadOnly) {
+        initResponseTime = System.nanoTime();
+        initServiceTime = initResponseTime;
+        this.isReadOnly = isreadOnly;
+    }
 
-   public void setCache(CacheWrapper wrapper) {
-      this.cache = wrapper;
-   }
+    public XactOp[] getOps() {
+        return ops;
+    }
 
-   public XactOp[] getOps() {
-      return ops;
-   }
+    public void setOps(XactOp[] ops) {
+        this.ops = ops;
+    }
 
-   public void setOps(XactOp[] ops) {
-      this.ops = ops;
-   }
+    public long getInitResponseTime() {
+        return initResponseTime;
+    }
 
-   public long getInitResponseTime() {
-      return initResponseTime;
-   }
+    public void setInitResponseTime(long initResponseTime) {
+        this.initResponseTime = initResponseTime;
+    }
 
-   public void setInitResponseTime(long initResponseTime) {
-      this.initResponseTime = initResponseTime;
-   }
+    public long getInitServiceTime() {
+        return initServiceTime;
+    }
 
-   public long getInitServiceTime() {
-      return initServiceTime;
-   }
+    public void setInitServiceTime(long initServiceTime) {
+        this.initServiceTime = initServiceTime;
+    }
 
-   public void setInitServiceTime(long initServiceTime) {
-      this.initServiceTime = initServiceTime;
-   }
+    public int getClazz() {
+        return clazz;
+    }
 
-   public xactClass getClazz() {
-      return clazz;
-   }
+    public void setClazz(int clazzId) {
+        this.clazz = clazzId;
+    }
 
-   public void setClazz(xactClass clazz) {
-      this.clazz = clazz;
-   }
+    public boolean isCommit() {
+        return isCommit;
+    }
 
-   public boolean isCommit() {
-      return isCommit;
-   }
+    public void setCommit(boolean commit) {
+        isCommit = commit;
+    }
 
-   public void setCommit(boolean commit) {
-      isCommit = commit;
-   }
+//   public void executeLocally() throws Exception {
+//      for(XactOp op:ops){
+//         if(op.isPut())
+//            cache.put(null,op.getKey(),op.getValue());
+//         else
+//            cache.get(null,op.getKey());
+//      }
+//   }
 
-   public void executeLocally() throws Exception {
-      for(XactOp op:ops){
-         if(op.isPut())
-            cache.put(null,op.getKey(),op.getValue());
-         else
-            cache.get(null,op.getKey());
-      }
-   }
+    @Override
+    public String toString() {
+        return "SyntheticXact{" +
+                "initResponseTime=" + initResponseTime +
+                ", initServiceTime=" + initServiceTime +
+                ", clazz=" + clazz +
+                ", isCommit=" + isCommit +
+                ", ops=" + Arrays.toString(ops) +
+                '}';
+    }
 
-   @Override
-   public String toString() {
-      return "SyntheticXact{" +
-            "initResponseTime=" + initResponseTime +
-            ", initServiceTime=" + initServiceTime +
-            ", clazz=" + clazz +
-            ", isCommit=" + isCommit +
-            ", cache=" + cache +
-            ", ops=" + Arrays.toString(ops) +
-            '}';
-   }
+    @Override
+    public void executeTransaction(CacheWrapper cache) throws Throwable {
+        for(XactOp op:ops){
+            if(op.isPut())
+                cache.put(null,op.getKey(),op.getValue());
+            else
+                cache.get(null,op.getKey());
+        }
+
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return isReadOnly;
+    }
+
+    @Override
+    public int getType() {
+        return 0;
+    }
 }
