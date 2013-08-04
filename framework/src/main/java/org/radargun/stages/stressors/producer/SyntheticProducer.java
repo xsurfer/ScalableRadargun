@@ -1,5 +1,6 @@
 package org.radargun.stages.stressors.producer;
 
+import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.syntethic.SyntheticParameter;
 import org.radargun.stages.synthetic.xactClass;
@@ -20,8 +21,9 @@ public class SyntheticProducer extends Producer {
     public SyntheticProducer(int _id,
                              AbstractBenchmarkStressor stressor,
                              Producer producer,
-                             SyntheticParameter params) {
-        super(_id, stressor, params);
+                             SyntheticParameter params,
+                             TransactionFactory factory) {
+        super(_id, stressor, params, factory);
         this.producer = producer;
         this.params = params;
 
@@ -45,13 +47,6 @@ public class SyntheticProducer extends Producer {
     @Override
     public void doNotify() {
         producer.doNotify();
-    }
-
-    @Override
-    protected int nextTransaction() {
-        if (!params.getCacheWrapper().isTheMaster() || (1 + rnd.nextInt(100)) > params.getWritePercentage())
-            return xactClass.RO.getId();
-        return xactClass.WR.getId();
     }
 
 }

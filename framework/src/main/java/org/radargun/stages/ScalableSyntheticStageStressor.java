@@ -17,7 +17,7 @@ import org.radargun.stages.synthetic.SyntheticXactFactory;
  * Date: 8/3/13
  * Time: 2:20 PM
  */
-public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<SyntheticParameter, SyntheticConsumer, SyntheticProducer> {
+public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<SyntheticParameter, SyntheticConsumer, SyntheticProducer, SyntheticXactFactory> {
 
     private static Log log = LogFactory.getLog(ScalableSyntheticStageStressor.class);
 
@@ -41,19 +41,19 @@ public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<Sy
 //        return factory.chooseTransactionType(cacheWrapper.isTheMaster());
 //    }
 
-    @Override
-    public ITransaction generateTransaction(RequestType type, int threadIndex) {
-        SyntheticXactFactory factory = this.consumers.get(threadIndex).getFactory();
-        return factory.createTransaction(type.getTransactionType());
-    }
-
-    @Override
-    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-        SyntheticConsumer consumer = this.consumers.get(threadId);
-        ITransaction transaction = consumer.getFactory().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster());
-        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
-        return transaction;
-    }
+//    @Override
+//    public ITransaction generateTransaction(RequestType type, int threadIndex) {
+//        SyntheticXactFactory factory = this.consumers.get(threadIndex).getFactory();
+//        return factory.createTransaction(type.getTransactionType());
+//    }
+//
+//    @Override
+//    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+//        SyntheticConsumer consumer = this.consumers.get(threadId);
+//        ITransaction transaction = consumer.getFactory().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster());
+//        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
+//        return transaction;
+//    }
 
     @Override
     protected double getWriteWeight() {
@@ -66,7 +66,14 @@ public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<Sy
     }
 
     @Override
+    protected SyntheticXactFactory createTransactionFactory(int threadIndex) {
+        SyntheticXactFactory factory = new SyntheticXactFactory(parameters, threadIndex);
+        return factory;
+    }
+
+    @Override
     protected SyntheticConsumer createConsumer(int threadIndex) {
-        return new SyntheticConsumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters);
+        SyntheticXactFactory factory = createTransactionFactory(threadIndex);
+        return new SyntheticConsumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters, factory);
     }
 }

@@ -1,6 +1,5 @@
 package org.radargun.stages;
 
-import org.radargun.stages.stressors.Parameter;
 import org.radargun.stages.stressors.StringKeyGenerator;
 import org.radargun.stages.stressors.syntethic.SyntheticParameter;
 
@@ -9,7 +8,7 @@ import org.radargun.stages.stressors.syntethic.SyntheticParameter;
  * Date: 8/3/13
  * Time: 2:19 PM
  */
-public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStressor, Parameter> {
+public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStressor, SyntheticParameter> {
 
     /**
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
@@ -41,7 +40,7 @@ public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStres
 
 
     @Override
-    protected Parameter createStressorConfiguration() {
+    protected SyntheticParameter createStressorConfiguration() {
         SyntheticParameter parameters = new SyntheticParameter();
 
         parameters.setNumberOfAttributes(numberOfAttributes);

@@ -1,6 +1,8 @@
 package org.radargun.stages.stressors.producer;
 
+import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.Parameters;
 
 /**
  * Created by: Fabio Perfetti
@@ -11,8 +13,8 @@ import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 public class OpenProducer extends Producer {
     protected final ProducerRate rate;
 
-    public OpenProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id) {
-        super(id, stressor);
+    public OpenProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id, Parameters parameters, TransactionFactory factory) {
+        super(id, stressor, parameters, factory);
         this.rate = rate;
     }
 
@@ -35,4 +37,5 @@ public class OpenProducer extends Producer {
     public void doNotify() {
         // nop
     }
+
 }

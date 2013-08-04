@@ -7,7 +7,7 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.Parameter;
+import org.radargun.stages.stressors.Parameters;
 import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.SystemType;
 import org.radargun.stages.synthetic.XACT_RETRY;
@@ -28,7 +28,7 @@ import static org.radargun.utils.Utils.numberFormat;
  */
 
 @MBean(objectName = "AbstractBenchmark", description = "Abstract benchmark stage")
-public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor,S extends Parameter> extends AbstractDistStage {
+public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor,S extends Parameters> extends AbstractDistStage {
 
     /* ***************** */
     /* ** ATTRIBUTES *** */

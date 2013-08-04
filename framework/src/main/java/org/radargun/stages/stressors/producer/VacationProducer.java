@@ -1,5 +1,6 @@
 package org.radargun.stages.stressors.producer;
 
+import org.radargun.TransactionFactory;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.stages.ScalableSyntheticStageStressor;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
@@ -23,8 +24,9 @@ public class VacationProducer extends Producer<VacationStressor, VacationParamet
     public VacationProducer(int _id,
                             VacationStressor stressor,
                             Producer producer,
-                            VacationParameter params) {
-        super(_id, stressor, params);
+                            VacationParameter params,
+                            TransactionFactory factory) {
+        super(_id, stressor, params, factory);
         this.producer = producer;
 
     }
@@ -48,16 +50,5 @@ public class VacationProducer extends Producer<VacationStressor, VacationParamet
     public void doNotify() {
         producer.doNotify();
     }
-
-    @Override
-    protected int nextTransaction() {
-        int r = rnd.posrandom_generate() % 100;
-        int action = stressor.selectAction(r, parameter.getPercentUser());
-        //RequestType requestType = new RequestType(System.nanoTime(),action);
-
-        return action;
-    }
-
-
 
 }

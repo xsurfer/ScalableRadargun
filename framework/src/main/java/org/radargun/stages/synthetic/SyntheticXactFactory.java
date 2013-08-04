@@ -66,10 +66,11 @@ public class SyntheticXactFactory implements TransactionFactory {
     }
 
     @Override
-    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-        int txType = nextTransaction(parameters.getCacheWrapper());
-        RequestType requestType = new RequestType();
-        return generateTransaction(txType);
+    public ITransaction choiceTransaction() {
+        int txType = nextTransaction();
+        RequestType requestType = new RequestType(System.nanoTime(), txType);
+
+        return generateTransaction(requestType);
     }
 
 

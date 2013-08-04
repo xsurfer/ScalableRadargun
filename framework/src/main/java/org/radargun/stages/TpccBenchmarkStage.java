@@ -4,7 +4,7 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.stages.stressors.tpcc.TpccParameter;
+import org.radargun.stages.stressors.tpcc.TpccParameters;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
 
 
@@ -24,7 +24,7 @@ import org.radargun.stages.stressors.tpcc.TpccStressor;
  * @author Pedro Ruivo
  */
 @MBean(objectName = "TpccBenchmark", description = "TPC-C benchmark stage that generates the TPC-C workload")
-public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccParameter> {
+public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccParameters> {
 
 
     /**
@@ -61,8 +61,8 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     /* ****************** */
 
     @Override
-    protected TpccParameter createStressorConfiguration(){
-        TpccParameter parameters = new TpccParameter();
+    protected TpccParameters createStressorConfiguration(){
+        TpccParameters parameters = new TpccParameters();
         parameters.setPaymentWeight(paymentWeight);
         parameters.setOrderStatusWeight(orderStatusWeight);
         parameters.setAccessSameWarehouse(accessSameWarehouse);

@@ -3,7 +3,7 @@ package org.radargun.stages.stressors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.ITransaction;
+import org.radargun.TransactionFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.commons.StressorStats;
 import org.radargun.stages.stressors.consumer.Consumer;
@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *         E-mail: perfabio87@gmail.com
  *         Date: 4/1/13
  */
-public abstract class AbstractBenchmarkStressor<T extends Parameter, S extends Consumer, V extends Producer> extends AbstractCacheWrapperStressor implements Observer {
+public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends Consumer, V extends Producer, Z extends TransactionFactory>
+        extends AbstractCacheWrapperStressor implements Observer {
 
     /* **************** */
     /* *** COSTANTS *** */
@@ -132,12 +133,14 @@ public abstract class AbstractBenchmarkStressor<T extends Parameter, S extends C
 
     protected abstract double getReadWeight();
 
+    protected abstract Z createTransactionFactory(int threadIndex);
+
+    protected abstract S createConsumer(int threadIndex);
+
 
     /* ****************** */
     /* ***** METHODS **** */
     /* ****************** */
-
-    protected abstract S createConsumer(int threadIndex);
 
     public void addToQueue(RequestType r){
         queue.offer(r);
@@ -493,11 +496,11 @@ public abstract class AbstractBenchmarkStressor<T extends Parameter, S extends C
 
         List<Producer> producers = new ArrayList<Producer>();
         for (int i = 0; i < producerRates.length; ++i) {
-            producers.add(i, new ClosedProducer(this, producerRates[i], i));
+            TransactionFactory factory = createTransactionFactory(i);
+            producers.add( i, new ClosedProducer(this, producerRates[i], i, parameters, factory) );
             //(this, producerRates[i], i));
         }
         return producers;
-
     }
 
     /**
@@ -537,7 +540,10 @@ public abstract class AbstractBenchmarkStressor<T extends Parameter, S extends C
 
         List<Producer> producers = new ArrayList<Producer>();
         for (int i = 0; i < producerRates.length; ++i) {
-            producers.add(i, new OpenProducer(this, producerRates[i], i));
+            TransactionFactory factory = createTransactionFactory(i);
+            producers.add( i, new ClosedProducer(this, producerRates[i], i, parameters, factory) );
+
+            producers.add( i, new OpenProducer(this, producerRates[i], i, parameters, factory) );
         }
         log.info("So we should have a equal number of producers: " + producers.size() );
         return producers;

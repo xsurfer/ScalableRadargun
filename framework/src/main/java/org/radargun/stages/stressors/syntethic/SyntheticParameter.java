@@ -1,6 +1,6 @@
 package org.radargun.stages.stressors.syntethic;
 
-import org.radargun.stages.stressors.Parameter;
+import org.radargun.stages.stressors.Parameters;
 import org.radargun.stages.stressors.StringKeyGenerator;
 
 /**
@@ -8,7 +8,7 @@ import org.radargun.stages.stressors.StringKeyGenerator;
  * Date: 8/3/13
  * Time: 2:40 PM
  */
-public class SyntheticParameter extends Parameter {
+public class SyntheticParameter extends Parameters {
 
     /**
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are

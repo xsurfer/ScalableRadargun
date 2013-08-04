@@ -13,6 +13,6 @@ public interface TransactionFactory {
 
     public abstract ITransaction generateTransaction(RequestType type);
 
-    public abstract ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId);
+    public abstract ITransaction choiceTransaction();
 
 }

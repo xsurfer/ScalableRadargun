@@ -3,13 +3,12 @@ package org.radargun.stages.stressors.tpcc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.ITransaction;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
+import org.radargun.portings.tpcc.TpccTxFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.producer.Producer;
-import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.SystemType;
 import org.radargun.stages.stressors.tpcc.consumer.TpccConsumer;
 
@@ -28,7 +27,7 @@ import java.util.Map;
 * @author Fabio Perfetti (refactored)
 */
 
-public class TpccStressor extends AbstractBenchmarkStressor<TpccParameter, TpccConsumer, Producer> {
+public class TpccStressor extends AbstractBenchmarkStressor<TpccParameters, TpccConsumer, Producer, TpccTxFactory> {
 
 
     private static Log log = LogFactory.getLog(TpccStressor.class);
@@ -41,7 +40,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccParameter, TpccC
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccParameter parameters) {
+    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccParameters parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
     }
 
@@ -102,42 +101,46 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccParameter, TpccC
         calculateLocalWarehouses();
     }
 
-    @Override
-    public int nextTransaction(int threadIndex) {
-        TpccTerminal terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), 0);
-
-        return terminal.chooseTransactionType(
-                cacheWrapper.isPassiveReplication(),
-                cacheWrapper.isTheMaster()
-        );
-
-        /*
-        return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
-                                                                                  cacheWrapper.isPassiveReplication(),
-                                                                                  cacheWrapper.isTheMaster()
-                                                                                ) );
-        */
-    }
-
-    @Override
-    public ITransaction generateTransaction(RequestType type, int threadIndex) {
-        TpccConsumer consumer = this.consumers.get(threadIndex);
-        ITransaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
-        return transaction;
-    }
-
-    @Override
-    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-        TpccConsumer consumer = this.consumers.get(threadId);
-        ITransaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
-        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
-        return transaction;
-    }
+//    @Override
+//    public int nextTransaction(int threadIndex) {
+//        TpccTerminal terminal = new TpccTerminal(parameters.getPaymentWeight(), parameters.getOrderStatusWeight(), parameters.getNodeIndex(), 0);
+//
+//        return terminal.chooseTransactionType(
+//                cacheWrapper.isPassiveReplication(),
+//                cacheWrapper.isTheMaster()
+//        );
+//
+//        /*
+//        return new RequestType( System.nanoTime(), terminal.chooseTransactionType(
+//                                                                                  cacheWrapper.isPassiveReplication(),
+//                                                                                  cacheWrapper.isTheMaster()
+//                                                                                ) );
+//        */
+//    }
+//
+//    @Override
+//    public ITransaction generateTransaction(RequestType type, int threadIndex) {
+//        TpccConsumer consumer = this.consumers.get(threadIndex);
+//        ITransaction transaction = consumer.getTerminal().createTransaction(type.getTransactionType(), threadIndex);
+//        return transaction;
+//    }
+//
+//    @Override
+//    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+//        TpccConsumer consumer = this.consumers.get(threadId);
+//        ITransaction transaction = consumer.getTerminal().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadId);
+//        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
+//        return transaction;
+//    }
 
     @Override
     protected TpccConsumer createConsumer(int threadIndex) {
         int localWarehouse = getWarehouseForThread(threadIndex);
-        return new TpccConsumer(localWarehouse, threadIndex, cacheWrapper, system, benchmarkStage, this, parameters);
+
+
+
+
+        return new TpccConsumer(localWarehouse, threadIndex, cacheWrapper, system, benchmarkStage, this, parameters, createTransactionFactory(threadIndex) );
     }
 
 
@@ -160,6 +163,11 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccParameter, TpccC
     protected double getReadWeight() {
         double readWeight = parameters.getOrderStatusWeight() / 100D;
         return readWeight;
+    }
+
+    @Override
+    protected TpccTxFactory createTransactionFactory(int threadIndex) {
+        return new TpccTxFactory(parameters, threadIndex);
     }
 
 

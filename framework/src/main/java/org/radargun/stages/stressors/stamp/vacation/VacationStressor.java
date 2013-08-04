@@ -6,6 +6,7 @@ import org.radargun.CacheWrapper;
 import org.radargun.ITransaction;
 import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
+import org.radargun.portings.stamp.vacation.VacationTxFactory;
 import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;
 import org.radargun.portings.stamp.vacation.transaction.MakeReservationOperation;
 import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
@@ -16,7 +17,7 @@ import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.producer.VacationProducer;
 import org.radargun.stages.stressors.systems.SystemType;
 
-public class VacationStressor extends AbstractBenchmarkStressor<VacationParameter, Consumer, VacationProducer> {
+public class VacationStressor extends AbstractBenchmarkStressor<VacationParameter, Consumer, VacationProducer, VacationTxFactory> {
 
     private static Log log = LogFactory.getLog(VacationStressor.class);
 
@@ -61,6 +62,11 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationParamete
     }
 
     @Override
+    protected VacationTxFactory createTransactionFactory(int threadIndex) {
+        return new VacationTxFactory(parameters);
+    }
+
+    @Override
     protected void validateTransactionsWeight() {
         int sum = parameters.getPercentUser();
         if (sum < 0 || sum > 100) {
@@ -71,7 +77,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationParamete
 
     @Override
     protected Consumer createConsumer(int threadIndex) {
-        return new Consumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters);
+        return new Consumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters, createTransactionFactory(threadIndex));
     }
 
     /*

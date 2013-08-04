@@ -2,7 +2,7 @@
 //
 //import org.radargun.CacheWrapper;
 //import org.radargun.stages.stressors.KeyGenerator;
-//import org.radargun.stages.stressors.Parameter;
+//import org.radargun.stages.stressors.Parameters;
 //
 //import java.util.Random;
 //
@@ -12,7 +12,7 @@
 // * @author diego
 // * @since 4.0
 // */
-//public class SyntheticXactParams extends Parameter {
+//public class SyntheticXactParams extends Parameters {
 //
 //   private boolean allowBlindWrites;
 //   private Random random;

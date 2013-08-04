@@ -2,8 +2,9 @@ package org.radargun.stages.stressors.producer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.Parameter;
+import org.radargun.stages.stressors.Parameters;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,19 +14,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Date: 4/18/13
  */
 
-public abstract class Producer<T extends AbstractBenchmarkStressor, S extends Parameter> implements IProducer  {
+public abstract class Producer<T extends AbstractBenchmarkStressor, S extends Parameters> implements IProducer  {
 
     protected static Log log = LogFactory.getLog(Producer.class);
     protected final int id;
     private AtomicBoolean running = new AtomicBoolean(false);
     protected T stressor;
     protected S parameter;
+    protected TransactionFactory factory;
 
 
-    public Producer(int _id, T stressor, S parameter, TransactionFactory) {
+    public Producer(int _id, T stressor, S parameter, TransactionFactory factory) {
         id = _id;
         this.stressor = stressor;
         this.parameter = parameter;
+        this.factory = factory;
     }
 
     public void run() {
@@ -40,7 +43,7 @@ public abstract class Producer<T extends AbstractBenchmarkStressor, S extends Pa
         }
 
         while ( running.get() ) {
-            int reqType = nextTransaction();
+            int reqType = factory.nextTransaction();
             RequestType request = createRequestType(reqType);
 
             stressor.addToQueue(request);
@@ -59,8 +62,6 @@ public abstract class Producer<T extends AbstractBenchmarkStressor, S extends Pa
     protected abstract RequestType createRequestType(int reqType);
 
     public abstract void doNotify();
-
-    protected abstract int nextTransaction();
 
     public void interrupt() {
         if( running.compareAndSet(true,false) ){

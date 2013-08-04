@@ -5,7 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.*;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.Parameter;
+import org.radargun.stages.stressors.Parameters;
 import org.radargun.stages.stressors.commons.StressorStats;
 import org.radargun.stages.stressors.exceptions.ApplicationException;
 import org.radargun.stages.stressors.producer.Producer;
@@ -36,7 +36,7 @@ public class Consumer implements IConsumer {
 
     protected AbstractBenchmarkStressor stressor;
 
-    protected Parameter parameters;
+    protected Parameters parameters;
 
     public StressorStats stats;
 
@@ -45,6 +45,8 @@ public class Consumer implements IConsumer {
     protected volatile boolean running = true;
 
     protected AtomicBoolean active = new AtomicBoolean(true);
+
+    protected TransactionFactory factory;
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
@@ -55,7 +57,8 @@ public class Consumer implements IConsumer {
                     SystemType system,
                     AbstractBenchmarkStage stage,
                     AbstractBenchmarkStressor stressor,
-                    Parameter parameters) {
+                    Parameters parameters,
+                    TransactionFactory factory) {
 
 
         this.threadIndex = threadIndex;
@@ -64,6 +67,7 @@ public class Consumer implements IConsumer {
         this.stage = stage;
         this.stressor = stressor;
         this.parameters = parameters;
+        this.factory = factory;
 
         stats = new StressorStats();
 
@@ -97,7 +101,7 @@ public class Consumer implements IConsumer {
             if(request.getTransactionType() != 9999){
                 dequeueTimestamp = System.nanoTime();
 
-                tx = stressor.generateTransaction(request, threadIndex);
+                tx = factory.generateTransaction(request);
                 //tx.setEnqueueTimestamp(request.enqueueTimestamp);
                 GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
@@ -144,7 +148,7 @@ public class Consumer implements IConsumer {
 
                 dequeueTimestamp = System.nanoTime();
 
-                tx = stressor.generateTransaction(request, threadIndex);
+                tx = factory.generateTransaction(request);
                 GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
 
 //                      COMMENTATO POICHé NON DOVREI MAI ENTRARE QUI
@@ -199,7 +203,7 @@ public class Consumer implements IConsumer {
             dequeueTimestamp = -1;
 
             //log.info("Mule system: starting a brand new transaction of type " + tx.getType());
-            tx = stressor.choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster(), threadIndex);
+            tx = factory.choiceTransaction();
             CreatedTransactionDecorator createdTx = new CreatedTransactionDecorator(tx); // No queuing
             /* 2- Executing the transaction */
             successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
@@ -324,7 +328,7 @@ public class Consumer implements IConsumer {
         if (!lastSuccessful && parameters.getRetryOnAbort().equals(XACT_RETRY.RETRY_SAME_CLASS) ) {
             log.info("Regenerating transaction!");
             this.backoffIfNecessary();
-            ITransaction newTransaction = stressor.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()), threadIndex);
+            ITransaction newTransaction = factory.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()));
 
             transaction.regenerate(newTransaction);
             //copyTimeStampInformation(transaction, newTransaction);

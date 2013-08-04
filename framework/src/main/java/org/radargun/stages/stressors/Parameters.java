@@ -10,13 +10,13 @@ import java.util.concurrent.CountDownLatch;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public class Parameter {
+public class Parameters {
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public Parameter(){
+    public Parameters(){
 
     }
 

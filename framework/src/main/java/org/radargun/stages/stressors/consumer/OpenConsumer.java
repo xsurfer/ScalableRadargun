@@ -6,7 +6,7 @@
 //import org.radargun.Transaction;
 //import org.radargun.stages.AbstractBenchmarkStage;
 //import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-//import org.radargun.stages.stressors.Parameter;
+//import org.radargun.stages.stressors.Parameters;
 //import org.radargun.stages.stressors.producer.RequestType;
 //import org.radargun.workloadGenerator.*;
 //
@@ -34,7 +34,7 @@
 //                        OpenSystem system,
 //                        AbstractBenchmarkStage stage,
 //                        AbstractBenchmarkStressor stressor,
-//                        Parameter parameters) {
+//                        Parameters parameters) {
 //
 //        super(cacheWrapper, threadIndex, system, stage, stressor, parameters);
 //    }

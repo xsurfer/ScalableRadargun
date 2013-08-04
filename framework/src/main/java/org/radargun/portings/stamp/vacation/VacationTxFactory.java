@@ -32,7 +32,7 @@ public class VacationTxFactory implements TransactionFactory {
     }
 
     @Override
-    public ITransaction generateTransaction(RequestType type, int threadIndex) {
+    public ITransaction generateTransaction(RequestType type) {
 
         int action = type.getTransactionType();
         ITransaction result = null;
@@ -51,12 +51,12 @@ public class VacationTxFactory implements TransactionFactory {
     }
 
     @Override
-    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
+    public ITransaction choiceTransaction() {
         int r = rnd.posrandom_generate() % 100;
         int action = selectAction(r, parameters.getPercentUser());
         RequestType requestType = new RequestType(System.nanoTime(),action);
 
-        return generateTransaction(requestType, threadId);
+        return generateTransaction(requestType);
     }
 
     private int selectAction(int r, int percentUser) {
@@ -68,6 +68,5 @@ public class VacationTxFactory implements TransactionFactory {
             return Definitions.ACTION_UPDATE_TABLES;
         }
     }
-
 
 }

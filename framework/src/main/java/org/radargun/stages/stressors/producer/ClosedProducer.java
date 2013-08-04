@@ -1,6 +1,8 @@
 package org.radargun.stages.stressors.producer;
 
+import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
+import org.radargun.stages.stressors.Parameters;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -14,13 +16,9 @@ public class ClosedProducer extends OpenProducer {
     private long thinkTime;
     private AtomicBoolean notified = new AtomicBoolean(false);
 
-//    public ClosedProducer(AbstractBenchmarkStressor stressor, long tt, int id) {
-//        super(id, stressor);
-//
-//    }
 
-    public ClosedProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id) {
-        super(stressor, rate, id);
+    public ClosedProducer(AbstractBenchmarkStressor stressor, ProducerRate rate, int id, Parameters parameters, TransactionFactory factory) {
+        super(stressor, rate, id, parameters, factory);
     }
 
     @Override
@@ -43,11 +41,6 @@ public class ClosedProducer extends OpenProducer {
             notified.compareAndSet(false,true);
             notify();
         }
-    }
-
-    @Override
-    protected int nextTransaction() {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     protected RequestType createRequestType(int reqType){

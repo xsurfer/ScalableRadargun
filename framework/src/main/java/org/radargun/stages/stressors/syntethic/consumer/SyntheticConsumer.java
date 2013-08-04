@@ -1,6 +1,7 @@
 package org.radargun.stages.stressors.syntethic.consumer;
 
 import org.radargun.CacheWrapper;
+import org.radargun.TransactionFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
@@ -15,18 +16,19 @@ import org.radargun.stages.synthetic.SyntheticXactFactory;
  */
 public class SyntheticConsumer extends Consumer {
 
-    SyntheticXactFactory factory;
+    private SyntheticXactFactory factory;
 
     public SyntheticConsumer(CacheWrapper cacheWrapper,
                              int threadIndex,
                              SystemType system,
                              AbstractBenchmarkStage stage,
                              AbstractBenchmarkStressor stressor,
-                             SyntheticParameter parameters) {
-        super(cacheWrapper, threadIndex, system, stage, stressor, parameters);
+                             SyntheticParameter parameters,
+                             SyntheticXactFactory factory) {
+        super(cacheWrapper, threadIndex, system, stage, stressor, parameters, factory);
 
 
-        this.factory = new SyntheticXactFactory(parameters, threadIndex);
+        this.factory = factory;
     }
 
     public SyntheticXactFactory getFactory(){
