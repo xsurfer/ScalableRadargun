@@ -31,7 +31,7 @@
         <TpccBenchmark
                 statsSamplingInterval="5000"
                 numOfThreads="2"
-                perThreadSimulTime="60"
+                simulationTimeSec="60"
                 arrivalRate="0"
                 accessSameWarehouse="false"
                 paymentWeight="5"
@@ -49,7 +49,7 @@
 	<TpccBenchmark
 		statsSamplingInterval="5000"
                 numOfThreads="2"
-                perThreadSimulTime="30"
+                simulationTimeSec="30"
                 arrivalRate="0"
                 accessSameWarehouse="false"
                 paymentWeight="5"

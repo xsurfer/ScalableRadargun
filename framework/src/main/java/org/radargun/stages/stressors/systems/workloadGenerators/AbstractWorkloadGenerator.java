@@ -224,7 +224,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
      * @return maxArrivalRate if getCurrentArrivalRate() > maxArrivalRate && maxArrivalRate > 0<br/>
      *  else getCurrentArrivalRate()
      */
-    public int getArrivalRate(){
+    public int arrivalRate(){
         if( getCurrentArrivalRate() < 0 ){
             return 0;
         }

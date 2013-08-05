@@ -6,7 +6,7 @@ import org.radargun.ITransaction;
 import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.KeyGenerator;
 import org.radargun.stages.stressors.producer.RequestType;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.utils.Utils;
 
 import java.util.Random;
@@ -25,9 +25,9 @@ public class SyntheticXactFactory implements TransactionFactory {
     private KeyGenerator keyGenerator;
     private int threadIndex;
 
-    private SyntheticParameter parameters;
+    private SyntheticParameters parameters;
 
-    public SyntheticXactFactory(SyntheticParameter params, int threadIndex) {
+    public SyntheticXactFactory(SyntheticParameters params, int threadIndex) {
         this.parameters = params;
         this.keyGenerator = (KeyGenerator) Utils.instantiate( params.getKeyGeneratorClass() );
         this.threadIndex = threadIndex;
@@ -59,9 +59,9 @@ public class SyntheticXactFactory implements TransactionFactory {
         toRet.setOps(ops);
         toRet.setClazz(type.getTransactionType());
 
-        if(log.isTraceEnabled()){
-            log.trace("New xact built "+toRet.toString());
-        }
+        //if(log.isTraceEnabled()){
+        //    log.trace("New xact built " + toRet.toString());
+        //}
         return toRet;
     }
 
@@ -81,7 +81,7 @@ public class SyntheticXactFactory implements TransactionFactory {
      * (even multiple times in a row, for simplicity)
      * @return a readWriteSet
      */
-    protected XactOp[] buildReadWriteSet() {
+    private XactOp[] buildReadWriteSet() {
         int toDoRead = parameters.getUpdateXactReads();
         int toDoWrite = parameters.getUpdateXactWrites();
         int toDo = toDoRead + toDoWrite;

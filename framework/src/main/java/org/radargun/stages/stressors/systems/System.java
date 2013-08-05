@@ -11,13 +11,13 @@ import java.util.Map;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public interface SystemType extends Serializable {
+public interface System extends Serializable {
 
-    public final static String OPEN = "open";
-    public final static String CLOSED = "closed";
-    public final static String MULE = "mule";
+    public enum SystemType {
+        OPEN, CLOSED, MULE;
+    }
 
-    public String getType();
+    public SystemType getType();
 
     //public Consumer createConsumer(CacheWrapper cacheWrapper, int threadIndex, AbstractBenchmarkStage benchmarkStage, AbstractBenchmarkStressor stressor, Parameters parameters);
 

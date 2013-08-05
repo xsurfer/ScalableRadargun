@@ -2,6 +2,7 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.state.MasterState;
 
 import java.io.IOException;
@@ -19,7 +20,15 @@ public class ClusterExecutor extends AbstractExecutor {
     private static Log log = LogFactory.getLog(ClusterExecutor.class);
 
     private Set<SlaveSocketChannel> joiningSlaves = new HashSet<SlaveSocketChannel>();
+
     private Set<SlaveSocketChannel> stoppedSlaves = new HashSet<SlaveSocketChannel>();
+
+    /**
+     * timestamp at the beginning of the current stage
+     */
+    private long initTsCurrentStage = 0L;
+
+
 
     public ClusterExecutor(MasterState state, Set<SlaveSocketChannel> slaves) {
         super(state, slaves);
@@ -32,7 +41,7 @@ public class ClusterExecutor extends AbstractExecutor {
 
     @Override
     protected void postStageBroadcast() {
-        // nothing to do
+        stoppedSlaves.clear();
     }
 
     @Override
@@ -62,11 +71,13 @@ public class ClusterExecutor extends AbstractExecutor {
         log.info("Number of working slaves: " + slaves.size() );
         log.info("Number of joining slaves: " + joiningSlaves.size() );
         log.info("Number of stopped slaves: " + stoppedSlaves.size() );
+
+        changeNumSlavesNotify();
     }
 
     @Override
     protected void preSerialization(DistStage readyToWriteOnBuffer) {
-        // nothing to do here
+        setInitTsCurrentStage( System.currentTimeMillis() );
     }
 
     @Override
@@ -132,6 +143,15 @@ public class ClusterExecutor extends AbstractExecutor {
             NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
             jmxRequest.doRequest();
         }
+    }
+
+
+    public long getInitTsCurrentStage() {
+        return initTsCurrentStage;
+    }
+
+    public void setInitTsCurrentStage(long initTsCurrentStage) {
+        this.initTsCurrentStage = initTsCurrentStage;
     }
 
 }

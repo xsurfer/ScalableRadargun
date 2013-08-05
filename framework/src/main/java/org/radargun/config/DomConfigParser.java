@@ -7,8 +7,8 @@ import org.radargun.Stage;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
 import org.radargun.stages.StartClusterStage;
-import org.radargun.stages.stressors.systems.OpenSystem;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.TypedProperties;
 import org.w3c.dom.*;
@@ -179,7 +179,7 @@ public class DomConfigParser extends ConfigParser {
                         if (systemChild instanceof Element) {
                             Element systemEl = (Element) systemChild;
                             String systemName = systemEl.getNodeName();
-                            SystemType system = JaxbConfigParser.getSystem(systemName);
+                            System system = JaxbConfigParser.getSystem(systemName);
                             if (system == null)
                                 throw new RuntimeException("Unvalid System type");
                             ((AbstractBenchmarkStage) st).setSysyemType(system);
@@ -191,7 +191,7 @@ public class DomConfigParser extends ConfigParser {
                             }
                             ConfigHelper.setValues(system, systemAttrToSet, true);
 
-                            if (system.getType().equals(SystemType.OPEN)) { // or istanceof OpenSystem
+                            if (system.getType().equals(System.SystemType.OPEN)) { // or istanceof OpenSystem
                                 //let's read the workloadGenerator
                                 NodeList systemChildNodes = systemEl.getChildNodes();
                                 for (int k = 0; k < systemChildNodes.getLength(); k++) {

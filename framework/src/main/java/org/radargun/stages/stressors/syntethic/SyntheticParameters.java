@@ -8,7 +8,7 @@ import org.radargun.stages.stressors.StringKeyGenerator;
  * Date: 8/3/13
  * Time: 2:40 PM
  */
-public class SyntheticParameter extends Parameters {
+public class SyntheticParameters extends Parameters {
 
     /**
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
@@ -111,7 +111,4 @@ public class SyntheticParameter extends Parameters {
     public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
         this.readsBeforeFirstWrite = readsBeforeFirstWrite;
     }
-
-
-
 }

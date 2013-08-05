@@ -21,7 +21,7 @@ public class ClosedSystem implements IProducerSystem {
     private RateDistribution rateDistribution = RateDistribution.EXPONENTIAL;
 
     @Override
-    public String getType() {
+    public SystemType getType() {
         return SystemType.CLOSED;
     }
 

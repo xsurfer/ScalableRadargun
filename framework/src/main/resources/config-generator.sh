@@ -172,7 +172,7 @@ fi
 
 echo "            statsSamplingInterval=\"${STAT_SAMPLE_INTERVAL}\"" >> ${DEST_FILE}
 echo "            numOfThreads=\"${NUMBER_OF_THREADS}\"" >> ${DEST_FILE}
-echo "            perThreadSimulTime=\"${SIMULATION_TIME}\"" >> ${DEST_FILE}
+echo "            simulationTimeSec=\"${SIMULATION_TIME}\"" >> ${DEST_FILE}
 echo "            arrivalRate=\"${ARRIVAL_RATE}\"" >> ${DEST_FILE}
 echo "            accessSameWarehouse=\"${SAME_WAREHOUSE}\"" >> ${DEST_FILE}
 echo "            paymentWeight=\"${PAYMENT_WEIGHT}\"" >> ${DEST_FILE}

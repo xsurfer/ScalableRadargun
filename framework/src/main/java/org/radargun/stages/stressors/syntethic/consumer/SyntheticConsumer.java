@@ -4,8 +4,8 @@ import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.SyntheticXactFactory;
 
 /**
@@ -19,10 +19,10 @@ public class SyntheticConsumer extends Consumer {
 
     public SyntheticConsumer(CacheWrapper cacheWrapper,
                              int threadIndex,
-                             SystemType system,
+                             System system,
                              AbstractBenchmarkStage stage,
                              AbstractBenchmarkStressor stressor,
-                             SyntheticParameter parameters,
+                             SyntheticParameters parameters,
                              SyntheticXactFactory factory) {
         super(cacheWrapper, threadIndex, system, stage, stressor, parameters, factory);
 

@@ -54,7 +54,7 @@
                 id="h"
                 statsSamplingInterval="30000"
                 numOfThreads="2"
-                perThreadSimulTime="6000"
+                simulationTimeSec="6000"
                 accessSameWarehouse="false"
                 paymentWeight="43"
                 orderStatusWeight="53"

@@ -27,18 +27,16 @@
                 passiveReplication="false"
                 partialReplication="false"
                 skippable="true"/>
-        <TpccPopulation
+
+        <SyntheticWarmup
                 id="d"
-                preloadedFromDB="false"
-                numWarehouses="1"
-                cLastMask="0"
-                olIdMask="0"
-                cIdMask="0"
-                threadParallelLoad="true"
-                batchLevel="200"
-                numLoaderThreads="4"
-                oneWarmup="true"
+                keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
+                numberOfAttributes="100000"
+                sizeOfAnAttribute="1000"
+                numOfThreads="2"
+                transactionSize="100"
                 skippable="true"/>
+
         <GarbageCollection
                 id="e"
                 skippable="true"/>
@@ -53,8 +51,9 @@
 
         <SyntheticBenchmark
                 id="h"
+                simulationTimeSec="60"
                 sizeOfAnAttribute="1000"
-                keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator"
+                keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
                 numberOfAttributes="100000"
                 numOfThreads="1"
                 updateXactWrites="10"
@@ -62,8 +61,7 @@
                 readOnlyXactSize="10"
                 writePercentage="10"
                 allowBlindWrites="false"
-                duration="180000"
-                retryMode="RETRY_SAME_CLASS"
+                retryOnAbort="RETRY_SAME_CLASS"
                 statsSamplingInterval="15000"
                 readsBeforeFirstWrite="1"
                 skippable="true"

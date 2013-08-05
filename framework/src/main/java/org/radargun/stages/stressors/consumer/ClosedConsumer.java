@@ -8,7 +8,7 @@
 //import org.radargun.stages.stressors.producer.RequestType;
 //import org.radargun.stages.stressors.systems.ClosedSystem;
 //import org.radargun.stages.stressors.systems.MuleSystem;
-//import org.radargun.stages.stressors.systems.SystemType;
+//import org.radargun.stages.stressors.systems.System;
 //
 ///**
 // * Created by: Fabio Perfetti

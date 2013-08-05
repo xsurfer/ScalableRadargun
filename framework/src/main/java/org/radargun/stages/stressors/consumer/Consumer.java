@@ -12,6 +12,7 @@ import org.radargun.stages.stressors.producer.Producer;
 import org.radargun.stages.stressors.producer.ProducerRate;
 import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.XACT_RETRY;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +31,7 @@ public class Consumer implements IConsumer {
 
     protected final int threadIndex;
 
-    protected SystemType system;
+    protected System system;
 
     protected AbstractBenchmarkStage stage;
 
@@ -54,7 +55,7 @@ public class Consumer implements IConsumer {
 
     public Consumer(CacheWrapper cacheWrapper,
                     int threadIndex,
-                    SystemType system,
+                    System system,
                     AbstractBenchmarkStage stage,
                     AbstractBenchmarkStressor stressor,
                     Parameters parameters,
@@ -99,7 +100,7 @@ public class Consumer implements IConsumer {
 
             RequestType request = stressor.takeFromQueue();
             if(request.getTransactionType() != 9999){
-                dequeueTimestamp = System.nanoTime();
+                dequeueTimestamp = java.lang.System.nanoTime();
 
                 tx = factory.generateTransaction(request);
                 //tx.setEnqueueTimestamp(request.enqueueTimestamp);
@@ -146,7 +147,7 @@ public class Consumer implements IConsumer {
             RequestType request = stressor.takeFromQueue();
             if(request.getTransactionType() != 9999){
 
-                dequeueTimestamp = System.nanoTime();
+                dequeueTimestamp = java.lang.System.nanoTime();
 
                 tx = factory.generateTransaction(request);
                 GeneratedTransactionDecorator generatedTx = new GeneratedTransactionDecorator(tx, request, dequeueTimestamp);
@@ -209,9 +210,9 @@ public class Consumer implements IConsumer {
             successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
             stats._handleEndTx(createdTx, successful);
-            log.info("Asleeped: " + System.currentTimeMillis() );
+            log.info("Asleeped: " + java.lang.System.currentTimeMillis() );
             rate.sleep();
-            log.info("Awaked: " + System.currentTimeMillis() );
+            log.info("Awaked: " + java.lang.System.currentTimeMillis() );
 
 
             blockIfInactive();
@@ -328,7 +329,7 @@ public class Consumer implements IConsumer {
         if (!lastSuccessful && parameters.getRetryOnAbort().equals(XACT_RETRY.RETRY_SAME_CLASS) ) {
             log.info("Regenerating transaction!");
             this.backoffIfNecessary();
-            ITransaction newTransaction = factory.generateTransaction(new RequestType(System.nanoTime(), transaction.getType()));
+            ITransaction newTransaction = factory.generateTransaction(new RequestType(java.lang.System.nanoTime(), transaction.getType()));
 
             transaction.regenerate(newTransaction);
             //copyTimeStampInformation(transaction, newTransaction);

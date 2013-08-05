@@ -8,8 +8,8 @@ import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.Parameters;
-import org.radargun.stages.stressors.systems.OpenSystem;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.XACT_RETRY;
 import org.radargun.state.MasterState;
 
@@ -39,11 +39,6 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     private static final String SCRIPT_PATH = "~/pedroGun/beforeBenchmark.sh";
 
     /**
-     * the number of nodes in the Radargun cluster.
-     */
-    protected int numSlaves = 0;
-
-    /**
      * the number of threads that will work on this slave
      */
     protected int numOfThreads = 10;
@@ -51,12 +46,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     /**
      * total time (in seconds) of simulation for each stressor thread
      */
-    protected long perThreadSimulTime = 180L;
-
-    /**
-     * timestamps (in ms) when this stage was starting
-     */
-    protected long initTimeStamp = 0L;
+    protected long simulationTimeSec = 180L;
 
     /**
      * specify the interval period (in milliseconds) of the memory and cpu usage is collected
@@ -66,7 +56,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     /**
      * the system type
      */
-    protected SystemType system;
+    protected System system;
 
     /* istanza di AbstractBenchmarkStressor */
     protected transient T stressor;
@@ -102,7 +92,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
 
     protected abstract S createStressorConfiguration();
 
-    public abstract T createStressor();
+    protected abstract T createStressor();
 
 
 
@@ -122,7 +112,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         parameters.setNodeIndex(getSlaveIndex());
         parameters.setBackOffTime(backOffTime);
         parameters.setRetryOnAbort( retryOnAbort );
-        parameters.setSimulationTimeSec(perThreadSimulTime);
+        parameters.setSimulationTimeSec(simulationTimeSec);
         parameters.setNumOfThreads(numOfThreads);
         parameters.setNumSlaves(getActiveSlaveCount());
         parameters.setStatsSamplingInterval(statsSamplingInterval);
@@ -196,25 +186,34 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     }
 
 
-    public void updateTimes(AbstractBenchmarkStage currentMainStage) {
-        log.info("Updating perThreadSimulTime");
+    public void updateTimes(final long initTsCurrentStage) {
+        log.info("Updating simulationTimeSec");
 
-        long totalSimulTime = this.getPerThreadSimulTime();
-        long currentMainStageInitTs = currentMainStage.getInitTimeStamp();
-        long toExecuteInitTs = this.getInitTimeStamp();
-        long elapsedTimeFromBeginning = toExecuteInitTs - currentMainStageInitTs;
+        long totalSimulTime = this.getSimulationTimeSec();
+        log.info("totalSimulTime: " + totalSimulTime);
+
+
+        log.info("currentMainStageInitTs: " + initTsCurrentStage);
+
+        long toExecuteInitTs = java.lang.System.currentTimeMillis();
+        log.info("toExecuteInitTs: " + toExecuteInitTs);
+
+        long elapsedTimeFromBeginning = toExecuteInitTs - initTsCurrentStage;
+        log.info("elapsedTimeFromBeginning: " + elapsedTimeFromBeginning);
+
         long secondToExecute = totalSimulTime - (elapsedTimeFromBeginning / 1000);
+        log.info("secondToExecute: " + secondToExecute);
 
         if (secondToExecute < 0) {
             secondToExecute = 0;
         }
 
         log.info("This stage will execute for: " + secondToExecute);
-        this.setPerThreadSimulTime(secondToExecute);
+        this.setSimulationTimeSec(secondToExecute);
 
         log.info("Updating initTime Workload Generator");
 
-        if(system.getType().equals(SystemType.OPEN)){
+        if(system.getType().equals(System.SystemType.OPEN)){
             ((OpenSystem)system).getWorkloadGenerator().setInitTime( (int) (elapsedTimeFromBeginning / 1000) );
         }
     }
@@ -257,7 +256,7 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public AbstractBenchmarkStage clone() {
         AbstractBenchmarkStage clone = (AbstractBenchmarkStage) super.clone();
         log.info("cloning AbstractBenchmarkStage");
-        clone.initTimeStamp = 0;
+        //clone.initTimeStamp = 0;
         //clone.workloadGenerator = workloadGenerator.clone();
 
         return clone;
@@ -325,8 +324,21 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         stressor.setNumberOfRunningThreads(numberOfActiveThreads);
     }
 
+
+    @ManagedOperation(description = "Retrieve current arrivalRate")
+    public int arrivalRate() {
+        if( system.getType().equals(System.SystemType.OPEN) ){
+            return ((OpenSystem) system).getWorkloadGenerator().arrivalRate();
+        }
+        return -1;
+    }
+
     @ManagedOperation(description = "Stop the current benchmark")
     public void stopBenchmark() {
+        log.info("****************************************");
+        log.info("************STOPPING BY JMX*************");
+        log.info("stage: " + getId());
+        log.info("****************************************");
         stressor.stopBenchmark();
     }
 
@@ -350,21 +362,17 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         this.retryOnAbort = XACT_RETRY.valueOf(retryOnAbort);
     }
 
-    public void setRetrySameXact(boolean b){
-        this.retrySameXact = b;
-    }
-
     public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
 
-    public void setSysyemType(SystemType val){ this.system = val; }
-    public SystemType getSysyemType(){ return this.system; }
+    public void setSysyemType(System val){ this.system = val; }
+    public System getSysyemType(){ return this.system; }
 
-    public long getPerThreadSimulTime(){ return this.perThreadSimulTime; }
-    public void setPerThreadSimulTime(long perThreadSimulTime){ this.perThreadSimulTime = perThreadSimulTime; }
+    public long getSimulationTimeSec(){ return this.simulationTimeSec; }
+    public void setSimulationTimeSec(long simulationTimeSec){ this.simulationTimeSec = simulationTimeSec; }
 
-    public long getInitTimeStamp() { return this.initTimeStamp; }
-    public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
+    //public long getInitTimeStamp() { return this.initTimeStamp; }
+    //public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
 
-    public AbstractBenchmarkStressor getStressor(){ return stressor; }
+    //public AbstractBenchmarkStressor getStressor(){ return stressor; }
 
 }

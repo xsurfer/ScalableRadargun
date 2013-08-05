@@ -74,7 +74,7 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 //        stressor.setNodeIndex(getSlaveIndex());
 //        stressor.setNumSlaves(getActiveSlaveCount());
 //        stressor.setNumOfThreads(this.numOfThreads);
-//        stressor.setSimulationTimeSec(this.perThreadSimulTime);
+//        stressor.setSimulationTimeSec(this.simulationTimeSec);
 //        stressor.setStatsSamplingInterval(statsSamplingInterval);
 //        stressor.setBackOffTime(backOffTime);
 //        stressor.setRetryOnAbort(retryOnAbort);

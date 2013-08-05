@@ -9,7 +9,7 @@ import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.producer.VacationProducer;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.System;
 
 public class VacationStressor extends AbstractBenchmarkStressor<VacationParameter, Consumer, VacationProducer, VacationTxFactory> {
 
@@ -24,7 +24,7 @@ public class VacationStressor extends AbstractBenchmarkStressor<VacationParamete
     /* *** CONSTRUCTOR *** */
     /* ****************** */
 
-    public VacationStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, VacationParameter parameters) {
+    public VacationStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, System system, VacationParameter parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
         randomPtr = new Random();
         randomPtr.random_alloc();

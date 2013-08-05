@@ -5,7 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.NewElasticMaster;
 import org.radargun.config.jaxb.*;
 import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 
 import javax.xml.bind.JAXBContext;
@@ -118,14 +118,14 @@ public class JaxbConfigParser extends ConfigParser {
 
 
 
-    public static SystemType getSystem(String systemName) {
+    public static System getSystem(String systemName) {
         if (systemName.indexOf('.') < 0) {
             systemName = "org.radargun.stages.stressors.systems." + systemName;
         }
         try {
-            SystemType obj;
+            org.radargun.stages.stressors.systems.System obj;
             Constructor c = Class.forName(systemName).getConstructor();
-            obj = (SystemType) c.newInstance();
+            obj = (System) c.newInstance();
             return obj;
         } catch (Exception e) {
             String s = "Could not create system of type: " + systemName;

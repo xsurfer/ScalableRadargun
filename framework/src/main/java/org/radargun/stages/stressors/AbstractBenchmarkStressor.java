@@ -9,6 +9,7 @@ import org.radargun.stages.stressors.commons.StressorStats;
 import org.radargun.stages.stressors.consumer.Consumer;
 import org.radargun.stages.stressors.producer.*;
 import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
@@ -84,7 +85,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
     protected AbstractBenchmarkStage benchmarkStage;
 
-    protected SystemType system;
+    protected System system;
 
     protected T parameters;
 
@@ -96,7 +97,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
     public AbstractBenchmarkStressor(CacheWrapper cacheWrapper,
                                      AbstractBenchmarkStage benchmarkStage,
-                                     SystemType system,
+                                     System system,
                                      T parameters) {
 
         if (cacheWrapper == null) { throw new IllegalStateException("Null wrapper not allowed"); }
@@ -302,7 +303,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
             consumerExecutorService.execute(consumer);
         }
         log.info("Cache wrapper info is: " + cacheWrapper.getInfo());
-        startTime = System.currentTimeMillis();
+        startTime = java.lang.System.currentTimeMillis();
         startPoint.countDown();
         blockWhileRunning();
         log.info("Shutting down consumerExecutorService");
@@ -324,7 +325,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         }
 
         log.info("Fine executeOperations");
-        endTime = System.currentTimeMillis();
+        endTime = java.lang.System.currentTimeMillis();
         //return consumers;
     }
 
@@ -480,7 +481,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
             log.info("Creating producers groups");
             /*
             producerRates = new GroupProducerRateFactory(AbstractWorkloadGenerator.RateDistribution.EXPONENTIAL,
-                    system.getWorkloadGenerator().getArrivalRate(),
+                    system.getWorkloadGenerator().arrivalRate(),
                     cacheWrapper.getNumMembers(),
                     parameters.getNodeIndex(),
                     AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).createClients();
@@ -531,7 +532,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         } else {
             log.info("Creating producers groups");
             producerRates = new GroupProducerRateFactory(system.getWorkloadGenerator().getRateDistribution(),
-                    system.getWorkloadGenerator().getArrivalRate(),
+                    system.getWorkloadGenerator().arrivalRate(),
                     cacheWrapper.getNumMembers(),
                     parameters.getNodeIndex(),
                     AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
@@ -649,7 +650,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
         log.info("Sending map to master " + results.toString());
         log.info("Finished generating report. Nr of failed operations on this node is: " + totalStats.get(StressorStats.NR_FAILURES) +
-                ". Test duration is: " + Utils.getMillisDurationString(System.currentTimeMillis() - startTime));
+                ". Test duration is: " + Utils.getMillisDurationString(java.lang.System.currentTimeMillis() - startTime));
         return results;
     }
 
@@ -677,13 +678,13 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
                     switch (cmd) {
                         case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
 
-                            if(!system.getType().equals(SystemType.OPEN))
+                            if(!system.getType().equals(System.SystemType.OPEN))
                                 throw new IllegalStateException("Arrival rate changed on a not Open system!!");
                             else
-                                log.info("Arrival rate changed:" + ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() );
+                                log.info("Arrival rate changed:" + ((OpenSystem) system).getWorkloadGenerator().arrivalRate() );
 
-                            if ( ((OpenSystem) system).getWorkloadGenerator().getArrivalRate() != this.lastArrivalRate) {
-                                this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().getArrivalRate();
+                            if ( ((OpenSystem) system).getWorkloadGenerator().arrivalRate() != this.lastArrivalRate) {
+                                this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().arrivalRate();
                                 stopCreateStartProducers( (OpenSystem) system );
                             }
                             break;

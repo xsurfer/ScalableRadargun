@@ -5,9 +5,9 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.producer.SyntheticProducer;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.stages.stressors.syntethic.consumer.SyntheticConsumer;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.SyntheticXactFactory;
 
 /**
@@ -15,11 +15,11 @@ import org.radargun.stages.synthetic.SyntheticXactFactory;
  * Date: 8/3/13
  * Time: 2:20 PM
  */
-public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<SyntheticParameter, SyntheticConsumer, SyntheticProducer, SyntheticXactFactory> {
+public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParameters, SyntheticConsumer, SyntheticProducer, SyntheticXactFactory> {
 
-    private static Log log = LogFactory.getLog(ScalableSyntheticStageStressor.class);
+    private static Log log = LogFactory.getLog(SyntheticStressor.class);
 
-    public ScalableSyntheticStageStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, SyntheticParameter parameters) {
+    public SyntheticStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, System system, SyntheticParameters parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
     }
 
@@ -53,14 +53,48 @@ public class ScalableSyntheticStageStressor extends AbstractBenchmarkStressor<Sy
 //        return transaction;
 //    }
 
+    public void changeUpdateTx(int writePercentage, int updateXactReads, int updateXactWrites) {
+
+        if (!running.get()) {
+            return;
+        }
+        parameters.setWritePercentage(writePercentage);
+        parameters.setUpdateXactReads(updateXactReads);
+        parameters.setUpdateXactWrites(updateXactWrites);
+
+        log.info("Changing update tx:");
+        for (SyntheticConsumer consumer : consumers) {
+            //consumer.getTerminal().change(1, parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
+            //log.info(consumer.getName() + " terminal is " + consumer.getFactory());
+            log.info("UpdateTx changed for consumer: " + consumer.getThreadIndex());
+        }
+
+    }
+
+    public void changeReadOnlyTx(int readOnlyPercentage, int readOnlyXactSize) {
+        if (!running.get()) {
+            return;
+        }
+        parameters.setWritePercentage(100 - readOnlyPercentage);
+        parameters.setReadOnlyXactSize(readOnlyXactSize);
+
+        log.info("Changing readOnly tx:");
+        for (SyntheticConsumer consumer : consumers) {
+            //consumer.getTerminal().change(1, parameters.getPaymentWeight(), parameters.getOrderStatusWeight());
+            //log.info(consumer.getName() + " terminal is " + consumer.getFactory());
+            log.info("UpdateTx changed for consumer: " + consumer.getThreadIndex());
+        }
+    }
+
+
     @Override
-    protected double getWriteWeight() {
+    public double getWriteWeight() {
         return parameters.getWritePercentage();
     }
 
     @Override
-    protected double getReadWeight() {
-        return parameters.getWritePercentage();
+    public double getReadWeight() {
+        return 100-parameters.getWritePercentage();
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.radargun.portings.tpcc.TpccTxFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.producer.Producer;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.tpcc.consumer.TpccConsumer;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class TpccStressor extends AbstractBenchmarkStressor<TpccParameters, Tpcc
     /* *** CONSTRUCTOR *** */
     /* ******************* */
 
-    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, SystemType system, TpccParameters parameters) {
+    public TpccStressor(CacheWrapper cacheWrapper, AbstractBenchmarkStage benchmarkStage, System system, TpccParameters parameters) {
         super(cacheWrapper, benchmarkStage, system, parameters);
     }
 

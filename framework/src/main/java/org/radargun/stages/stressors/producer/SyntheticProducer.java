@@ -2,7 +2,7 @@ package org.radargun.stages.stressors.producer;
 
 import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 
 import java.util.Random;
 
@@ -14,13 +14,13 @@ import java.util.Random;
 public class SyntheticProducer extends Producer {
 
     private Random rnd = new Random();
-    private SyntheticParameter params;
+    private SyntheticParameters params;
     private Producer producer;
 
     public SyntheticProducer(int _id,
                              AbstractBenchmarkStressor stressor,
                              Producer producer,
-                             SyntheticParameter params,
+                             SyntheticParameters params,
                              TransactionFactory factory) {
         super(_id, stressor, params, factory);
         this.producer = producer;

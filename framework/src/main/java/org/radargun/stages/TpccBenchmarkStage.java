@@ -95,7 +95,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 //        stressor.setNodeIndex(getSlaveIndex());
 //        stressor.setNumSlaves(getActiveSlaveCount());
 //        stressor.setNumOfThreads(this.numOfThreads);
-//        stressor.setSimulationTimeSec(this.perThreadSimulTime);
+//        stressor.setSimulationTimeSec(this.simulationTimeSec);
 //        stressor.setStatsSamplingInterval(statsSamplingInterval);
 //        stressor.setBackOffTime(backOffTime);
 //        stressor.setRetryOnAbort(retryOnAbort);
@@ -132,7 +132,7 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     public String toString() {
         return "TpccBenchmarkStage {" +
                 "numOfThreads=" + numOfThreads +
-                ", updateTimes=" + perThreadSimulTime +
+                ", updateTimes=" + simulationTimeSec +
                 ", paymentWeight=" + paymentWeight +
                 ", orderStatusWeight=" + orderStatusWeight +
                 ", accessSameWarehouse=" + accessSameWarehouse +
@@ -144,9 +144,9 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 
 
 
-    /* *************** */
-    /* *** METHODS *** */
-    /* *************** */
+    /* ******************* */
+    /* *** JMX METHODS *** */
+    /* ******************* */
 
     @ManagedOperation(description = "Change the workload to decrease contention between transactions")
     public void lowContention(int payment, int order) {

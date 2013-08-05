@@ -48,7 +48,7 @@
                 numOfThreads="1"
                 number="4"
                 relations="1024"
-                perThreadSimulTime="60"
+                simulationTimeSec="60"
                 readOnly="50"
                 user="98"
                 skippable="true"

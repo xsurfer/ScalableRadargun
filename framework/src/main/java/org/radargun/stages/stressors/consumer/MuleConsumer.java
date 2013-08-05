@@ -11,7 +11,7 @@
 //import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 //import org.radargun.stages.stressors.systems.MuleSystem;
 //import org.radargun.stages.stressors.systems.OpenSystem;
-//import org.radargun.stages.stressors.systems.SystemType;
+//import org.radargun.stages.stressors.systems.System;
 //
 ///**
 // * Created by: Fabio Perfetti

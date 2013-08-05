@@ -61,9 +61,9 @@ public class MasterState extends StateBase {
 
                 currentDistStage = (DistStage) stage;
 
-                if(currentDistStage instanceof AbstractBenchmarkStage){
-                    ((AbstractBenchmarkStage) currentDistStage).setInitTimeStamp();
-                }
+//                if(currentDistStage instanceof AbstractBenchmarkStage){
+//                    ((AbstractBenchmarkStage) currentDistStage).setInitTimeStamp();
+//                }
 
                 // eliminato nel refactoring del 2/08/2013
 //                if(this.sizeForNextStage<0){

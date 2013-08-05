@@ -24,7 +24,7 @@ public class OpenSystem implements IProducerSystem {
     public AbstractWorkloadGenerator getWorkloadGenerator(){ return workloadGenerator; }
 
     @Override
-    public String getType() {
+    public SystemType getType() {
         return SystemType.OPEN;
     }
 

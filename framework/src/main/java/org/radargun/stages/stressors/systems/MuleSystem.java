@@ -10,14 +10,14 @@ import java.util.Map;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public class MuleSystem implements SystemType {
+public class MuleSystem implements System {
 
     private long thinkTime = 0;
 
     private RateDistribution rateDistribution = RateDistribution.EXPONENTIAL;
 
     @Override
-    public String getType() {
+    public SystemType getType() {
         return SystemType.MULE;
     }
 

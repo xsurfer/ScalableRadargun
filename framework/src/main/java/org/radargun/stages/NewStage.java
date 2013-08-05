@@ -1,15 +1,15 @@
 package org.radargun.stages;
 
-import org.radargun.stages.stressors.ScalableSyntheticStageStressor;
+import org.radargun.stages.stressors.SyntheticStressor;
 import org.radargun.stages.stressors.StringKeyGenerator;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
  * Date: 8/3/13
  * Time: 2:19 PM
  */
-public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStressor, SyntheticParameter> {
+public class NewStage extends AbstractBenchmarkStage<SyntheticStressor, SyntheticParameters> {
 
     /**
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
@@ -41,8 +41,8 @@ public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStres
 
 
     @Override
-    protected SyntheticParameter createStressorConfiguration() {
-        SyntheticParameter parameters = new SyntheticParameter();
+    protected SyntheticParameters createStressorConfiguration() {
+        SyntheticParameters parameters = new SyntheticParameters();
 
         parameters.setNumberOfAttributes(numberOfAttributes);
         parameters.setNumOfThreads(numOfThreads);
@@ -59,8 +59,8 @@ public class NewStage extends AbstractBenchmarkStage<ScalableSyntheticStageStres
     }
 
     @Override
-    public ScalableSyntheticStageStressor createStressor() {
-        return new ScalableSyntheticStageStressor(cacheWrapper, this, system, getStressorParameters());
+    public SyntheticStressor createStressor() {
+        return new SyntheticStressor(cacheWrapper, this, system, getStressorParameters());
     }
 
 

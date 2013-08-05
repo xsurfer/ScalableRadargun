@@ -80,7 +80,7 @@ public class SupportExecutor extends AbstractExecutor {
 
     protected void preSerialization(DistStage readyToWriteOnBuffer){
         if(readyToWriteOnBuffer instanceof AbstractBenchmarkStage){
-            ((AbstractBenchmarkStage) readyToWriteOnBuffer).updateTimes( (AbstractBenchmarkStage) clusterExecutor.currentDistStage() );
+            ((AbstractBenchmarkStage) readyToWriteOnBuffer).updateTimes( clusterExecutor.getInitTsCurrentStage() );
         }
     }
 

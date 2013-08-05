@@ -6,7 +6,7 @@ import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
-import org.radargun.stages.stressors.systems.SystemType;
+import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.tpcc.TpccParameters;
 
 /**
@@ -21,7 +21,7 @@ public class TpccConsumer extends Consumer {
     public TpccConsumer(int localWarehouseID,
                         int threadIndex,
                         CacheWrapper cacheWrapper,
-                        SystemType system,
+                        System system,
                         AbstractBenchmarkStage stage,
                         AbstractBenchmarkStressor stressor,
                         TpccParameters parameters,
