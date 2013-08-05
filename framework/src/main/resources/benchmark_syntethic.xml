@@ -51,17 +51,21 @@
                 statName="CACHE_SIZE_BEFORE_BENCH"
                 skippable="true"/>
 
-        <TpccBenchmark
+        <SyntheticBenchmark
                 id="h"
-                statsSamplingInterval="30000"
+                sizeOfAnAttribute="1000"
+                keyGeneratorClass="org.radargun.stressors.ContentionStringKeyGenerator"
+                numberOfAttributes="100000"
                 numOfThreads="1"
-                perThreadSimulTime="6000"
-                accessSameWarehouse="false"
-                paymentWeight="43"
-                orderStatusWeight="53"
-                retryOnAbort="true"
-                backOffTime="0"
-                perThreadTrackNewKeys="true"
+                updateXactWrites="10"
+                updateXactReads="10"
+                readOnlyXactSize="10"
+                writePercentage="10"
+                allowBlindWrites="false"
+                duration="180000"
+                retryMode="RETRY_SAME_CLASS"
+                statsSamplingInterval="15000"
+                readsBeforeFirstWrite="1"
                 skippable="true"
                 scalable="true">
 
@@ -94,7 +98,7 @@
             <MuleSystem thinkTime="0" rateDistribution="exponential" />
 
 
-        </TpccBenchmark>
+        </SyntheticBenchmark>
 
 
     </benchmark>

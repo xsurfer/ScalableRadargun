@@ -1,7 +1,6 @@
 package org.radargun.stages.stressors.syntethic.consumer;
 
 import org.radargun.CacheWrapper;
-import org.radargun.TransactionFactory;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;

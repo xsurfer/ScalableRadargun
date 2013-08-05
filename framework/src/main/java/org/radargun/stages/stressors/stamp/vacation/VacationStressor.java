@@ -3,17 +3,11 @@ package org.radargun.stages.stressors.stamp.vacation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.ITransaction;
-import org.radargun.portings.stamp.vacation.Definitions;
 import org.radargun.portings.stamp.vacation.Random;
 import org.radargun.portings.stamp.vacation.VacationTxFactory;
-import org.radargun.portings.stamp.vacation.transaction.DeleteCustomerOperation;
-import org.radargun.portings.stamp.vacation.transaction.MakeReservationOperation;
-import org.radargun.portings.stamp.vacation.transaction.UpdateTablesOperation;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.consumer.Consumer;
-import org.radargun.stages.stressors.producer.RequestType;
 import org.radargun.stages.stressors.producer.VacationProducer;
 import org.radargun.stages.stressors.systems.SystemType;
 

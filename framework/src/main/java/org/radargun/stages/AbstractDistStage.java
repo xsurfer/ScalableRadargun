@@ -10,7 +10,6 @@ import org.radargun.state.MasterState;
 import org.radargun.state.SlaveState;
 import org.radargun.utils.Utils;
 
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 

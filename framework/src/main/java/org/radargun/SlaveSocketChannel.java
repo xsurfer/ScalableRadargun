@@ -1,11 +1,6 @@
 package org.radargun;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)

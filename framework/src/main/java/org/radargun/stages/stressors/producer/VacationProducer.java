@@ -2,12 +2,8 @@ package org.radargun.stages.stressors.producer;
 
 import org.radargun.TransactionFactory;
 import org.radargun.portings.stamp.vacation.Random;
-import org.radargun.stages.ScalableSyntheticStageStressor;
-import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.stamp.vacation.VacationParameter;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
-import org.radargun.stages.stressors.syntethic.SyntheticParameter;
-import org.radargun.stages.synthetic.xactClass;
 
 
 

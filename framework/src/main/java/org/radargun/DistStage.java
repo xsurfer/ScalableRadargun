@@ -4,7 +4,6 @@ import org.radargun.state.MasterState;
 import org.radargun.state.SlaveState;
 
 import java.io.Serializable;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 /**

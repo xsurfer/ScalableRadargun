@@ -1,11 +1,9 @@
-package org.radargun.stages;
+package org.radargun.stages.stressors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
-import org.radargun.ITransaction;
-import org.radargun.stages.stressors.AbstractBenchmarkStressor;
-import org.radargun.stages.stressors.producer.RequestType;
+import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.producer.SyntheticProducer;
 import org.radargun.stages.stressors.syntethic.SyntheticParameter;
 import org.radargun.stages.stressors.syntethic.consumer.SyntheticConsumer;

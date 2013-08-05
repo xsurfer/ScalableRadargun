@@ -3,7 +3,6 @@ package org.radargun.stages.stressors.producer;
 import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.syntethic.SyntheticParameter;
-import org.radargun.stages.synthetic.xactClass;
 
 import java.util.Random;
 

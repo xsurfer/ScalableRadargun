@@ -2,18 +2,12 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stages.AbstractBenchmarkStage;
-import org.radargun.stages.DefaultDistStageAck;
 import org.radargun.state.MasterState;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
