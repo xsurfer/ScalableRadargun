@@ -8,7 +8,7 @@ import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.Parameters;
-import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.XACT_RETRY;
 import org.radargun.state.MasterState;

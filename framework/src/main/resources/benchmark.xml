@@ -51,11 +51,11 @@
 
         <SyntheticBenchmark
                 id="h"
-                simulationTimeSec="60"
+                simulationTimeSec="18000"
                 sizeOfAnAttribute="1000"
                 keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
                 numberOfAttributes="100000"
-                numOfThreads="1"
+                numOfThreads="2"
                 updateXactWrites="10"
                 updateXactReads="10"
                 readOnlyXactSize="10"
@@ -67,14 +67,14 @@
                 skippable="true"
                 scalable="true">
 
-            <OpenSystem>
+            <!--OpenSystem>
               <Ramp
                 rateDistribution="exponential"
                 granularity="5000"
                 initTime="0"
                 slope="1"
                 yintercept="0"
-                maxArrivalRate="100" />
+                maxArrivalRate="100" /-->
 
             <!--Trace
                     rateDistribution="exponential"
@@ -88,12 +88,12 @@
                     initTime="0"
                     amplitude="1000"
                     maxArrivalRate="3000" /-->
-            </OpenSystem>
+            <!--/OpenSystem-->
 
 
             <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
 
-            <!--MuleSystem thinkTime="0" rateDistribution="exponential" /-->
+            <MuleSystem thinkTime="0" rateDistribution="exponential" />
 
 
         </SyntheticBenchmark>

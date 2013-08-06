@@ -1,7 +1,7 @@
 package org.radargun.stages;
 
-import org.radargun.stages.stressors.SyntheticStressor;
 import org.radargun.stages.stressors.StringKeyGenerator;
+import org.radargun.stages.stressors.SyntheticStressor;
 import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 
 /**

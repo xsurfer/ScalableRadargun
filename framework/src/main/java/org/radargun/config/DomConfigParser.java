@@ -7,7 +7,7 @@ import org.radargun.Stage;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.GenerateScalingChartStage;
 import org.radargun.stages.StartClusterStage;
-import org.radargun.stages.stressors.systems.*;
+import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
 import org.radargun.utils.TypedProperties;

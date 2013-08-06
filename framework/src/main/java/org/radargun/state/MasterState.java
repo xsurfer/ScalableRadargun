@@ -7,7 +7,6 @@ import org.radargun.config.FixedSizeBenchmarkConfig;
 import org.radargun.config.MasterConfig;
 import org.radargun.config.ScalingBenchmarkConfig;
 import org.radargun.jmx.JmxRegistration;
-import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.utils.Utils;
 
 import java.util.ArrayList;

@@ -34,7 +34,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     protected int processedSlaves = 0;
 
     public AbstractExecutor(MasterState state, Set<SlaveSocketChannel> slaves){
-        this.slaves = slaves;
+        this.slaves = Collections.synchronizedSet( slaves ) ;
         this.state = state;
         try {
             log.info("Opening communicationSelector");

@@ -2,11 +2,11 @@ package org.radargun;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.state.MasterState;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,9 +19,9 @@ public class ClusterExecutor extends AbstractExecutor {
 
     private static Log log = LogFactory.getLog(ClusterExecutor.class);
 
-    private Set<SlaveSocketChannel> joiningSlaves = new HashSet<SlaveSocketChannel>();
+    private Set<SlaveSocketChannel> joiningSlaves = Collections.synchronizedSet( new HashSet<SlaveSocketChannel>() );
 
-    private Set<SlaveSocketChannel> stoppedSlaves = new HashSet<SlaveSocketChannel>();
+    private Set<SlaveSocketChannel> stoppedSlaves = Collections.synchronizedSet( new HashSet<SlaveSocketChannel>() );
 
     /**
      * timestamp at the beginning of the current stage
@@ -35,22 +35,7 @@ public class ClusterExecutor extends AbstractExecutor {
     }
 
     @Override
-    protected boolean assertRunning() {
-        return true;
-    }
-
-    @Override
-    protected void postStageBroadcast() {
-        stoppedSlaves.clear();
-    }
-
-    @Override
-    protected int numAckToNextStage() {
-        return slaves.size() + joiningSlaves.size() + stoppedSlaves.size();
-    }
-
-    @Override
-    protected void slaveStopped(SlaveSocketChannel slave) {
+    protected synchronized void slaveStopped(SlaveSocketChannel slave) {
         int newSize = state.getCurrentDistStage().getActiveSlaveCount() - 1;
 
         log.debug("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + state.getCurrentDistStage().getActiveSlaveCount() + " to " + newSize);
@@ -75,21 +60,7 @@ public class ClusterExecutor extends AbstractExecutor {
         changeNumSlavesNotify();
     }
 
-    @Override
-    protected void preSerialization(DistStage readyToWriteOnBuffer) {
-        setInitTsCurrentStage( System.currentTimeMillis() );
-    }
-
-    @Override
-    protected void post() {
-        // nothing to do
-    }
-
-    public DistStage currentDistStage(){
-        return state.getCurrentDistStage();
-    }
-
-    public void addSlave(SlaveSocketChannel slavesReadyToMerge){
+    public synchronized void addSlave(SlaveSocketChannel slavesReadyToMerge){
 
         int newSize = state.getCurrentDistStage().getActiveSlaveCount() + 1;
 
@@ -102,7 +73,7 @@ public class ClusterExecutor extends AbstractExecutor {
         joiningSlaves.add(slavesReadyToMerge);
     }
 
-    public void mergeSlave(SlaveSocketChannel slaveReadyToMerge){
+    public synchronized void mergeSlave(SlaveSocketChannel slaveReadyToMerge){
 
         if( joiningSlaves.contains(slaveReadyToMerge) ){
             // ************************** This code should be executed atomically *******************
@@ -131,17 +102,20 @@ public class ClusterExecutor extends AbstractExecutor {
     private void changeNumSlavesNotify(){
         log.info("Notifying all the slaves to change numNodes");
 
-        for(SlaveSocketChannel slave : slaves){
-            String host = slave.getSocketChannel().socket().getInetAddress().getHostName();
-            String currentBenchmark = state.getCurrentDistStage().getClass().getName();
+        synchronized(slaves){
 
-            int startIndex = currentBenchmark.lastIndexOf(".")+1;
-            int lastIndex =  currentBenchmark.length()-new String("Stage").length();
-            currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
+            for(SlaveSocketChannel slave : slaves){
+                String host = slave.getSocketChannel().socket().getInetAddress().getHostName();
+                String currentBenchmark = state.getCurrentDistStage().getClass().getName();
 
-            log.info("CurrentStage: " + currentBenchmark);
-            NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
-            jmxRequest.doRequest();
+                int startIndex = currentBenchmark.lastIndexOf(".")+1;
+                int lastIndex =  currentBenchmark.length()-new String("Stage").length();
+                currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
+
+                log.info("CurrentStage: " + currentBenchmark);
+                NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+                jmxRequest.doRequest();
+            }
         }
     }
 
@@ -153,5 +127,35 @@ public class ClusterExecutor extends AbstractExecutor {
     public void setInitTsCurrentStage(long initTsCurrentStage) {
         this.initTsCurrentStage = initTsCurrentStage;
     }
+
+    @Override
+    protected void preSerialization(DistStage readyToWriteOnBuffer) {
+        setInitTsCurrentStage( System.currentTimeMillis() );
+    }
+
+    @Override
+    protected void post() {
+        // nothing to do
+    }
+
+    public DistStage currentDistStage(){
+        return state.getCurrentDistStage();
+    }
+
+    @Override
+    protected boolean assertRunning() {
+        return true;    // cluster executor always run, till the end of the benchmark
+    }
+
+    @Override
+    protected void postStageBroadcast() {
+        stoppedSlaves.clear();
+    }
+
+    @Override
+    protected int numAckToNextStage() {
+        return slaves.size() + joiningSlaves.size() + stoppedSlaves.size();
+    }
+
 
 }
