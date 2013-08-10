@@ -75,6 +75,7 @@ public class MasterState extends StateBase {
                 executeServerStage((MasterStage) stage);
             }
         }
+        log.trace("No more stages in the current benchmark!!");
         //if we are here it means we finished executed the current benchmark and we should move to next one
         if (benchmarks.size() == 0) {
             long duration = System.currentTimeMillis() - startTime;

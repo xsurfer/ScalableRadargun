@@ -2,6 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+
+
     <parent>
         <groupId>org.radargun</groupId>
         <artifactId>radargun-plugin-parent</artifactId>
@@ -17,7 +19,7 @@
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-             <version>5.2.6-cloudtm-SNAPSHOT</version>
+             <version>5.2.8-cloudtm-SNAPSHOT</version>
         </dependency>
 
         <!--dependency>
@@ -73,5 +75,38 @@
         </dependency>
 
     </dependencies>
+
+    <!-- Repositories -->
+    <repositories>
+        <repository>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>cloudtm-maven-repository</id>
+            <url>http://cloudtm.ist.utl.pt:8083/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+
 
 </project>

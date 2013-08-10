@@ -34,7 +34,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     protected int processedSlaves = 0;
 
     public AbstractExecutor(MasterState state, Set<SlaveSocketChannel> slaves){
-        this.slaves = Collections.synchronizedSet( slaves ) ;
+        this.slaves = slaves ;
         this.state = state;
         try {
             log.info("Opening communicationSelector");
@@ -63,6 +63,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
 
 
     public Boolean call() throws Exception {
+        log.trace("Starting a new executor");
 
         for (SlaveSocketChannel ssc : slaves){
             initBuffer(ssc.getSocketChannel());
@@ -77,11 +78,8 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     }
 
     protected void initBuffer(SocketChannel socketChannel){
-        for (SlaveSocketChannel ssc : slaves){
-            this.readBufferMap.put(ssc.getSocketChannel(), ByteBuffer.allocate(DEFAULT_READ_BUFF_CAPACITY));
-        }
+        this.readBufferMap.put(socketChannel, ByteBuffer.allocate(DEFAULT_READ_BUFF_CAPACITY));
     }
-
 
     protected void prepareNextStage() throws Exception {
         DistStage toExecute = state.getNextDistStageToProcess();
@@ -116,9 +114,9 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
 
     protected void startCommunicationWithSlaves() throws Exception {
         while ( assertRunning() ) {
-            communicationSelector.select(1000);
-            Set<SelectionKey> keys = communicationSelector.selectedKeys();
-            if (keys.size() > 0) {
+            int numKeys = communicationSelector.select();
+            if (numKeys > 0) {
+                Set<SelectionKey> keys = communicationSelector.selectedKeys();
                 Iterator<SelectionKey> keysIt = keys.iterator();
                 while (keysIt.hasNext()) {
                     SelectionKey key = keysIt.next();
@@ -128,7 +126,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
                     }
 
                     SlaveSocketChannel slave = socketToslave((SocketChannel) key.channel());
-                    if( slave == null ){
+                    if( slave == null || !slaves.contains(slave) ){
                         log.info("Doesn't belong to this executor. Skipping");
                         continue;
                     }
@@ -140,6 +138,12 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
                     } else {
                         log.warn("Unknown selection on key " + key);
                     }
+                }
+            } else if( numKeys == 0 ) {
+                log.info("Should I merge new nodes?" );
+                for(SlaveSocketChannel scc : slaves){
+                    scc.getSocketChannel().configureBlocking(false);
+                    scc.getSocketChannel().register(communicationSelector, SelectionKey.OP_READ);
                 }
             }
         }

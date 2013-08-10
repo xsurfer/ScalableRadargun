@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
@@ -30,12 +31,18 @@ public class NewElasticMaster {
     private ServerSocketChannel serverSocketChannel;
 
     private Discoverer discoverer;
-    private ClusterExecutor clusterExecutor;
-    private ExecutorService supportExecutorService;
 
+    private ClusterExecutor clusterExecutor;
+
+    private ExecutorService clusterExecutorService = Executors.newSingleThreadExecutor(new WorkerThreadFactory("ClusterExecutor", true));
+
+    private WorkerThreadFactory supportExecutorThreadFactory = new WorkerThreadFactory("SupportExecutor", false);
+
+    private AtomicBoolean clusterExecutorStarted = new AtomicBoolean(false);
     private CountDownLatch clusterCountDownLatch;
 
     private final Set<SlaveSocketChannel> slaves = Collections.synchronizedSet(new HashSet<SlaveSocketChannel>());
+
 
 
     public NewElasticMaster(MasterConfig masterConfig) {
@@ -68,6 +75,7 @@ public class NewElasticMaster {
         } catch (InterruptedException e) {
             log.warn(e,e);  //ignore
         }
+        clusterExecutorStarted.compareAndSet(false, true);
 
         // 1) create the clusterExecutor
         clusterExecutor = new ClusterExecutor(new MasterState(masterConfig), new HashSet<SlaveSocketChannel>(slaves) );
@@ -76,9 +84,9 @@ public class NewElasticMaster {
         slaves.clear();
 
         // 3) start the clusterExecutor
-        ExecutorService service = Executors.newSingleThreadExecutor(new WorkerThreadFactory("ClusterExecutor", true));
-        Future<Boolean> future = service.submit(clusterExecutor);
-        service.shutdown();
+
+        Future<Boolean> future = clusterExecutorService.submit(clusterExecutor);
+        clusterExecutorService.shutdown();
 
         // 4) wait till cluster executor doesn't finish
         try {
@@ -94,20 +102,23 @@ public class NewElasticMaster {
 
         slaves.add(slaveSocketChannel);
 
-        if(clusterCountDownLatch.getCount()>0){
+        if(!clusterExecutorStarted.get()){
             clusterCountDownLatch.countDown();
         } else {
             log.warn("Logica qui per tirare su un support executor");
+            synchronized (slaves){
+                for (SlaveSocketChannel scc : slaves){
+                    clusterExecutor.addSlave(scc);
+                }
 
-            for (SlaveSocketChannel scc : slaves){
-                clusterExecutor.addSlave(scc);
+                ExecutorService supportExecutorService = Executors.newSingleThreadExecutor(supportExecutorThreadFactory);
+                supportExecutorService.submit( new SupportExecutor( new MasterState(masterConfig), new HashSet<SlaveSocketChannel>(slaves), clusterExecutor ) );
+                supportExecutorService.shutdown();
+
+                slaves.clear();
             }
+            log.warn("Fuori dalla sync");
 
-            supportExecutorService = Executors.newSingleThreadExecutor(new WorkerThreadFactory("SupportExecutor", false));
-            supportExecutorService.submit( new SupportExecutor( new MasterState(masterConfig), new HashSet<SlaveSocketChannel>(slaves), clusterExecutor ) );
-            supportExecutorService.shutdown();
-
-            slaves.clear();
         }
     }
 

@@ -30,13 +30,10 @@ public class Discoverer {
 
     private AtomicInteger slaveCounter = new AtomicInteger(0);
 
-    protected static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
-
     private NewElasticMaster elasticMaster;
 
     private final ServerSocketChannel serverSocketChannel;
     private Selector discoverySelector;
-    private Map<SocketChannel, ByteBuffer> readBufferMap = new HashMap<SocketChannel, ByteBuffer>();
 
     private AtomicBoolean running = new AtomicBoolean(false);
 

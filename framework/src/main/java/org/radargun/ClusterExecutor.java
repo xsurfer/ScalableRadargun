@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
@@ -19,9 +20,9 @@ public class ClusterExecutor extends AbstractExecutor {
 
     private static Log log = LogFactory.getLog(ClusterExecutor.class);
 
-    private Set<SlaveSocketChannel> joiningSlaves = Collections.synchronizedSet( new HashSet<SlaveSocketChannel>() );
+    private Set<SlaveSocketChannel> joiningSlaves = new HashSet<SlaveSocketChannel>();
 
-    private Set<SlaveSocketChannel> stoppedSlaves = Collections.synchronizedSet( new HashSet<SlaveSocketChannel>() );
+    private Set<SlaveSocketChannel> stoppedSlaves = new HashSet<SlaveSocketChannel>();
 
     /**
      * timestamp at the beginning of the current stage
@@ -29,13 +30,12 @@ public class ClusterExecutor extends AbstractExecutor {
     private long initTsCurrentStage = 0L;
 
 
-
     public ClusterExecutor(MasterState state, Set<SlaveSocketChannel> slaves) {
         super(state, slaves);
     }
 
     @Override
-    protected synchronized void slaveStopped(SlaveSocketChannel slave) {
+    protected void slaveStopped(SlaveSocketChannel slave) {
         int newSize = state.getCurrentDistStage().getActiveSlaveCount() - 1;
 
         log.debug("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + state.getCurrentDistStage().getActiveSlaveCount() + " to " + newSize);
@@ -60,7 +60,7 @@ public class ClusterExecutor extends AbstractExecutor {
         changeNumSlavesNotify();
     }
 
-    public synchronized void addSlave(SlaveSocketChannel slavesReadyToMerge){
+    public void addSlave(SlaveSocketChannel slavesReadyToMerge){
 
         int newSize = state.getCurrentDistStage().getActiveSlaveCount() + 1;
 
@@ -73,7 +73,7 @@ public class ClusterExecutor extends AbstractExecutor {
         joiningSlaves.add(slavesReadyToMerge);
     }
 
-    public synchronized void mergeSlave(SlaveSocketChannel slaveReadyToMerge){
+    public void mergeSlave(SlaveSocketChannel slaveReadyToMerge){
 
         if( joiningSlaves.contains(slaveReadyToMerge) ){
             // ************************** This code should be executed atomically *******************
@@ -88,13 +88,8 @@ public class ClusterExecutor extends AbstractExecutor {
             throw new RuntimeException("Trying to merge a not joining slave!!!");
         }
 
-        try {
-            slaveReadyToMerge.getSocketChannel().configureBlocking(false);
-            slaveReadyToMerge.getSocketChannel().register(communicationSelector, SelectionKey.OP_READ);
-        } catch (IOException e) {
-            log.error(e,e);
-            throw new RuntimeException(e);
-        }
+        log.trace("slave id: " + slaveReadyToMerge.getId() + " merged");
+        communicationSelector.wakeup();
 
         changeNumSlavesNotify();
     }
@@ -102,20 +97,17 @@ public class ClusterExecutor extends AbstractExecutor {
     private void changeNumSlavesNotify(){
         log.info("Notifying all the slaves to change numNodes");
 
-        synchronized(slaves){
+        for(SlaveSocketChannel slave : slaves){
+            String host = slave.getSocketChannel().socket().getInetAddress().getHostName();
+            String currentBenchmark = state.getCurrentDistStage().getClass().getName();
 
-            for(SlaveSocketChannel slave : slaves){
-                String host = slave.getSocketChannel().socket().getInetAddress().getHostName();
-                String currentBenchmark = state.getCurrentDistStage().getClass().getName();
+            int startIndex = currentBenchmark.lastIndexOf(".")+1;
+            int lastIndex =  currentBenchmark.length()-new String("Stage").length();
+            currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
 
-                int startIndex = currentBenchmark.lastIndexOf(".")+1;
-                int lastIndex =  currentBenchmark.length()-new String("Stage").length();
-                currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
-
-                log.info("CurrentStage: " + currentBenchmark);
-                NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
-                jmxRequest.doRequest();
-            }
+            log.info("CurrentStage: " + currentBenchmark);
+            NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+            jmxRequest.doRequest();
         }
     }
 
@@ -153,7 +145,7 @@ public class ClusterExecutor extends AbstractExecutor {
     }
 
     @Override
-    protected int numAckToNextStage() {
+    protected synchronized int numAckToNextStage() {
         return slaves.size() + joiningSlaves.size() + stoppedSlaves.size();
     }
 
