@@ -25,11 +25,13 @@ public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParame
 
     @Override
     protected void initialization() {
+        log.trace("initialization: nothing to do");
         // nothing to do
     }
 
     @Override
     protected void validateTransactionsWeight() {
+        log.trace("validateTransactionsWeight: nothing to do");
         // nothing to do
     }
 
@@ -105,6 +107,7 @@ public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParame
 
     @Override
     protected SyntheticConsumer createConsumer(int threadIndex) {
+        log.trace("creating consumer (threadIndex: " + threadIndex + " )" );
         SyntheticXactFactory factory = createTransactionFactory(threadIndex);
         return new SyntheticConsumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters, factory);
     }

@@ -210,9 +210,9 @@ public class Consumer implements IConsumer {
             successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
             stats._handleEndTx(createdTx, successful);
-            log.info("Asleeped: " + java.lang.System.currentTimeMillis() );
+            log.trace("Asleep: " + java.lang.System.currentTimeMillis() );
             rate.sleep();
-            log.info("Awaked: " + java.lang.System.currentTimeMillis() );
+            log.trace("Awake: " + java.lang.System.currentTimeMillis() );
 
 
             blockIfInactive();
@@ -262,7 +262,7 @@ public class Consumer implements IConsumer {
             tx = regenerate(tx, threadIndex, successful);
             cacheWrapper.startTransaction();
             try {
-//                tx.executeTransaction(cacheWrapper);
+                tx.executeTransaction(cacheWrapper);
                 stats._handleSuccessLocalTx(tx);
                 log.trace("Thread " + threadIndex + " successfully completed locally a transaction of type " +
                         tx.getType() + " btw, successful is " + successful);
