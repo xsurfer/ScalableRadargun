@@ -103,19 +103,12 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
 
     protected S getStressorParameters(){
 
-        if(parameters!=null)
+        if(parameters!=null){
+            log.trace("Parameters already created");
             return parameters;
+        }
 
         S parameters = createStressorConfiguration();
-
-        parameters.setCacheWrapper(cacheWrapper);
-        parameters.setNodeIndex(getSlaveIndex());
-        parameters.setBackOffTime(backOffTime);
-        parameters.setRetryOnAbort( retryOnAbort );
-        parameters.setSimulationTimeSec(simulationTimeSec);
-        parameters.setNumOfThreads(numOfThreads);
-        parameters.setNumSlaves(getActiveSlaveCount());
-        parameters.setStatsSamplingInterval(statsSamplingInterval);
 
         return parameters;
     }

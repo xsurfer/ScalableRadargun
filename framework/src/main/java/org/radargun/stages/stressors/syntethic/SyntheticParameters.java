@@ -1,7 +1,11 @@
 package org.radargun.stages.stressors.syntethic;
 
+import org.radargun.CacheWrapper;
 import org.radargun.stages.stressors.Parameters;
 import org.radargun.stages.stressors.StringKeyGenerator;
+import org.radargun.stages.synthetic.XACT_RETRY;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
@@ -14,30 +18,60 @@ public class SyntheticParameters extends Parameters {
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
      * performed (for PUT is overwrite)
      */
-    protected int numberOfAttributes = -1;
+    protected final int numberOfAttributes;
 
     /**
      * Each attribute will be a byte[] of this size
      */
-    protected int sizeOfAnAttribute = -1;
+    protected final int sizeOfAnAttribute;
 
     /**
      * Out of the total number of request, this define the frequency of writes (percentage)
      */
-    protected int writePercentage = -1;
+    protected int writePercentage;
 
-    protected String keyGeneratorClass;
+    protected final String keyGeneratorClass;
 
-    private int updateXactWrites = -1;
+    private int updateXactWrites;
 
-    private int readOnlyXactSize = -1;
+    private int updateXactReads;
 
-    private int updateXactReads = -1;
+    private int readOnlyXactSize;
 
-    private boolean allowBlindWrites = false;
+    private final boolean allowBlindWrites;
 
-    private int readsBeforeFirstWrite = -1;
+    private final int readsBeforeFirstWrite;
 
+    public SyntheticParameters(CacheWrapper cacheWrapper,
+                               long simulationTimeSec,
+                               int numOfThreads,
+                               int nodeIndex,
+                               long backOffTime,
+                               XACT_RETRY retryOnAbort,
+                               long statsSamplingInterval,
+
+                               int numberOfAttributes,
+                               int sizeOfAnAttribute,
+                               int writePercentage,
+                               String keyGeneratorClass,
+                               int updateXactWrites,
+                               int readOnlyXactSize,
+                               int updateXactReads,
+                               boolean allowBlindWrites,
+                               int readsBeforeFirstWrite
+                               ) {
+        super(cacheWrapper, simulationTimeSec, numOfThreads, nodeIndex, backOffTime, retryOnAbort, statsSamplingInterval);
+        this.numberOfAttributes = numberOfAttributes;
+        this.sizeOfAnAttribute = sizeOfAnAttribute;
+        this.writePercentage = writePercentage;
+        this.keyGeneratorClass = keyGeneratorClass;
+        this.updateXactWrites = updateXactWrites;
+        this.updateXactReads = updateXactReads;
+        this.readOnlyXactSize = readOnlyXactSize;
+        this.allowBlindWrites = allowBlindWrites;
+        this.readsBeforeFirstWrite = readsBeforeFirstWrite;
+
+    }
 
 
     public int getNumberOfAttributes() {
@@ -47,9 +81,9 @@ public class SyntheticParameters extends Parameters {
         return numberOfAttributes;
     }
 
-    public void setNumberOfAttributes(int numberOfAttributes) {
-        this.numberOfAttributes = numberOfAttributes;
-    }
+//    public void setNumberOfAttributes(int numberOfAttributes) {
+//        this.numberOfAttributes = numberOfAttributes;
+//    }
 
     public int getSizeOfAnAttribute() {
         if(sizeOfAnAttribute == -1){
@@ -58,9 +92,9 @@ public class SyntheticParameters extends Parameters {
         return sizeOfAnAttribute;
     }
 
-    public void setSizeOfAnAttribute(int sizeOfAnAttribute) {
-        this.sizeOfAnAttribute = sizeOfAnAttribute;
-    }
+//    public void setSizeOfAnAttribute(int sizeOfAnAttribute) {
+//        this.sizeOfAnAttribute = sizeOfAnAttribute;
+//    }
 
     public int getWritePercentage() {
         if(writePercentage == -1){
@@ -80,9 +114,9 @@ public class SyntheticParameters extends Parameters {
         return keyGeneratorClass;
     }
 
-    public void setKeyGeneratorClass(String keyGeneratorClass) {
-        this.keyGeneratorClass = keyGeneratorClass;
-    }
+//    public void setKeyGeneratorClass(String keyGeneratorClass) {
+//        this.keyGeneratorClass = keyGeneratorClass;
+//    }
 
     public int getUpdateXactWrites() {
         if(updateXactWrites == -1){
@@ -93,17 +127,6 @@ public class SyntheticParameters extends Parameters {
 
     public void setUpdateXactWrites(int updateXactWrites) {
         this.updateXactWrites = updateXactWrites;
-    }
-
-    public int getReadOnlyXactSize() {
-        if(readOnlyXactSize == -1){
-            throw new IllegalArgumentException("Never update setting!");
-        }
-        return readOnlyXactSize;
-    }
-
-    public void setReadOnlyXactSize(int readOnlyXactSize) {
-        this.readOnlyXactSize = readOnlyXactSize;
     }
 
     public int getUpdateXactReads() {
@@ -117,13 +140,24 @@ public class SyntheticParameters extends Parameters {
         this.updateXactReads = updateXactReads;
     }
 
+    public int getReadOnlyXactSize() {
+        if(readOnlyXactSize == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
+        return readOnlyXactSize;
+    }
+
+    public void setReadOnlyXactSize(int readOnlyXactSize) {
+        this.readOnlyXactSize = readOnlyXactSize;
+    }
+
     public boolean isAllowBlindWrites() {
         return allowBlindWrites;
     }
 
-    public void setAllowBlindWrites(boolean allowBlindWrites) {
-        this.allowBlindWrites = allowBlindWrites;
-    }
+//    public void setAllowBlindWrites(boolean allowBlindWrites) {
+//        this.allowBlindWrites = allowBlindWrites;
+//    }
 
     public int getReadsBeforeFirstWrite() {
         if(readsBeforeFirstWrite == -1){
@@ -132,7 +166,8 @@ public class SyntheticParameters extends Parameters {
         return readsBeforeFirstWrite;
     }
 
-    public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
-        this.readsBeforeFirstWrite = readsBeforeFirstWrite;
-    }
+//    public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
+//        this.readsBeforeFirstWrite = readsBeforeFirstWrite;
+//    }
+
 }

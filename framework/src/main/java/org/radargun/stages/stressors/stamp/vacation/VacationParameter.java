@@ -1,6 +1,8 @@
 package org.radargun.stages.stressors.stamp.vacation;
 
+import org.radargun.CacheWrapper;
 import org.radargun.stages.stressors.Parameters;
+import org.radargun.stages.synthetic.XACT_RETRY;
 
 /**
  * Created by: Fabio Perfetti
@@ -21,6 +23,28 @@ public class VacationParameter extends Parameters {
     private int readOnlyPerc;
 
     private int relations;
+
+    public VacationParameter(CacheWrapper cacheWrapper,
+                             long simulationTimeSec,
+                             int numOfThreads,
+                             int nodeIndex,
+                             long backOffTime,
+                             XACT_RETRY retryOnAbort,
+                             long statsSamplingInterval,
+
+                             int queryPerTx,
+                             int percentUser,
+                             int queryRange,
+                             int readOnlyPerc,
+                             int relations) {
+        super(cacheWrapper, simulationTimeSec, numOfThreads, nodeIndex, backOffTime, retryOnAbort, statsSamplingInterval);
+
+        this.queryPerTx = queryPerTx;
+        this.percentUser = percentUser;
+        this.queryRange = queryRange;
+        this.readOnlyPerc = readOnlyPerc;
+        this.relations = relations;
+    }
 
     public int getQueryPerTx() {
         return queryPerTx;

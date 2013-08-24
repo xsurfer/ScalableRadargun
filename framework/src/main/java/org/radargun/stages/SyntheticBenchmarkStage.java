@@ -48,16 +48,44 @@ public class SyntheticBenchmarkStage extends AbstractBenchmarkStage<SyntheticStr
     protected SyntheticParameters createStressorConfiguration() {
         log.trace("Creating SyntheticParameters...");
 
-        SyntheticParameters parameters = new SyntheticParameters();
+        SyntheticParameters parameters = new SyntheticParameters(
+                cacheWrapper,
+                simulationTimeSec,
+                numOfThreads,
+                getSlaveIndex(),
+                backOffTime,
+                retryOnAbort,
+                statsSamplingInterval,
+                numberOfAttributes,sizeOfAnAttribute,
+                writePercentage,
+                keyGeneratorClass,
+                updateXactWrites,
+                readOnlyXactSize,
+                updateXactReads,
+                allowBlindWrites,
+                readsBeforeFirstWrite
+                );
 
-        parameters.setNumberOfAttributes( getNumberOfAttributes() );
-        parameters.setSizeOfAnAttribute( getSizeOfAnAttribute() );
-        parameters.setWritePercentage( getWritePercentage() );
-        parameters.setKeyGeneratorClass( getKeyGeneratorClass() );
-        parameters.setUpdateXactWrites( getUpdateXactWrites() );
-        parameters.setUpdateXactReads( getUpdateXactReads() );
-        parameters.setAllowBlindWrites( isAllowBlindWrites() );
-        parameters.setReadsBeforeFirstWrite( getReadsBeforeFirstWrite() );
+
+//        TO DELETE
+//        parameters.setCacheWrapper(cacheWrapper);
+//        parameters.setNodeIndex(getSlaveIndex());
+//        parameters.setBackOffTime(backOffTime);
+//        parameters.setRetryOnAbort( retryOnAbort );
+//        parameters.setSimulationTimeSec(simulationTimeSec);
+//        parameters.setNumOfThreads(numOfThreads);
+//        parameters.setNumSlaves(getActiveSlaveCount());
+//        parameters.setStatsSamplingInterval(statsSamplingInterval);
+//
+//        parameters.setNumberOfAttributes( getNumberOfAttributes() );
+//        parameters.setSizeOfAnAttribute( getSizeOfAnAttribute() );
+//        parameters.setWritePercentage( getWritePercentage() );
+//        parameters.setKeyGeneratorClass( getKeyGeneratorClass() );
+//        parameters.setUpdateXactWrites( getUpdateXactWrites() );
+//        parameters.setUpdateXactReads( getUpdateXactReads() );
+//        parameters.setAllowBlindWrites( isAllowBlindWrites() );
+//        parameters.setReadsBeforeFirstWrite( getReadsBeforeFirstWrite() );
+//        END
 
         return parameters;
     }

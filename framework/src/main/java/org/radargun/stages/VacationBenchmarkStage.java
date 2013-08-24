@@ -4,6 +4,7 @@ import org.radargun.CacheWrapper;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.stamp.vacation.VacationParameter;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 
 
 public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationParameter> {
@@ -35,13 +36,22 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
 
     @Override
     protected VacationParameter createStressorConfiguration() {
-        VacationParameter parameters = new VacationParameter();
+        log.trace("Creating VacationParameter...");
 
-        parameters.setQueryPerTx(number);
-        parameters.setPercentUser(user);
-        parameters.setQueryRange(queries);
-        parameters.setReadOnlyPerc(this.readOnly);
-        parameters.setRelations(relations);
+        VacationParameter parameters = new VacationParameter(
+                cacheWrapper,
+                simulationTimeSec,
+                numOfThreads,
+                getSlaveIndex(),
+                backOffTime,
+                retryOnAbort,
+                statsSamplingInterval,
+                number,
+                user,
+                queries,
+                readOnly,
+                relations
+                );
 
         return parameters;
     }

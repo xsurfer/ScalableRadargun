@@ -25,7 +25,7 @@ public class SyntheticXactFactory implements TransactionFactory {
     protected KeyGenerator keyGenerator;
     protected int threadIndex;
 
-    protected SyntheticParameters parameters;
+    protected final SyntheticParameters parameters;
 
     public SyntheticXactFactory(SyntheticParameters params, int threadIndex) {
         this.parameters = params;

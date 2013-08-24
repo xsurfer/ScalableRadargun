@@ -4,6 +4,7 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
+import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.stages.stressors.tpcc.TpccParameters;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
 
@@ -62,13 +63,24 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 
     @Override
     protected TpccParameters createStressorConfiguration(){
-        TpccParameters parameters = new TpccParameters();
-        parameters.setPaymentWeight(paymentWeight);
-        parameters.setOrderStatusWeight(orderStatusWeight);
-        parameters.setAccessSameWarehouse(accessSameWarehouse);
-        parameters.setNumberOfItemsInterval(numberOfItemsInterval);
+        log.trace("Creating TpccParameters...");
+
+        TpccParameters parameters = new TpccParameters(
+                cacheWrapper,
+                simulationTimeSec,
+                numOfThreads,
+                getSlaveIndex(),
+                backOffTime,
+                retryOnAbort,
+                statsSamplingInterval,
+                paymentWeight,
+                orderStatusWeight,
+                numberOfItemsInterval,
+                accessSameWarehouse
+        );
 
         AbstractTpccTransaction.setAvoidNotFoundExceptions(avoidMiss);
+
         return parameters;
     }
 

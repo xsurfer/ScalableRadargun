@@ -77,17 +77,17 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
     protected boolean stoppedByJmx = false;
 
-    protected BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
+    protected final BlockingQueue<RequestType> queue = new LinkedBlockingQueue<RequestType>();
 
     protected final List<V> producers = Collections.synchronizedList(new ArrayList<V>());
 
     protected final List<S> consumers = Collections.synchronizedList(new LinkedList<S>());
 
-    protected AbstractBenchmarkStage benchmarkStage;
+    protected final AbstractBenchmarkStage benchmarkStage;
 
-    protected System system;
+    protected final System system;
 
-    protected T parameters;
+    protected final T parameters;
 
 
 

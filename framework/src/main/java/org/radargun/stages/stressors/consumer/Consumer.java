@@ -37,7 +37,7 @@ public class Consumer implements IConsumer {
 
     protected AbstractBenchmarkStressor stressor;
 
-    protected Parameters parameters;
+    protected final Parameters parameters;
 
     public StressorStats stats;
 
@@ -47,7 +47,7 @@ public class Consumer implements IConsumer {
 
     protected AtomicBoolean active = new AtomicBoolean(true);
 
-    protected TransactionFactory factory;
+    protected final TransactionFactory factory;
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
