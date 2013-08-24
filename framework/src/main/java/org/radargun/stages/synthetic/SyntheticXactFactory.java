@@ -59,9 +59,9 @@ public class SyntheticXactFactory implements TransactionFactory {
         toRet.setOps(ops);
         toRet.setClazz(type.getTransactionType());
 
-        //if(log.isTraceEnabled()){
-        //    log.trace("New xact built " + toRet.toString());
-        //}
+        if(log.isTraceEnabled()){
+            log.trace("New xact built " + toRet.toString());
+        }
         return toRet;
     }
 
