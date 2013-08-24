@@ -21,11 +21,11 @@ public class SyntheticXactFactory implements TransactionFactory {
 
     private static Log log = LogFactory.getLog(SyntheticXactFactory.class);
 
-    private Random rnd = new Random();
-    private KeyGenerator keyGenerator;
-    private int threadIndex;
+    protected Random rnd = new Random();
+    protected KeyGenerator keyGenerator;
+    protected int threadIndex;
 
-    private SyntheticParameters parameters;
+    protected SyntheticParameters parameters;
 
     public SyntheticXactFactory(SyntheticParameters params, int threadIndex) {
         this.parameters = params;
@@ -81,7 +81,7 @@ public class SyntheticXactFactory implements TransactionFactory {
      * (even multiple times in a row, for simplicity)
      * @return a readWriteSet
      */
-    private XactOp[] buildReadWriteSet() {
+    protected XactOp[] buildReadWriteSet() {
         int toDoRead = parameters.getUpdateXactReads();
         int toDoWrite = parameters.getUpdateXactWrites();
         int toDo = toDoRead + toDoWrite;
@@ -153,7 +153,7 @@ public class SyntheticXactFactory implements TransactionFactory {
         return ops;
     }
 
-    private String generateRandomString(int size) {
+    protected String generateRandomString(int size) {
         // each char is 2 bytes
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size / 2; i++) sb.append((char) (64 + rnd.nextInt(26)));

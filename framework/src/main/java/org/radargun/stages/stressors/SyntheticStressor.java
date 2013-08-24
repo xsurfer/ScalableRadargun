@@ -8,14 +8,14 @@ import org.radargun.stages.stressors.producer.SyntheticProducer;
 import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.stages.stressors.syntethic.consumer.SyntheticConsumer;
 import org.radargun.stages.stressors.systems.System;
-import org.radargun.stages.synthetic.SyntheticXactFactory;
+import org.radargun.stages.synthetic.SyntheticDistinctXactFactory;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
  * Date: 8/3/13
  * Time: 2:20 PM
  */
-public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParameters, SyntheticConsumer, SyntheticProducer, SyntheticXactFactory> {
+public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParameters, SyntheticConsumer, SyntheticProducer, SyntheticDistinctXactFactory> {
 
     private static Log log = LogFactory.getLog(SyntheticStressor.class);
 
@@ -100,15 +100,15 @@ public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParame
     }
 
     @Override
-    protected SyntheticXactFactory createTransactionFactory(int threadIndex) {
-        SyntheticXactFactory factory = new SyntheticXactFactory(parameters, threadIndex);
+    protected SyntheticDistinctXactFactory createTransactionFactory(int threadIndex) {
+        SyntheticDistinctXactFactory factory = new SyntheticDistinctXactFactory(parameters, threadIndex);
         return factory;
     }
 
     @Override
     protected SyntheticConsumer createConsumer(int threadIndex) {
         log.trace("creating consumer (threadIndex: " + threadIndex + " )" );
-        SyntheticXactFactory factory = createTransactionFactory(threadIndex);
+        SyntheticDistinctXactFactory factory = createTransactionFactory(threadIndex);
         return new SyntheticConsumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters, factory);
     }
 }
