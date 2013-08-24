@@ -4,12 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.state.MasterState;
 
-import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com)

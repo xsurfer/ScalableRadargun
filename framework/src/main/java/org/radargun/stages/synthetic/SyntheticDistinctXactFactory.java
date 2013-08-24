@@ -2,14 +2,11 @@ package org.radargun.stages.synthetic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.radargun.stages.stressors.KeyGenerator;
 import org.radargun.stages.stressors.syntethic.SyntheticParameters;
-import org.radargun.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 /**
 * // TODO: Document this

@@ -14,33 +14,36 @@ public class SyntheticParameters extends Parameters {
      * for each session there will be created fixed number of attributes. On those attributes all the GETs and PUTs are
      * performed (for PUT is overwrite)
      */
-    protected int numberOfAttributes = 100;
+    protected int numberOfAttributes = -1;
 
     /**
      * Each attribute will be a byte[] of this size
      */
-    protected int sizeOfAnAttribute = 1000;
+    protected int sizeOfAnAttribute = -1;
 
     /**
      * Out of the total number of request, this define the frequency of writes (percentage)
      */
-    protected int writePercentage = 20;
+    protected int writePercentage = -1;
 
-    protected String keyGeneratorClass = StringKeyGenerator.class.getName();
+    protected String keyGeneratorClass;
 
-    private int updateXactWrites = 1;
+    private int updateXactWrites = -1;
 
-    private int readOnlyXactSize = 1;
+    private int readOnlyXactSize = -1;
 
-    private int updateXactReads = 1;
+    private int updateXactReads = -1;
 
     private boolean allowBlindWrites = false;
 
-    private int readsBeforeFirstWrite = 1;
+    private int readsBeforeFirstWrite = -1;
 
 
 
     public int getNumberOfAttributes() {
+        if(numberOfAttributes == -1){
+            throw new RuntimeException("Never update setting!");
+        }
         return numberOfAttributes;
     }
 
@@ -49,6 +52,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getSizeOfAnAttribute() {
+        if(sizeOfAnAttribute == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return sizeOfAnAttribute;
     }
 
@@ -57,6 +63,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getWritePercentage() {
+        if(writePercentage == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return writePercentage;
     }
 
@@ -65,6 +74,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public String getKeyGeneratorClass() {
+        if(keyGeneratorClass == null){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return keyGeneratorClass;
     }
 
@@ -73,6 +85,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getUpdateXactWrites() {
+        if(updateXactWrites == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return updateXactWrites;
     }
 
@@ -81,6 +96,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getReadOnlyXactSize() {
+        if(readOnlyXactSize == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return readOnlyXactSize;
     }
 
@@ -89,6 +107,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getUpdateXactReads() {
+        if(updateXactReads == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return updateXactReads;
     }
 
@@ -105,6 +126,9 @@ public class SyntheticParameters extends Parameters {
     }
 
     public int getReadsBeforeFirstWrite() {
+        if(readsBeforeFirstWrite == -1){
+            throw new IllegalArgumentException("Never update setting!");
+        }
         return readsBeforeFirstWrite;
     }
 

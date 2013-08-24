@@ -362,13 +362,25 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         this.retryOnAbort = XACT_RETRY.valueOf(retryOnAbort);
     }
 
-    public void setStatsSamplingInterval(long statsSamplingInterval) { this.statsSamplingInterval = statsSamplingInterval; }
+    public void setStatsSamplingInterval(long statsSamplingInterval) {
+        this.statsSamplingInterval = statsSamplingInterval;
+    }
 
-    public void setSysyemType(System val){ this.system = val; }
-    public System getSysyemType(){ return this.system; }
+    public void setSysyemType(System val){
+        this.system = val;
+    }
 
-    public long getSimulationTimeSec(){ return this.simulationTimeSec; }
-    public void setSimulationTimeSec(long simulationTimeSec){ this.simulationTimeSec = simulationTimeSec; }
+    public System getSysyemType(){
+        return this.system;
+    }
+
+    public long getSimulationTimeSec(){
+        return this.simulationTimeSec;
+    }
+
+    public void setSimulationTimeSec(long simulationTimeSec){
+        this.simulationTimeSec = simulationTimeSec;
+    }
 
     //public long getInitTimeStamp() { return this.initTimeStamp; }
     //public void setInitTimeStamp() { this.initTimeStamp = System.currentTimeMillis(); log.info("SETTING initTimeStamp to: " + initTimeStamp); }
