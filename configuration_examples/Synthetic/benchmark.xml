@@ -12,6 +12,7 @@
             maxSize="1"
             increment="1">
 
+        <!--runOnAllSlaves="true"-->
         <DestroyWrapper
                 id="a"
                 skippable="true"/>
@@ -26,18 +27,16 @@
                 passiveReplication="false"
                 partialReplication="false"
                 skippable="true"/>
-        <TpccPopulation
+
+        <SyntheticWarmup
                 id="d"
-                preloadedFromDB="false"
-                numWarehouses="3"
-                cLastMask="0"
-                olIdMask="0"
-                cIdMask="0"
-                threadParallelLoad="true"
-                batchLevel="200"
-                numLoaderThreads="4"
-                oneWarmup="true"
+                keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
+                numberOfAttributes="100000"
+                sizeOfAnAttribute="1000"
+                numOfThreads="2"
+                transactionSize="100"
                 skippable="true"/>
+
         <GarbageCollection
                 id="e"
                 skippable="true"/>
@@ -49,19 +48,25 @@
                 id="g"
                 statName="CACHE_SIZE_BEFORE_BENCH"
                 skippable="true"/>
-        <TpccBenchmark
+
+        <SyntheticBenchmark
                 id="h"
-                statsSamplingInterval="15000"
+                simulationTimeSec="18000"
+                sizeOfAnAttribute="1000"
+                keyGeneratorClass="org.radargun.stages.stressors.ContentionStringKeyGenerator"
+                numberOfAttributes="100000"
                 numOfThreads="2"
-                simulationTimeSec="6000"
-                accessSameWarehouse="false"
-                paymentWeight="5"
-                orderStatusWeight="90"
+                updateXactWrites="10"
+                updateXactReads="10"
+                readOnlyXactSize="10"
+                writePercentage="10"
+                allowBlindWrites="false"
                 retryOnAbort="RETRY_SAME_CLASS"
-                backOffTime="0"
-                perThreadTrackNewKeys="true"
+                statsSamplingInterval="15000"
+                readsBeforeFirstWrite="1"
                 skippable="true"
-                scalable="true">                
+                scalable="true">
+
             <!--OpenSystem>
               <Ramp
                 rateDistribution="exponential"
@@ -91,7 +96,7 @@
             <MuleSystem thinkTime="0" rateDistribution="exponential" />
 
 
-        </TpccBenchmark>
+        </SyntheticBenchmark>
 
 
     </benchmark>
@@ -107,4 +112,3 @@
     </reports>
 
 </bench-config>
-

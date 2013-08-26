@@ -1,5 +1,7 @@
 package org.radargun.stages.stressors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.stages.synthetic.XACT_RETRY;
 
@@ -11,6 +13,8 @@ import java.util.concurrent.CountDownLatch;
  * Date: 4/19/13
  */
 public class Parameters {
+
+    private static Log log = LogFactory.getLog(Parameters.class);
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
@@ -98,7 +102,11 @@ public class Parameters {
     //public void setNumOfThreads( int val ) { numOfThreads=val; }
 
     public int getNumSlaves() {
-        throw new RuntimeException("TO FIX, the number of slave is dynamic, read it from the cache");
+        int numSlaves = cacheWrapper.getNumMembers();
+        log.info("NumSlaves: " + numSlaves);
+        return numSlaves;
+
+        //throw new RuntimeException("TO FIX, the number of slave is dynamic, read it from the cache");
         //return numSlaves;
     }
 
