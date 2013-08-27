@@ -310,16 +310,16 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         consumerExecutorService.shutdown();
 
         try {
-            log.info("aspettando la fine dei thread in consumerExecutorService");
+            log.info("Waiting for the threadS in consumerExecutorService");
             if( consumerExecutorService.awaitTermination(60, TimeUnit.NANOSECONDS) ){
-                log.info("ANCORA NON SONO TERMINATI I PRODUCER! Li forzo a morire");
+                log.info("Some producer still running...! Killing them...");
                 List<Runnable> runnablesNotEnded = consumerExecutorService.shutdownNow();
                 log.info("Here you have buggus threads:");
                 for (Runnable runnable : runnablesNotEnded){
                     log.info( runnable.toString() );
                 }
             }
-            log.info("tutti i thread in consumerExecutorService sono terminati");
+            log.info("All threads in consumerExecutorService have already finished");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -333,7 +333,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         while (running.get()) {
             try {
                 wait();
-                log.info("Sveglio");
+                log.info("Awake");
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

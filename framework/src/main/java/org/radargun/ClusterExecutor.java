@@ -34,18 +34,20 @@ public class ClusterExecutor extends AbstractExecutor {
     protected void slaveStopped(SlaveSocketChannel slave) {
         int newSize = state.getCurrentDistStage().getActiveSlaveCount() - 1;
 
-        log.debug("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + state.getCurrentDistStage().getActiveSlaveCount() + " to " + newSize);
+        log.info("Editing state.getCurrentMainDistStage().getActiveSlaveCount(): from " + state.getCurrentDistStage().getActiveSlaveCount() + " to " + newSize);
         state.getCurrentDistStage().setActiveSlavesCount(newSize);
 
-        log.debug("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + newSize);
+        log.info("Editing state.getCurrentBenchmark().currentFixedBenchmark().getSize: from " + state.getCurrentBenchmark().currentFixedBenchmark().getSize() + " to " + newSize);
         state.getCurrentBenchmark().currentFixedBenchmark().setSize(newSize);
 
         if( !slaves.remove(slave) ){
             if( joiningSlaves.remove(slave) ){
-                log.debug("Joining slave deleted");
+                log.info("Joining slave deleted");
+            } else {
+                throw new RuntimeException("Slave " + slave.getId() + " doesn't belong to any set!!");
             }
         } else {
-            log.debug("Slave deleted");
+            log.info("Slave deleted");
             stoppedSlaves.add(slave);
         }
 
@@ -91,7 +93,7 @@ public class ClusterExecutor extends AbstractExecutor {
     }
 
     private void changeNumSlavesNotify(){
-        log.info("Notifying all the slaves to change numNodes");
+        log.info("Notifying all the slaves (" + slaves.size() + ") to change numNodes");
 
         for(SlaveSocketChannel slave : slaves){
             String host = slave.getSocketChannel().socket().getInetAddress().getHostName();
@@ -101,8 +103,10 @@ public class ClusterExecutor extends AbstractExecutor {
             int lastIndex =  currentBenchmark.length()-new String("Stage").length();
             currentBenchmark = currentBenchmark.substring(startIndex,lastIndex);
 
-            log.info("CurrentStage: " + currentBenchmark);
+            log.trace("CurrentStage: " + currentBenchmark);
+
             NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+            log.info("Notifying slave " + slave.getId() );
             jmxRequest.doRequest();
         }
     }

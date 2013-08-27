@@ -260,6 +260,7 @@ public class Consumer implements IConsumer {
         //TODO per diego, gestisciti CCTP i retry
         do {
             tx = regenerate(tx, threadIndex, successful);
+            successful = true;
             cacheWrapper.startTransaction();
             try {
                 tx.executeTransaction(cacheWrapper);

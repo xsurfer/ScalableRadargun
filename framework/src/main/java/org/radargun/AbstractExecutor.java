@@ -24,7 +24,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     protected static final int DEFAULT_READ_BUFF_CAPACITY = 1024;
 
     protected MasterState state;
-    protected Set<SlaveSocketChannel> slaves;
+    protected final Set<SlaveSocketChannel> slaves;
 
     protected volatile Map<SocketChannel, ByteBuffer> writeBufferMap = new HashMap<SocketChannel, ByteBuffer>();
     protected volatile Map<SocketChannel, ByteBuffer> readBufferMap = new HashMap<SocketChannel, ByteBuffer>();
@@ -34,7 +34,7 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     protected int processedSlaves = 0;
 
     public AbstractExecutor(MasterState state, Set<SlaveSocketChannel> slaves){
-        this.slaves = slaves ;
+        this.slaves = Collections.synchronizedSet(slaves);
         this.state = state;
         try {
             log.info("Opening communicationSelector");
@@ -65,8 +65,10 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     public Boolean call() throws Exception {
         log.trace("Starting a new executor");
 
-        for (SlaveSocketChannel ssc : slaves){
-            initBuffer(ssc.getSocketChannel());
+        synchronized (slaves){
+            for (SlaveSocketChannel ssc : slaves){
+                initBuffer(ssc.getSocketChannel());
+            }
         }
 
         prepareNextStage();
@@ -94,27 +96,29 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
         writeBufferMap.clear();
         DistStage toSerialize;
         boolean printFlag = false;
-        for(SlaveSocketChannel slave : slaves) {
-            SocketChannel socketChannel = slave.getSocketChannel();
-            socketChannel.configureBlocking(false);
-            socketChannel.register(communicationSelector, SelectionKey.OP_WRITE);
-            toSerialize = currentStage.clone();
-            toSerialize.initOnMaster(state, slave.getId());
-            preSerialization(toSerialize);
-            if (!printFlag) {//only log this once
-                if (log.isDebugEnabled())
-                    log.debug("Starting '" + toSerialize.getClass().getSimpleName() + "' on " + slaves.size() + " slave nodes. Details: " + toSerialize);
-                else
-                    log.info("Starting '" + toSerialize.getClass().getSimpleName() + "' on " + slaves.size() + " slave nodes.");
+        synchronized (slaves){
+            for(SlaveSocketChannel slave : slaves) {
+                SocketChannel socketChannel = slave.getSocketChannel();
+                socketChannel.configureBlocking(false);
+                socketChannel.register(communicationSelector, SelectionKey.OP_WRITE);
+                toSerialize = currentStage.clone();
+                toSerialize.initOnMaster(state, slave.getId());
+                preSerialization(toSerialize);
+                if (!printFlag) {//only log this once
+                    if (log.isDebugEnabled())
+                        log.debug("Starting '" + toSerialize.getClass().getSimpleName() + "' on " + slaves.size() + " slave nodes. Details: " + toSerialize);
+                    else
+                        log.info("Starting '" + toSerialize.getClass().getSimpleName() + "' on " + slaves.size() + " slave nodes.");
+                }
+                byte[] bytes = SerializationHelper.prepareForSerialization(toSerialize);
+                writeBufferMap.put(socketChannel, ByteBuffer.wrap(bytes));
             }
-            byte[] bytes = SerializationHelper.prepareForSerialization(toSerialize);
-            writeBufferMap.put(socketChannel, ByteBuffer.wrap(bytes));
         }
     }
 
     protected void startCommunicationWithSlaves() throws Exception {
         while ( assertRunning() ) {
-            int numKeys = communicationSelector.select();
+            int numKeys = communicationSelector.select(1000);
             if (numKeys > 0) {
                 Set<SelectionKey> keys = communicationSelector.selectedKeys();
                 Iterator<SelectionKey> keysIt = keys.iterator();
@@ -126,7 +130,10 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
                     }
 
                     SlaveSocketChannel slave = socketToslave((SocketChannel) key.channel());
-                    if( slave == null || !slaves.contains(slave) ){
+                    if( slave == null ){
+                        log.info("Slave is null. Skipping");
+                        continue;
+                    } else if ( !slaves.contains(slave) ){
                         log.info("Doesn't belong to this executor. Skipping");
                         continue;
                     }
@@ -140,10 +147,12 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
                     }
                 }
             } else if( numKeys == 0 ) {
-                log.info("Should I merge new nodes?" );
-                for(SlaveSocketChannel scc : slaves){
-                    scc.getSocketChannel().configureBlocking(false);
-                    scc.getSocketChannel().register(communicationSelector, SelectionKey.OP_READ);
+                log.trace("Should I merge new nodes?" );
+                synchronized (slaves){
+                    for(SlaveSocketChannel scc : slaves){
+                        scc.getSocketChannel().configureBlocking(false);
+                        scc.getSocketChannel().register(communicationSelector, SelectionKey.OP_READ);
+                    }
                 }
             }
         }
@@ -223,11 +232,13 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
         } catch (Throwable e) {
             log.warn(e);
         }
-        for (SlaveSocketChannel ssc : slaves) {
-            try {
-                ssc.getSocketChannel().socket().close();
-            } catch (Throwable e) {
-                log.warn(e);
+        synchronized (slaves){
+            for (SlaveSocketChannel ssc : slaves) {
+                try {
+                    ssc.getSocketChannel().socket().close();
+                } catch (Throwable e) {
+                    log.warn(e);
+                }
             }
         }
     }
@@ -239,9 +250,11 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
     }
 
     protected SlaveSocketChannel socketToslave(SocketChannel socketChannel){
-        for (SlaveSocketChannel slave : slaves){
-            if(slave.getSocketChannel().equals(socketChannel)){
-                return slave;
+        synchronized (slaves){
+            for (SlaveSocketChannel slave : slaves){
+                if(slave.getSocketChannel().equals(socketChannel)){
+                    return slave;
+                }
             }
         }
         return null;
