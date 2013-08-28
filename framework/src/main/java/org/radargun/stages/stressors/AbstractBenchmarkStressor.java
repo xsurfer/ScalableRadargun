@@ -488,10 +488,10 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
             */
 
             producerRates = GroupProducerRateFactory.createClients(system.getPopulation(),
-                                                                   system.getRateDistribution(),
-                                                                   cacheWrapper.getNumMembers(),
-                                                                   parameters.getNodeIndex(),
-                                                                   system.getThinkTime());
+                    system.getRateDistribution(),
+                    cacheWrapper.getNumMembers(),
+                    parameters.getNodeIndex(),
+                    system.getThinkTime());
 
         }
 
@@ -670,28 +670,28 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         synchronized (running){
             if (running.get()) {
 
-                    // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
-                    // aggiorno i producer
+                // potrebbe essere cambiato l'arrival rate e/o la dimensione del cluster
+                // aggiorno i producer
 
-                    Integer cmd = (Integer) arg;
+                Integer cmd = (Integer) arg;
 
-                    switch (cmd) {
-                        case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
+                switch (cmd) {
+                    case AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED:
 
-                            if(!system.getType().equals(System.SystemType.OPEN))
-                                throw new IllegalStateException("Arrival rate changed on a not Open system!!");
-                            else
-                                log.info("Arrival rate changed:" + ((OpenSystem) system).getWorkloadGenerator().arrivalRate() );
+                        if(!system.getType().equals(System.SystemType.OPEN))
+                            throw new IllegalStateException("Arrival rate changed on a not Open system!!");
+                        else
+                            log.info("Arrival rate changed:" + ((OpenSystem) system).getWorkloadGenerator().arrivalRate() );
 
-                            if ( ((OpenSystem) system).getWorkloadGenerator().arrivalRate() != this.lastArrivalRate) {
-                                this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().arrivalRate();
-                                stopCreateStartProducers( (OpenSystem) system );
-                            }
-                            break;
-                        default:
-                            log.warn("Unrecognized argument: " + cmd);
-                            break;
-                    }
+                        if ( ((OpenSystem) system).getWorkloadGenerator().arrivalRate() != this.lastArrivalRate) {
+                            this.lastArrivalRate = ((OpenSystem) system).getWorkloadGenerator().arrivalRate();
+                            stopCreateStartProducers( (OpenSystem) system );
+                        }
+                        break;
+                    default:
+                        log.warn("Unrecognized argument: " + cmd);
+                        break;
+                }
             }
         }
     }
@@ -783,16 +783,24 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
     public void changeNumberNodes(){
 
-        log.warn("************************************************************");
-        log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
-        log.info("Slave info: cacheSize " + cacheWrapper.getCacheSize() );
-        log.warn("************************************************************");
+        try {
 
-        if(system instanceof IProducerSystem) {
-            stopCreateStartProducers( (IProducerSystem) system );
-        } else {
-            log.info("Ignoring view changed because working on Mule System");
+            log.warn("************************************************************");
+            log.info("VIEW has changed: #slaves = " + cacheWrapper.getNumMembers());
+            log.info("Slave info: cacheSize " + cacheWrapper.getCacheSize() );
+            log.warn("************************************************************");
+
+            if(system instanceof IProducerSystem) {
+                stopCreateStartProducers( (IProducerSystem) system );
+            } else {
+                log.info("Ignoring view changed because working on Mule System");
+            }
+
+        } catch (Exception e){
+            log.info("WARNING! An exception has been masked. Usually the exception is thrown when more slaves have been stopped at the same time, in this case you can be happy, otherwise check it out!");
         }
+
+
     }
 
 

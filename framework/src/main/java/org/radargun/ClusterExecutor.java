@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.state.MasterState;
 
+import java.nio.channels.SelectionKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,6 +51,10 @@ public class ClusterExecutor extends AbstractExecutor {
             log.info("Slave deleted");
             stoppedSlaves.add(slave);
         }
+
+        log.info("Unregistering the socketChannel " + slave.getSocketChannel());
+        SelectionKey key = slave.getSocketChannel().keyFor(communicationSelector);
+        key.cancel();
 
         log.info("Number of working slaves: " + slaves.size() );
         log.info("Number of joining slaves: " + joiningSlaves.size() );

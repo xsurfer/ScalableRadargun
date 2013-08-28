@@ -167,7 +167,6 @@ public abstract class AbstractExecutor implements Callable<Boolean> {
         if (value == -1) {
             SlaveSocketChannel slave = socketToslave(socketChannel);
             log.warn("Slave stopped! Index: " + slave.getId() + ". Remote socket is: " + socketChannel);
-            key.cancel();
             slaveStopped( slave );
         } else if (byteBuffer.limit() >= 4) {
             int expectedSize = byteBuffer.getInt(0);

@@ -109,6 +109,11 @@ public class Slave {
                                     long start = System.currentTimeMillis();
                                     DistStageAck ack = stage.executeOnSlave();
                                     ack.setDuration(System.currentTimeMillis() - start);
+
+                                    if(ack.isStoppedByJMX()){
+                                        log.info("I've been stopped...I'm leaving");
+                                    }
+
                                     //ack.setInitialTs(stage.getAbsolutInitTs());
                                     byte[] bytes = SerializationHelper.prepareForSerialization(ack);
                                     log.info("Finished stage: " + stage);

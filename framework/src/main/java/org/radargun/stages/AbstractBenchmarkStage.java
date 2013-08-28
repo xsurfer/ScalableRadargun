@@ -152,8 +152,9 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
                 log.info(sizeInfo);
                 results.put(SIZE_INFO, sizeInfo);
                 if( Boolean.parseBoolean(results.get("STOPPED")) ){
-                    log.info("Cache has been torn down!");
-                    cacheWrapper.tearDown();
+                    //log.info("Cache has been torn down!");
+                    //cacheWrapper.tearDown();
+                    log.info("Don't tear down the cache, the slave should die in a while, so it will tears it down!");
                 }
             }
             result.setPayload(results);
