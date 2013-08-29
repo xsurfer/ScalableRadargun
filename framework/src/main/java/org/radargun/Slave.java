@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Slave being coordinated by a single {@link Master} object in order to run benchmarks.
@@ -35,6 +36,8 @@ public class Slave {
     private ByteBuffer byteBuffer = ByteBuffer.allocate(8192);
     private SlaveState state = new SlaveState();
     private final JmxRegistration jmxRegistration = JmxRegistration.getInstance();
+
+    private AtomicBoolean mustDie = new AtomicBoolean(false);
 
     ExecutorService es = Executors.newSingleThreadExecutor(new ThreadFactory() {
         public Thread newThread(Runnable r) {
@@ -62,7 +65,7 @@ public class Slave {
     private void startCommunicationWithMaster() throws Exception {
         Selector selector = Selector.open();
         socketChannel.register(selector, SelectionKey.OP_CONNECT);
-        while (true) {
+        while ( !mustDie.get() ) {
             selector.select();
             // Get set of ready objects
             Set<SelectionKey> readyKeys = selector.selectedKeys();
@@ -112,6 +115,10 @@ public class Slave {
 
                                     if(ack.isStoppedByJMX()){
                                         log.info("I've been stopped...I'm leaving");
+                                        state.getCacheWrapper().tearDown();
+                                        if( !mustDie.compareAndSet(false,true) ){
+                                            throw new RuntimeException("This exception should never be thrown");
+                                        }
                                     }
 
                                     //ack.setInitialTs(stage.getAbsolutInitTs());
@@ -122,6 +129,9 @@ public class Slave {
                                     byteBuffer.flip();
                                 } catch (IOException e) {
                                     log.error(e);
+                                } catch (Exception e) {
+                                    log.warn("Problems while tearing down...");
+                                    e.printStackTrace();
                                 }
                             }
                         };
@@ -155,6 +165,7 @@ public class Slave {
                 }
             }
         }
+        log.info("startCommunicationWithMaster ended!!");
     }
 
     private void connectToMaster() throws IOException {
