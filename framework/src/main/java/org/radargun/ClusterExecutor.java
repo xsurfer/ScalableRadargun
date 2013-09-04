@@ -4,6 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.state.MasterState;
 
+import javax.management.MalformedObjectNameException;
+import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.HashSet;
 import java.util.Set;
@@ -110,7 +112,26 @@ public class ClusterExecutor extends AbstractExecutor {
 
             log.trace("CurrentStage: " + currentBenchmark);
 
-            NumNodesJmxRequest jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+            NumNodesJmxRequest jmxRequest = null;
+
+            try {
+                jmxRequest = new NumNodesJmxRequest(currentBenchmark, host, NumNodesJmxRequest.DEFAULT_JMX_PORT);
+            } catch (IOException e) {
+                if(log.isTraceEnabled()){
+                    log.trace(e,e);
+                } else {
+                    log.info("An error occured while contacting node " + host + ". Enable log trace to print all the stack trace. Skipping...");
+                }
+                continue;
+            } catch (MalformedObjectNameException e) {
+                if(log.isTraceEnabled()){
+                    log.trace(e,e);
+                } else {
+                    log.info("An error occured while contacting node " + host + ". Enable log trace to print all the stack trace. Skipping...");
+                }
+                continue;
+            }
+
             log.info("Notifying slave " + slave.getId() );
             jmxRequest.doRequest();
         }

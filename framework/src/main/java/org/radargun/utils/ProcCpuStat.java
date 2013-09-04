@@ -89,6 +89,7 @@ public class ProcCpuStat implements CpuStat {
          java.io.BufferedReader stdInput = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
          String actual = stdInput.readLine();
 
+         stdInput.close();
          temp = actual.split(" ");
 
          //The output has two spaces after the first token!!!

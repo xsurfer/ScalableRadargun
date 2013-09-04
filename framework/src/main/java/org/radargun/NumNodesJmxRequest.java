@@ -27,18 +27,17 @@ public class NumNodesJmxRequest {
     private final ObjectName benchmarkComponent;
     private final MBeanServerConnection mBeanServerConnection;
 
-    public NumNodesJmxRequest(String hostname) {
+    public NumNodesJmxRequest(String hostname) throws IOException, MalformedObjectNameException {
         this(DEFAULT_COMPONENT, hostname, DEFAULT_JMX_PORT);
     }
 
-    public NumNodesJmxRequest(String hostname, int port) {
+    public NumNodesJmxRequest(String hostname, int port) throws IOException, MalformedObjectNameException {
         this(DEFAULT_COMPONENT, hostname, port);
     }
 
-    public NumNodesJmxRequest(String component, String hostname, int port) {
+    public NumNodesJmxRequest(String component, String hostname, int port) throws IOException, MalformedObjectNameException {
         this.hostname = hostname;
         String connectionUrl = "service:jmx:rmi:///jndi/rmi://" + hostname + ":" + port + "/jmxrmi";
-
 
         JMXConnector connector = null;
         try {
@@ -46,11 +45,10 @@ public class NumNodesJmxRequest {
             mBeanServerConnection = connector.getMBeanServerConnection();
             benchmarkComponent = new ObjectName(COMPONENT_PREFIX + component);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw e;
         } catch (MalformedObjectNameException e) {
-            throw new RuntimeException(e);
+            throw e;
         }
-
     }
 
     public void doRequest() {

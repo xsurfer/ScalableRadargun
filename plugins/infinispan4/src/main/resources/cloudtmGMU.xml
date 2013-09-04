@@ -1,0 +1,143 @@
+<infinispan
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:5.2 http://www.infinispan.org/schemas/infinispan-config-5.2.xsd"
+        xmlns="urn:infinispan:config:5.2">
+    <global>
+        <globalJmxStatistics
+                enabled="true"
+                jmxDomain="org.infinispan"/>
+        <transport
+                clusterName="infinispan-cluster">
+            <properties>
+                <property
+                        name="configurationFile"
+                        value="jgroups/jgroups-tcp_cloudtm.xml" />
+            </properties>
+        </transport>
+    </global>
+    <default>
+        <locking
+                isolationLevel="SERIALIZABLE"
+                concurrencyLevel="32"
+                writeSkewCheck="false"
+                useLockStriping="false"
+                lockAcquisitionTimeout="0"/>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.DummyTransactionManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"
+                >
+            <recovery enabled="false"/>
+        </transaction>
+        <jmxStatistics
+                enabled="true"/>
+        <customStats sampleServiceTimes="true"/>
+        <deadlockDetection
+                enabled="false"/>
+        <clustering mode="d">
+            <sync
+                    replTimeout="15000" />
+            <hash
+                    numOwners="1"/>
+            <l1
+                    enabled="false"
+                    onRehash="false"
+                    lifespan="600000"
+                    invalidationThreshold="0" />
+            <stateTransfer fetchInMemoryState="true"/>
+        </clustering>
+        <customInterceptors>
+            <interceptor
+                    after="org.infinispan.interceptors.InvocationContextInterceptor"
+                    class="org.infinispan.distribution.wrappers.CustomStatsInterceptor"/>
+        </customInterceptors>
+        <versioning
+                enabled="true"
+                versioningScheme="GMU" />
+    </default>
+    <namedCache
+            name="x">
+        <locking
+                isolationLevel="SERIALIZABLE"
+                concurrencyLevel="32"
+                writeSkewCheck="false"
+                useLockStriping="false"
+                lockAcquisitionTimeout="0"/>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.DummyTransactionManagerLookup"
+                useEagerLocking="false"
+                transactionMode="TRANSACTIONAL"
+                syncRollbackPhase="false"
+                cacheStopTimeout="30000"
+                useSynchronization="false"
+                syncCommitPhase="false"
+                lockingMode="OPTIMISTIC"
+                eagerLockSingleNode="false"
+                use1PcForAutoCommitTransactions="false"
+                autoCommit="true"
+                >
+            <recovery enabled="false"/>
+        </transaction>
+        <jmxStatistics
+                enabled="true"/>
+        <customStats sampleServiceTimes="true"/>
+        <deadlockDetection
+                enabled="false"/>
+        <clustering mode="d">
+            <sync
+                    replTimeout="15000" />
+            <hash
+                    numOwners="1"/>
+            <l1
+                    enabled="false"
+                    onRehash="false"
+                    lifespan="600000"
+                    invalidationThreshold="0" />
+            <stateTransfer fetchInMemoryState="true"/>
+        </clustering>
+        <customInterceptors>
+            <interceptor
+                    after="org.infinispan.interceptors.InvocationContextInterceptor"
+                    class="org.infinispan.distribution.wrappers.CustomStatsInterceptor"/>
+        </customInterceptors>
+        <versioning
+                enabled="true"
+                versioningScheme="GMU" />
+        <dataPlacement
+                enabled="true"
+                objectLookupFactory="org.infinispan.dataplacement.hm.HashMapObjectLookupFactory"
+                maxNumberOfKeysToRequest="1000">
+            <properties>
+                <property
+                        name="keyFeatureManager"
+                        value="org.radargun.cachewrappers.TpccKeyFeaturesManager"
+                        />
+                <property
+                        name="location"
+                        value="/tmp/ml"
+                        />
+                <property
+                        name="bfFalsePositiveProb"
+                        value="0.01"
+                        />
+                <property
+                        name="numberOfHashes"
+                        value="10"
+                        />
+                <property
+                        name="timeout"
+                        value="10000"
+                        />
+            </properties>
+        </dataPlacement>
+    </namedCache>
+
+</infinispan>
