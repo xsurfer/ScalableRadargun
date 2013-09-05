@@ -271,11 +271,11 @@ public class Consumer implements IConsumer {
             } catch (Throwable e) {
                 localAbort= true;
                 successful = false;
-                if (log.isDebugEnabled()) {
-                    log.debug("Exception while executing transaction.", e);
-                } else {
-                    log.trace("Exception while executing transaction of type: " + tx.getType() + " " + e.getMessage());
-                }
+//                if (log.isDebugEnabled()) {
+//                    log.debug("Exception while executing transaction.", e);
+//                } else {
+                log.trace("Exception while executing transaction locally (type: " + tx.getType() + ", readOnly: " + tx.isReadOnly() + "). Message: " + e.getMessage());
+//                }
 
                 if (e instanceof ApplicationException) {
                     isSafeToRetry = ( (ApplicationException) e ).allowsRetry();
@@ -298,11 +298,13 @@ public class Consumer implements IConsumer {
                             tx.getType() + " Btw, successful is " + successful);
                 }
             } catch (Throwable e) {
-                // errore o in rollback o commit
+                // error during rollback o commit
                 if( successful ){ // errore nel commit
                     remoteAbort=true;
                     successful = false;
                     stats._handleAbortRemoteTx(tx, e);
+                } else {
+                    log.trace("What's going on?");
                 }
 
                 if (log.isDebugEnabled()) {
@@ -328,17 +330,16 @@ public class Consumer implements IConsumer {
     protected TransactionDecorator regenerate(TransactionDecorator transaction, int threadIndex, boolean lastSuccessful) {
 
         if (!lastSuccessful && parameters.getRetryOnAbort().equals(XACT_RETRY.RETRY_SAME_CLASS) ) {
-            log.info("Regenerating transaction!");
-            this.backoffIfNecessary();
+            backoffIfNecessary();
             ITransaction newTransaction = factory.generateTransaction(new RequestType(java.lang.System.nanoTime(), transaction.getType()));
 
             transaction.regenerate(newTransaction);
             //copyTimeStampInformation(transaction, newTransaction);
-            log.trace("Thread " + threadIndex + ": regenerating a transaction of type " + transaction.getType() +
+            log.trace("Thread " + threadIndex + ": regenerating a transaction (readOnly: " + transaction.isReadOnly() + ") of type " + transaction.getType() +
                     " into a transaction of type " + newTransaction.getType());
             return transaction;
         }
-        //If this is the first time xact runs or exact retry on abort is enabled...
+        // If this is the first time xact runs or exact retry on abort is enabled...
         return transaction;
     }
 
