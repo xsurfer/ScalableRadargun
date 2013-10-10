@@ -8,6 +8,7 @@ import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.AbstractBenchmarkStressor;
 import org.radargun.stages.stressors.Parameters;
+import org.radargun.stages.stressors.systems.IProducerSystem;
 import org.radargun.stages.stressors.systems.OpenSystem;
 import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.XACT_RETRY;
@@ -206,9 +207,31 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
         this.setSimulationTimeSec(secondToExecute);
 
         log.info("Updating initTime Workload Generator");
-
         if(system.getType().equals(System.SystemType.OPEN)){
-            ((OpenSystem)system).getWorkloadGenerator().setInitTime( (int) (elapsedTimeFromBeginning / 1000) );
+
+            long granularity = ( (OpenSystem) system).getWorkloadGenerator().getGranularity();
+            log.info("granularity: " + granularity );
+
+            double numTicks = (double) elapsedTimeFromBeginning / (double) granularity;
+            log.info("numTicks: " + numTicks );
+
+            int intNumTicks = (int) numTicks;
+            log.info("intNumTicks: " + intNumTicks );
+
+            double decimalNumTicks = numTicks - (double) intNumTicks;
+            log.info("decimalNumTicks: " + decimalNumTicks );
+
+            long firstTick = granularity - (long)(decimalNumTicks * granularity);
+            log.info("firstTick: " + firstTick );
+
+            double originalInitTime = ((OpenSystem)system).getWorkloadGenerator().getInitTime();
+            log.info("originalInitTime: " + originalInitTime );
+
+            long initTime = (long) originalInitTime + (intNumTicks * granularity) / 1000;
+            log.info("initTime: " + initTime );
+
+            ((OpenSystem)system).getWorkloadGenerator().setInitTime(initTime);
+            ((OpenSystem)system).getWorkloadGenerator().setFirstGranularity( firstTick );
         }
     }
 
@@ -250,8 +273,14 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
     public AbstractBenchmarkStage clone() {
         AbstractBenchmarkStage clone = (AbstractBenchmarkStage) super.clone();
         log.info("cloning AbstractBenchmarkStage");
-        //clone.initTimeStamp = 0;
-        //clone.workloadGenerator = workloadGenerator.clone();
+
+        clone.system = system.clone();
+//        if( clone.system instanceof OpenSystem ){
+//            log.info("Cloning System");
+//            double initTime = ((OpenSystem) system).getWorkloadGenerator().getInitTime();
+//            ((OpenSystem) clone.system).getWorkloadGenerator().setInitTime(initTime);
+//        }
+//        clone.workloadGenerator = workloadGenerator.clone();
 
         return clone;
     }
@@ -325,6 +354,16 @@ public abstract class AbstractBenchmarkStage<T extends AbstractBenchmarkStressor
             return ((OpenSystem) system).getWorkloadGenerator().arrivalRate();
         }
         return -1;
+    }
+
+    @ManagedOperation(description = "Retrieve current queue size")
+    public int queueSize() {
+
+        if( system instanceof IProducerSystem){
+            return stressor.queueSize();
+        } else {
+            return -1;
+        }
     }
 
     @ManagedOperation(description = "Stop the current benchmark")

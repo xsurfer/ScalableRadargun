@@ -21,7 +21,13 @@ public class OpenSystem implements IProducerSystem {
 
     private AbstractWorkloadGenerator workloadGenerator;
 
-    public AbstractWorkloadGenerator getWorkloadGenerator(){ return workloadGenerator; }
+    public AbstractWorkloadGenerator getWorkloadGenerator(){
+       return workloadGenerator;
+    }
+
+    public void setWorkloadGenerator(AbstractWorkloadGenerator generator) {
+       this.workloadGenerator = generator;
+    }
 
     @Override
     public SystemType getType() {
@@ -48,5 +54,15 @@ public class OpenSystem implements IProducerSystem {
         return stressor.createProducers(this);
     }
 
-    public void setWorkloadGenerator(AbstractWorkloadGenerator generator) { this.workloadGenerator = generator; }
+
+   @Override
+   public OpenSystem clone() {
+      try {
+         OpenSystem clone = (OpenSystem) super.clone();
+         clone.workloadGenerator = (AbstractWorkloadGenerator) workloadGenerator.clone();
+         return clone;
+      } catch (CloneNotSupportedException e) {
+         throw new RuntimeException(e);
+      }
+   }
 }

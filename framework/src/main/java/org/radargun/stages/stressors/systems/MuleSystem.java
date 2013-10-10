@@ -36,7 +36,16 @@ public class MuleSystem implements System {
         stressor.finishBenchmark(this);
     }
 
-    public void setThinkTime(long val){ thinkTime = val; }
+   @Override
+   public System clone() {
+      try {
+         return  (System) super.clone();
+      } catch (CloneNotSupportedException e) {
+         throw new RuntimeException(e);
+      }
+   }
+
+   public void setThinkTime(long val){ thinkTime = val; }
     public long getThinkTime(){ return thinkTime; }
 
     public RateDistribution getRateDistribution(){ return this.rateDistribution; }

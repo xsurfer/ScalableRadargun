@@ -11,7 +11,7 @@ import java.util.Map;
  * E-mail: perfabio87@gmail.com
  * Date: 4/19/13
  */
-public interface System extends Serializable {
+public interface System extends Serializable, Cloneable {
 
     public enum SystemType {
         OPEN, CLOSED, MULE;
@@ -26,4 +26,6 @@ public interface System extends Serializable {
     public void consume(Consumer consumer);
 
     public void finishBenchmark(AbstractBenchmarkStressor stressor);
+
+    public System clone();
 }

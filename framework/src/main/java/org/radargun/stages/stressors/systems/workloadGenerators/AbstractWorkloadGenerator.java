@@ -56,7 +56,9 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /**
      * granularity in milliseconds
      */
-    private int granularity = 1000;
+    private long granularity = 1000;
+
+    private long firstGranularity;
 
     /**
      * init time (in seconds)
@@ -66,7 +68,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     /**
      * current time (in seconds)
      */
-    private double t = 0;
+    private volatile double t = 0;
 
     /**
      * in seconds
@@ -85,8 +87,23 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
     public RateDistribution getRateDistribution() { return this.rateDistribution; }
     public void setRateDistribution(String rateDistribution) { this.rateDistribution = RateDistribution.valueOf(rateDistribution.toUpperCase());  }
 
-    public int getGranularity() { return this.granularity; }
-    public void setGranularity(int granularityMs) { this.granularity = granularityMs; }
+    public long getGranularity() {
+       return this.granularity;
+    }
+
+    public void setGranularity(long granularityMs) {
+       this.granularity = this.firstGranularity = granularityMs;
+    }
+
+    public long getFirstGranularity() {
+        return this.firstGranularity;
+    }
+
+    public void setFirstGranularity(long granularityMs) {
+        this.firstGranularity = granularityMs;
+    }
+
+
 
     /**
      * returns init time (in seconds)
@@ -97,7 +114,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
      * Sets the init time
      * @param initTime in ms
      */
-    public void setInitTime(int initTime) { this.initTime = initTime; }
+    public void setInitTime(double initTime) { this.initTime = initTime; }
 
     public int getMaxArrivalRate() { return this.maxArrivalRate; }
     public void setMaxArrivalRate(int maxArrivalRate) { this.maxArrivalRate = maxArrivalRate; }
@@ -240,7 +257,7 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
         try {
             return (AbstractWorkloadGenerator) super.clone();
         } catch (CloneNotSupportedException e) {
-            throw new IllegalStateException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -257,16 +274,17 @@ public abstract class AbstractWorkloadGenerator extends Observable implements Cl
             BlockingQueue<Double> queue = new LinkedBlockingQueue<Double>();
             t = initTime - ( ( (double) granularity ) /1000 );
             ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor( new WorkerThreadFactory("TimerIncrementer", true) );
-            executor.scheduleAtFixedRate(new TimeIncrementer(queue), granularity, granularity, TimeUnit.MILLISECONDS);
+            executor.scheduleAtFixedRate(new TimeIncrementer(queue), firstGranularity, granularity, TimeUnit.MILLISECONDS);
             while (running.get()){
+                outputData.add(new TimeArrivalRate(t,getCurrentArrivalRate()));
+                setChanged();
+                notifyObservers( new Integer(AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED) );
                 try {
                     queue.take();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                outputData.add(new TimeArrivalRate(t,getCurrentArrivalRate()));
-                setChanged();
-                notifyObservers( new Integer(AbstractWorkloadGenerator.ARRIVAL_RATE_CHANGED) );
+
             }
             log.info("Workload has been stopped...lets");
             executor.shutdown();

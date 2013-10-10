@@ -178,6 +178,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
             log.info("Open System");
             log.info("MaxArrivalRate: " + system.getWorkloadGenerator().getMaxArrivalRate());
             log.info("Granularity: " + system.getWorkloadGenerator().getGranularity());
+            log.info("FirstGranularity: " + system.getWorkloadGenerator().getFirstGranularity());
             log.info("InitTime: " + system.getWorkloadGenerator().getInitTime());
 
             log.trace("Starting the workload generator");
@@ -400,7 +401,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
     }
 
     private void stopProducers() {
-        if( !running.get() ){
+        if( running.get() ){
             log.info("Stopping Producers...");
             synchronized(producers){
                 for (Producer producer : producers) {
@@ -422,13 +423,17 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
                     producers.clear();
                     producers.addAll(system.createProducers(this));
 
-                    log.info("Starting new (" + producers.size() + ") producers...");
-                    producersExecutorService = Executors.newFixedThreadPool( producers.size() ,new WorkerThreadFactory("Producer",false) );
-                    for (Producer producer : producers) {
-                        log.info("STARTING: " + producer);
-                        producersExecutorService.execute(producer);
+                    if(producers.size()>0){
+                        log.info("Starting new (" + producers.size() + ") producers...");
+                        producersExecutorService = Executors.newFixedThreadPool( producers.size() ,new WorkerThreadFactory("Producer",false) );
+                        for (Producer producer : producers) {
+                            log.info("STARTING: " + producer);
+                            producersExecutorService.execute(producer);
+                        }
+                        producersExecutorService.shutdown();
+                    } else {
+                       log.info("No producer to start!");
                     }
-                    producersExecutorService.shutdown();
                 }
             }
         }
@@ -542,11 +547,12 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
         List<Producer> producers = new ArrayList<Producer>();
         for (int i = 0; i < producerRates.length; ++i) {
             TransactionFactory factory = createTransactionFactory(i);
-            producers.add( i, new ClosedProducer(this, producerRates[i], i, parameters, factory) );
-
-            producers.add( i, new OpenProducer(this, producerRates[i], i, parameters, factory) );
+            Producer newProducer = new OpenProducer(this, producerRates[i], i, parameters, factory);
+            producers.add( i, newProducer);
+            log.info("Create new producer with lamba: " + producerRates[i].getLambda());
         }
         log.info("So we should have a equal number of producers: " + producers.size() );
+
         return producers;
     }
 
@@ -798,9 +804,23 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
 
         } catch (Exception e){
             log.info("WARNING! An exception has been masked. Usually the exception is thrown when more slaves have been stopped at the same time, in this case you can be happy, otherwise check it out!");
+            log.info(e,e);
         }
 
 
+    }
+
+
+   /**
+    * Returns the queue size
+    * @return queue size if queue not null, otherwise -2
+    */
+    public int queueSize(){
+        if(queue!=null){
+            return queue.size();
+        } else {
+           return -2;
+        }
     }
 
 

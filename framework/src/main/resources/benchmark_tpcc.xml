@@ -8,13 +8,13 @@
          skippable stages and executing the other ones.
          If dynamic is false, it'll ignore slaves trying to join at runtime -->
     <benchmark
-            initSize="1"
-            maxSize="1"
+            initSize="5"
+            maxSize="5"
             increment="1">
 
+        <!--runOnAllSlaves="true"-->
         <DestroyWrapper
                 id="a"
-                runOnAllSlaves="true"
                 skippable="true"/>
         <StartCluster
                 id="b"
@@ -22,23 +22,25 @@
                 delayAfterFirstSlaveStarts="5000"
                 delayBetweenStartingSlaves="1000"
                 skippable="false"/>
-        <ClusterValidation
+        <!--ClusterValidation
                 id="c"
                 passiveReplication="false"
                 partialReplication="false"
-                skippable="true"/>
+                skippable="true"/ -->
+
         <TpccPopulation
                 id="d"
                 preloadedFromDB="false"
-                numWarehouses="1"
+                numWarehouses="3"
                 cLastMask="0"
                 olIdMask="0"
                 cIdMask="0"
                 threadParallelLoad="true"
                 batchLevel="200"
-                numLoaderThreads="4"
+                numLoaderThreads="1"
                 oneWarmup="true"
                 skippable="true"/>
+
         <GarbageCollection
                 id="e"
                 skippable="true"/>
@@ -50,19 +52,21 @@
                 id="g"
                 statName="CACHE_SIZE_BEFORE_BENCH"
                 skippable="true"/>
+
         <TpccBenchmark
                 id="h"
                 statsSamplingInterval="30000"
-                numOfThreads="2"
+                numOfThreads="1"
                 simulationTimeSec="6000"
                 accessSameWarehouse="false"
-                paymentWeight="43"
-                orderStatusWeight="53"
-                retryOnAbort="true"
+                paymentWeight="15"
+                orderStatusWeight="80"
+                retryOnAbort="RETRY_SAME_CLASS"
                 backOffTime="0"
                 perThreadTrackNewKeys="true"
                 skippable="true"
                 scalable="true">
+
             <!--OpenSystem>
               <Ramp
                 rateDistribution="exponential"
@@ -91,16 +95,15 @@
 
             <MuleSystem thinkTime="0" rateDistribution="exponential" />
 
-
+	
         </TpccBenchmark>
-
-
+        
     </benchmark>
 
 
     <products>
         <infinispan4>
-            <config name="cloudtm.xml"/>
+            <config name="cloudtmGMU.xml"/>
         </infinispan4>
     </products>
     <reports>
@@ -108,4 +111,3 @@
     </reports>
 
 </bench-config>
-

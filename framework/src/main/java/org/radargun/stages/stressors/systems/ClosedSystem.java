@@ -40,7 +40,16 @@ public class ClosedSystem implements IProducerSystem {
         stressor.finishBenchmark(this);
     }
 
-    @Override
+   @Override
+   public System clone() {
+      try {
+         return (System) super.clone();
+      } catch (CloneNotSupportedException e) {
+         throw new RuntimeException(e);
+      }
+   }
+
+   @Override
     public List<Producer> createProducers(AbstractBenchmarkStressor stressor) {
         return stressor.createProducers(this);
     }
