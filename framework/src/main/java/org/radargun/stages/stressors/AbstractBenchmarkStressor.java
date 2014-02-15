@@ -562,7 +562,7 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
                                                       cacheWrapper.getNumMembers(),
                                                       parameters.getNodeIndex(),
                                                       AbstractBenchmarkStressor.AVERAGE_PRODUCER_SLEEP_TIME).create();
-         log.info("Created " + producerRates.length + " producerRates");
+
       }
 
       List<Producer> producers = new ArrayList<Producer>();
@@ -572,7 +572,13 @@ public abstract class AbstractBenchmarkStressor<T extends Parameters, S extends 
          producers.add(i, newProducer);
          log.info("Create new producer with lamba: " + producerRates[i].getLambda());
       }
-      log.info("So we should have a equal number of producers: " + producers.size());
+
+      if(producerRates.length != producers.size()){
+         throw new RuntimeException("producerRates size != producers size");
+
+      } else {
+         log.info("Running with " + producers.size() + " producers");
+      }
 
       return producers;
    }
