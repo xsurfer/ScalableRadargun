@@ -1,5 +1,7 @@
 package org.radargun.stages.stressors.producer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.radargun.stages.stressors.systems.RateDistribution;
 
 /**
@@ -10,6 +12,7 @@ import org.radargun.stages.stressors.systems.RateDistribution;
  * @since 1.1
  */
 public class GroupProducerRateFactory {
+   private final Log log = LogFactory.getLog(GroupProducerRateFactory.class);
    private final double originalLambda; //tx/sec
    private final int numberOfNodes;
    private final int nodeIndex;
@@ -47,7 +50,7 @@ public class GroupProducerRateFactory {
       double remainder = originalLambda % numberOfNodes;
 
       //this is the producer rate common to all nodes
-      double myLambda = (originalLambda - remainder) / numberOfNodes;
+      double myLambda = (originalLambda - remainder) / (double) numberOfNodes;
 
       //if this node is unlucky, it can get more load than the others
       if (nodeIndex < remainder) {
@@ -57,17 +60,17 @@ public class GroupProducerRateFactory {
       myLambda /= 1000D;
 
       //calculate the number of producers needed
-      double numberOfProducers = myLambda * avgSleepTime;
+      double numberOfProducers = myLambda * (double) avgSleepTime;
 
       //the number of producers at Normal producer rate
       int numberOfNormalProducers = (int) Math.floor(numberOfProducers);
 
-      double normalProducerRate = 1D / avgSleepTime;
+      double normalProducerRate = 1D / (double) avgSleepTime;
 
       //it is possible to have a producer that works more slowly than the others
-      double slowProducerRate = myLambda - (numberOfNormalProducers * normalProducerRate);
+      double slowProducerRate = myLambda - ((double) numberOfNormalProducers * normalProducerRate);
 
-      ProducerRate[] producers = new ProducerRate[numberOfNormalProducers + (slowProducerRate != 0 ? 1 : 0)];
+      ProducerRate[] producers = new ProducerRate[numberOfNormalProducers + (slowProducerRate > 0D ? 1 : 0)];
 
       for (int i = 0; i < numberOfNormalProducers; ++i) {
          try {
@@ -78,7 +81,7 @@ public class GroupProducerRateFactory {
       }
 
       //the slower producer
-      if (slowProducerRate != 0) {
+      if (slowProducerRate > 0D) {
          try {
             producers[producers.length - 1] = ProducerRate.createInstance(rateDistribution, slowProducerRate);
          } catch (ProducerRate.ProducerRateException e) {
