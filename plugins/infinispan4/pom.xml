@@ -19,7 +19,8 @@
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
-            <version>5.2.8-cloudtm-SNAPSHOT</version>
+            <!--<version>5.2.8-cloudtm-SNAPSHOT</version>-->
+            <version>5.2.8-cloudtm-experimental-SNAPSHOT</version>
         </dependency>
 
         <!--dependency>
