@@ -26,11 +26,13 @@ import org.radargun.stages.synthetic.XACT_RETRY;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Created by: Fabio Perfetti E-mail: perfabio87@gmail.com Date: 4/24/13
+ * @author Fabio Perfetti E-mail: perfabio87@gmail.com
  */
 public class Consumer implements IConsumer {
 
-   private static Log log = LogFactory.getLog(Consumer.class);
+   private static final Log log = LogFactory.getLog(Consumer.class);
+   private static final boolean traceL = log.isTraceEnabled();
+   private static final boolean debugL = log.isDebugEnabled();
 
 
    protected CacheWrapper cacheWrapper;
@@ -80,7 +82,7 @@ public class Consumer implements IConsumer {
 
       if (parameters.getBackOffTime() > 0)
          try {
-            // TODO renderlo customizable
+            // TODO should we make the backoff customizable?
             this.backOffSleeper =
                   ProducerRate.createInstance(RateDistribution.EXPONENTIAL,
                                               Math.pow((double) parameters.getBackOffTime(), -1D)
@@ -101,8 +103,6 @@ public class Consumer implements IConsumer {
 
       while (assertRunning()) {
             /* 1- Extracting && generating request from queue */
-         tx = null;
-         dequeueTimestamp = -1;
 
          RequestType request = stressor.takeFromQueue();
          if (request.getTransactionType() != 9999) {
@@ -125,15 +125,16 @@ public class Consumer implements IConsumer {
 //                        }
 
 
-            /* updating queue stats */
-            stats._handleQueueTx(generatedTx);
+            /* updating stats of beginning xact */
+            stats.handleInitTx(generatedTx);
 
             /* 2- Executing the transaction */
             successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
+
             stats._handleEndTx(generatedTx, successful);
 
             blockIfInactive();
-            log.trace("Consumer = { active: " + active + " ; running: " + running + "}");
+            if (traceL) log.trace("Consumer = { active: " + active + " ; running: " + running + "}");
          }
       }
       log.info("Out of the while");
@@ -147,8 +148,6 @@ public class Consumer implements IConsumer {
 
       while (assertRunning()) {
             /* 1- Extracting && generating request from queue */
-         tx = null;
-         dequeueTimestamp = -1;
 
          RequestType request = stressor.takeFromQueue();
          if (request.getTransactionType() != 9999) {
@@ -171,7 +170,7 @@ public class Consumer implements IConsumer {
 
 
             /* updating queue stats */
-            stats._handleQueueTx(generatedTx);
+            stats.handleInitTx(generatedTx);
 
             /* 2- Executing the transaction */
             successful = processTransaction(generatedTx); /* it executes the retryOnAbort (if enabled) */
@@ -182,7 +181,7 @@ public class Consumer implements IConsumer {
             //tx.notifyProducer();
 
             blockIfInactive();
-            log.trace("Consumer = { active: " + active + " ; running: " + running + "}");
+            if (traceL) {log.trace("Consumer = { active: " + active + " ; running: " + running + "}"); }
          }
       }
       log.info("Out of the while");
@@ -193,7 +192,6 @@ public class Consumer implements IConsumer {
       ProducerRate rate;
       try {
          rate = ProducerRate.createInstance(system.getRateDistribution(), Math.pow((double) system.getThinkTime(), -1D));
-
          log.info("{ Distribution = " + system.getRateDistribution().toString() + ", ThinkTime = " + system.getThinkTime());
       } catch (ProducerRate.ProducerRateException e) {
          throw new RuntimeException(e);
@@ -206,8 +204,6 @@ public class Consumer implements IConsumer {
 
       while (assertRunning()) {
             /* 1- Extracting && generating request from queue */
-         tx = null;
-         dequeueTimestamp = -1;
 
          //log.info("Mule system: starting a brand new transaction of type " + tx.getType());
          tx = factory.choiceTransaction();
@@ -216,9 +212,13 @@ public class Consumer implements IConsumer {
          successful = processTransaction(createdTx); /* it executes the retryOnAbort (if enabled) */
 
          stats._handleEndTx(createdTx, successful);
-         log.trace("Asleep: " + java.lang.System.currentTimeMillis());
+         if (traceL) {
+            log.trace("Asleep: " + java.lang.System.currentTimeMillis());
+         }
          rate.sleep();
-         log.trace("Awake: " + java.lang.System.currentTimeMillis());
+         if (traceL) {
+            log.trace("Awake: " + java.lang.System.currentTimeMillis());
+         }
 
 
          blockIfInactive();
@@ -265,33 +265,35 @@ public class Consumer implements IConsumer {
       boolean remoteAbort = false;
 
       stats._handleStartsTx(tx);
-      //TODO per diego, gestisciti CCTP i retry
+      //TODO @diego: handle retry
       do {
+         //The xact will be regenerated only if needed and if successful = false, so *not* the first time
          tx = regenerate(tx, threadIndex, successful);
          successful = true;
          cacheWrapper.startTransaction();
          try {
+            //execute the local part of the xact
             tx.executeTransaction(cacheWrapper);
             stats._handleSuccessLocalTx(tx);
-            log.trace("Thread " + threadIndex + " successfully completed locally a transaction of type " +
-                            tx.getType() + " btw, successful is " + successful);
+            if (traceL) {
+               log.trace("Thread " + threadIndex + " successfully completed locally a transaction of type " +
+                               tx.getType());
+            }
 
          } catch (Throwable e) {
             localAbort = true;
             successful = false;
-//                if (log.isDebugEnabled()) {
-//                    log.debug("Exception while executing transaction.", e);
-//                } else {
-            log.trace("Exception while executing transaction locally (type: " + tx.getType() + ", readOnly: " + tx.isReadOnly() + "). Message: " + e.getMessage());
-//                }
-
+            if (traceL) {
+               log.trace("Exception while executing transaction locally (type: " + tx.getType() + ", readOnly: " + tx.isReadOnly() + "). Message: " + e.getMessage());
+            }
             if (e instanceof ApplicationException) {
                isSafeToRetry = ((ApplicationException) e).allowsRetry();
             }
 
-            stats._handleAbortLocalTx(tx, e, cacheWrapper.isTimeoutException(e));
+            stats.handleAbortLocalTx(tx, e);
          }
 
+         //If the xact has completed locally, update stats for the local part and try to commit
          if (!localAbort) {
             stats._handleSuccessLocalTx(tx);
          }
@@ -301,29 +303,27 @@ public class Consumer implements IConsumer {
 
          try {
             cacheWrapper.endTransaction(successful, threadIndex);
-            if (successful) {
+            if (traceL && successful) {
                log.trace("Thread " + threadIndex + " successfully completed remotely a transaction of type " +
-                               tx.getType() + " Btw, successful is " + successful);
+                               tx.getType());
             }
          } catch (Throwable e) {
             // error during rollback o commit
-            if (successful) { // errore nel commit
+            if (successful) { // error while committing
                remoteAbort = true;
                successful = false;
-               stats._handleAbortRemoteTx(tx, e);
+               stats.handleAbortRemoteTx(tx, e);
             } else {
-               log.trace("What's going on?");
+               if (traceL) { log.trace("Exception thrown but xact is successful! Check this out");}
             }
 
-            if (log.isDebugEnabled()) {
+            if (debugL) {
                log.debug("Error while committing", e);
-            } else {
-               log.trace("Error while committing: " + e.getMessage());
             }
          }
 
          if (!remoteAbort) {
-            stats._handleSuccessRemoteSuccessTx(tx);
+            stats.handleSuccessRemoteSuccessTx(tx);
          }
 
       }
@@ -336,15 +336,22 @@ public class Consumer implements IConsumer {
 
 
    protected TransactionDecorator regenerate(TransactionDecorator transaction, int threadIndex, boolean lastSuccessful) {
-
+      /*
+      If the xact was not successful you can retry the same xact or (if branch) you can generate another xact
+      of the same class of the aborted one. In this case, we must keep unchanged the time of enqueue of the xact
+      //TODO handle enqueue, dequeue and init timestamp of the xact accordingly
+      //TODO: we would like to have the time from enqueue to completion, from dequeue to completion and the execution time of the last, successful execution (possibly)
+       */
       if (!lastSuccessful && parameters.getRetryOnAbort().equals(XACT_RETRY.RETRY_SAME_CLASS)) {
          backoffIfNecessary();
-         ITransaction newTransaction = factory.generateTransaction(new RequestType(java.lang.System.nanoTime(), transaction.getType()));
+         ITransaction newTransaction = factory.generateTransaction(new RequestType(transaction.getEnqueueTimestamp(), transaction.getType()));
 
          transaction.regenerate(newTransaction);
          //copyTimeStampInformation(transaction, newTransaction);
-         log.trace("Thread " + threadIndex + ": regenerating a transaction (readOnly: " + transaction.isReadOnly() + ") of type " + transaction.getType() +
-                         " into a transaction of type " + newTransaction.getType());
+         if (traceL) {
+            log.trace("Thread " + threadIndex + ": regenerating a transaction (readOnly: " + transaction.isReadOnly() + ") of type " + transaction.getType() +
+                            " into a transaction of type " + newTransaction.getType());
+         }
          return transaction;
       }
       // If this is the first time xact runs or exact retry on abort is enabled...
@@ -356,7 +363,9 @@ public class Consumer implements IConsumer {
       if (parameters.getBackOffTime() != 0) {
          stats.inc(StressorStats.NUM_BACK_OFFS);
          long backedOff = backOffSleeper.sleep();
-         log.trace("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
+         if (traceL) {
+            log.trace("Thread " + this.threadIndex + " backed off for " + backedOff + " msec");
+         }
          stats.put(StressorStats.BACKED_OFF_TIME, backedOff);
       }
    }
@@ -413,7 +422,7 @@ public class Consumer implements IConsumer {
 
    @Override
    public String toString() {
-      return new String("I'm a consumer, index: " + threadIndex);
+      return "I'm a consumer, index: " + threadIndex;
    }
 
    public int getThreadIndex() {

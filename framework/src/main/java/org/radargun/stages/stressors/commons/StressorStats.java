@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by: Fabio Perfetti E-mail: perfabio87@gmail.com Date: 4/2/13
+ * @author Fabio Perfetti E-mail: perfabio87@gmail.com
  */
 public class StressorStats {
 
@@ -20,7 +20,7 @@ public class StressorStats {
    public long get(String key) {
       Long val = statistics.get(key);
       if (val == null) {
-         val = new Long(0);
+         val = 0L;
          statistics.put(key, val);
       }
       return val;
@@ -145,16 +145,12 @@ public class StressorStats {
       put(START_COMMIT_TIMESTAMP, System.nanoTime());
    }
 
-   public void handleAbortLocalTx(TransactionDecorator tx, Throwable e) {
+   public void _handleAbortLocalTx(TransactionDecorator tx, Throwable e) {
    }
 
-   public final void _handleAbortLocalTx(TransactionDecorator tx, Throwable e, boolean isCacheTimeout) {
+   public final void handleAbortLocalTx(TransactionDecorator tx, Throwable e) {
 
       inc(StressorStats.NR_FAILURES);
-
-      if (isCacheTimeout)
-         inc(StressorStats.LOCAL_TIMEOUT);
-
 
       if (!tx.isReadOnly()) {
          inc(StressorStats.NR_WR_FAILURES);
@@ -166,24 +162,26 @@ public class StressorStats {
          inc(APP_FAILURES);
       }
 
-      handleAbortLocalTx(tx, e);
+      _handleAbortLocalTx(tx, e);
    }
 
 
    /* *** REMOTE HANDLERS *** */
-   public void handleSuccessRemoteTx(TransactionDecorator tx) {
+   public void _handleSuccessRemoteTx(TransactionDecorator tx) {
+      //No-op
    }
 
-   public final void _handleSuccessRemoteSuccessTx(TransactionDecorator tx) {
+   public final void handleSuccessRemoteSuccessTx(TransactionDecorator tx) {
       tx.setEndTimestamp(System.nanoTime());
 
-      handleSuccessRemoteTx(tx);
+      _handleSuccessRemoteTx(tx);
    }
 
-   public void handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
+   protected void _handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
+      //No-op
    }
 
-   public final void _handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
+   public final void handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
       inc(StressorStats.NR_FAILURES);
       inc(StressorStats.REMOTE_TIMEOUT);
 
@@ -194,15 +192,16 @@ public class StressorStats {
          inc(StressorStats.NR_RD_FAILURES);
       }
 
-      handleAbortRemoteTx(tx, e);
+      _handleAbortRemoteTx(tx, e);
    }
 
 
    /* *** OTHER HANDLERS *** */
-   public void handleQueueTx(TransactionDecorator tx) {
+   protected void _handleInitTx(TransactionDecorator tx) {
+      //No-op
    }
 
-   public final void _handleQueueTx(TransactionDecorator tx) {
+   public final void handleInitTx(TransactionDecorator tx) {
       long queuingTime = tx.getDequeueTimestamp() - tx.getEnqueueTimestamp();
       if (tx.isReadOnly()) {
          inc(StressorStats.NUM_READ_DEQUEUED);
@@ -212,7 +211,7 @@ public class StressorStats {
          put(StressorStats.WRITE_IN_QUEUE_TIME, queuingTime);
       }
 
-      handleQueueTx(tx);
+      _handleInitTx(tx);
    }
 
 
@@ -226,8 +225,7 @@ public class StressorStats {
       long duration = get(StressorStats.DURATION);
       if (duration == 0)
          return 0;
-      double requestPerSec = (get(StressorStats.READS) + get(StressorStats.WRITES)) / (duration / 1000.0);
-      return requestPerSec;
+      return (get(StressorStats.READS) + get(StressorStats.WRITES)) / (duration / 1000.0);
    }
 
    public double evalWrtPerSec() {

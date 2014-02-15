@@ -70,7 +70,7 @@ public class TpccStats extends StressorStats {
     /* ****************** */
 
    @Override
-   public void handleAbortLocalTx(TransactionDecorator tx, Throwable e) {
+   public void _handleAbortLocalTx(TransactionDecorator tx, Throwable e) {
       if (tx.getInnerTransaction() instanceof NewOrderTransaction) {
          inc(NR_NEW_ORDER_FAILURES);
       } else if (tx.getInnerTransaction() instanceof PaymentTransaction) {
@@ -79,7 +79,7 @@ public class TpccStats extends StressorStats {
    }
 
    @Override
-   public void handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
+   public void _handleAbortRemoteTx(TransactionDecorator tx, Throwable e) {
       if (tx.getInnerTransaction() instanceof NewOrderTransaction) {
          inc(NR_NEW_ORDER_FAILURES);
       } else if (tx.getInnerTransaction() instanceof PaymentTransaction) {
