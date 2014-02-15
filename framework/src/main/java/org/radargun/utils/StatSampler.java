@@ -29,7 +29,6 @@ public class StatSampler {
       cpu = new ProcCpuStat();
       memory = new MemoryStat();
       timer = new Timer();
-      this.timer.schedule(new Collector(), interval, interval);
    }
 
    public double getAvgCpuUsage() {
@@ -72,7 +71,7 @@ public class StatSampler {
     */
    public final void start() {
       log.trace("Start timer task");
-      timer.schedule(new Collector(), 0, interval);
+      timer.schedule(new Collector(), interval, interval);
    }
 
    /**
