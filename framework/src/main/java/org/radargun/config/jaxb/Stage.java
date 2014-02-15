@@ -8,7 +8,11 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +39,7 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-        "property"
+      "property"
 })
 @XmlRootElement(name = "stage")
 public class Stage {
@@ -51,10 +55,9 @@ public class Stage {
     * Gets the value of the property property.
     * <p/>
     * <p/>
-    * This accessor method returns a reference to the live list,
-    * not a snapshot. Therefore any modification you make to the
-    * returned list will be present inside the JAXB object.
-    * This is why there is not a <CODE>set</CODE> method for the property property.
+    * This accessor method returns a reference to the live list, not a snapshot. Therefore any modification you make to
+    * the returned list will be present inside the JAXB object. This is why there is not a <CODE>set</CODE> method for
+    * the property property.
     * <p/>
     * <p/>
     * For example, to add a new item, do as follows:
@@ -64,8 +67,7 @@ public class Stage {
     * <p/>
     * <p/>
     * <p/>
-    * Objects of the following type(s) are allowed in the list
-    * {@link Property }
+    * Objects of the following type(s) are allowed in the list {@link Property }
     */
    public List<Property> getProperty() {
       if (property == null) {
@@ -77,8 +79,7 @@ public class Stage {
    /**
     * Gets the value of the enabled property.
     *
-    * @return possible object is
-    *         {@link Boolean }
+    * @return possible object is {@link Boolean }
     */
    public Boolean isEnabled() {
       return enabled;
@@ -87,8 +88,7 @@ public class Stage {
    /**
     * Sets the value of the enabled property.
     *
-    * @param value allowed object is
-    *              {@link Boolean }
+    * @param value allowed object is {@link Boolean }
     */
    public void setEnabled(Boolean value) {
       this.enabled = value;
@@ -97,8 +97,7 @@ public class Stage {
    /**
     * Gets the value of the name property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getName() {
       return name;
@@ -107,8 +106,7 @@ public class Stage {
    /**
     * Sets the value of the name property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setName(String value) {
       this.name = value;

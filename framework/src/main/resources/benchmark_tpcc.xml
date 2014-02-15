@@ -93,11 +93,11 @@
 
             <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
 
-            <MuleSystem thinkTime="0" rateDistribution="exponential" />
+            <MuleSystem thinkTime="0" rateDistribution="exponential"/>
 
-	
+
         </TpccBenchmark>
-        
+
     </benchmark>
 
 

@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Keeps information about the name of the component, the attributes names and display names in report of the stats
- * to be collected
+ * Keeps information about the name of the component, the attributes names and display names in report of the stats to
+ * be collected
  *
  * @author Pedro Ruivo
  * @since 1.1
@@ -21,6 +21,7 @@ public class StatisticComponent {
 
    /**
     * adds a new display name and attribute name. If the display name already exists, it is replaced
+    *
     * @param displayName   the display name (in report file)
     * @param attributeName the attribute name (in exposed jmx)
     */
@@ -30,7 +31,8 @@ public class StatisticComponent {
 
    /**
     * returns a set of entries where the key is the display name and the value the attribute name
-    * @return  a set of entries where the key is the display name and the value the attribute name
+    *
+    * @return a set of entries where the key is the display name and the value the attribute name
     */
    public final Set<Map.Entry<String, String>> getStats() {
       return statsName.entrySet();
@@ -38,7 +40,8 @@ public class StatisticComponent {
 
    /**
     * returns the name of the jmx component
-    * @return  the name of the jmx component
+    *
+    * @return the name of the jmx component
     */
    public final String getName() {
       return name;

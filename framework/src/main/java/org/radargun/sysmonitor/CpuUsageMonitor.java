@@ -32,7 +32,7 @@ public class CpuUsageMonitor extends AbstractActivityMonitor {
       this.con = con;
       this.cpuTimeMultiplier = getCpuMultiplier(con);
       OperatingSystemMXBean os = ManagementFactory.newPlatformMXBeanProxy(con,
-              ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
+                                                                          ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
       procCount = os.getAvailableProcessors();
    }
 
@@ -50,7 +50,7 @@ public class CpuUsageMonitor extends AbstractActivityMonitor {
          long procTimeDiff = (cpuTime / procCount) - (prevCpuTime / procCount);
 
          long cpuUsage = upTimeDiff > 0 ? Math.min((long)
-                 (1000 * (float) procTimeDiff / (float) upTimeDiff), 1000) : 0;
+                                                         (1000 * (float) procTimeDiff / (float) upTimeDiff), 1000) : 0;
 
 
          addMeasurementAsPercentage(cpuUsage);

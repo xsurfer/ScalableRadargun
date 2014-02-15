@@ -14,11 +14,11 @@ public abstract class AbstractCacheWrapperStressor implements CacheWrapperStress
     /* *** ATTRIBUTES *** */
     /* ****************** */
 
-    private static Log log = LogFactory.getLog(AbstractCacheWrapperStressor.class);
+   private static Log log = LogFactory.getLog(AbstractCacheWrapperStressor.class);
 
-    private boolean sysMonitorEnabled = false;
+   private boolean sysMonitorEnabled = false;
 
-    protected CacheWrapper cacheWrapper;
+   protected CacheWrapper cacheWrapper;
 
 
     /* ******************* */
@@ -40,10 +40,14 @@ public abstract class AbstractCacheWrapperStressor implements CacheWrapperStress
     /* *** GETTER/SETTER ** */
     /* ******************** */
 
-    @Override
-    public void setSysMonitorEnabled(boolean enabled) { sysMonitorEnabled = enabled; }
+   @Override
+   public void setSysMonitorEnabled(boolean enabled) {
+      sysMonitorEnabled = enabled;
+   }
 
-    @Override
-    public boolean isSysMonitorEnabled() { return sysMonitorEnabled; }
+   @Override
+   public boolean isSysMonitorEnabled() {
+      return sysMonitorEnabled;
+   }
 
 }

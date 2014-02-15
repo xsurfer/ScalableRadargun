@@ -8,7 +8,11 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
@@ -47,8 +51,7 @@ public class Master {
    /**
     * Gets the value of the bind property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getBind() {
       return bind;
@@ -57,8 +60,7 @@ public class Master {
    /**
     * Sets the value of the bind property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setBind(String value) {
       this.bind = value;
@@ -67,8 +69,7 @@ public class Master {
    /**
     * Gets the value of the slavesCount property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getSlavesCount() {
       return slavesCount;
@@ -77,8 +78,7 @@ public class Master {
    /**
     * Sets the value of the slavesCount property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setSlavesCount(String value) {
       this.slavesCount = value;
@@ -87,8 +87,7 @@ public class Master {
    /**
     * Gets the value of the port property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getPort() {
       return port;
@@ -97,8 +96,7 @@ public class Master {
    /**
     * Sets the value of the port property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setPort(String value) {
       this.port = value;

@@ -2,9 +2,9 @@
 
 <infinispan xmlns="urn:infinispan:config:4.0">
 
-   <default>
-      <transaction
-            transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"/>
-      <locking concurrencyLevel="1000" useLockStriping="false" isolationLevel="REPEATABLE_READ"/>
-   </default>
+    <default>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"/>
+        <locking concurrencyLevel="1000" useLockStriping="false" isolationLevel="REPEATABLE_READ"/>
+    </default>
 </infinispan>

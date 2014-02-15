@@ -11,7 +11,7 @@
             <properties>
                 <property
                         name="configurationFile"
-                        value="jgroups/jgroups-tcp_cloudtm.xml" />
+                        value="jgroups/jgroups-tcp_cloudtm.xml"/>
             </properties>
         </transport>
     </global>
@@ -44,14 +44,14 @@
                 enabled="false"/>
         <clustering mode="d">
             <sync
-                    replTimeout="15000" />
+                    replTimeout="15000"/>
             <hash
                     numOwners="1"/>
             <l1
                     enabled="false"
                     onRehash="false"
                     lifespan="600000"
-                    invalidationThreshold="0" />
+                    invalidationThreshold="0"/>
             <stateTransfer fetchInMemoryState="true"/>
         </clustering>
         <customInterceptors>
@@ -61,7 +61,7 @@
         </customInterceptors>
         <versioning
                 enabled="true"
-                versioningScheme="SIMPLE" />
+                versioningScheme="SIMPLE"/>
     </default>
     <namedCache
             name="x">
@@ -93,14 +93,14 @@
                 enabled="false"/>
         <clustering mode="d">
             <sync
-                    replTimeout="15000" />
+                    replTimeout="15000"/>
             <hash
                     numOwners="1"/>
             <l1
                     enabled="false"
                     onRehash="false"
                     lifespan="600000"
-                    invalidationThreshold="0" />
+                    invalidationThreshold="0"/>
             <stateTransfer fetchInMemoryState="true"/>
         </clustering>
         <customInterceptors>
@@ -110,7 +110,7 @@
         </customInterceptors>
         <versioning
                 enabled="true"
-                versioningScheme="SIMPLE" />
+                versioningScheme="SIMPLE"/>
         <dataPlacement
                 enabled="true"
                 objectLookupFactory="org.infinispan.dataplacement.hm.HashMapObjectLookupFactory"

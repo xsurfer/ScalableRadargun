@@ -32,7 +32,7 @@ public class EHCacheWrapper implements CacheWrapper {
       localMode = isLocal;
       log.debug("Initializing the cache with props " + config);
 
-      configFile  = confAttributes.containsKey("file") ? confAttributes.getProperty("file") : config;
+      configFile = confAttributes.containsKey("file") ? confAttributes.getProperty("file") : config;
       cacheName = confAttributes.containsKey("cache") ? confAttributes.getProperty("cache") : "x";
 
 

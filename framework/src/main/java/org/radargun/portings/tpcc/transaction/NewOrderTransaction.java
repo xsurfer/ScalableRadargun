@@ -4,7 +4,14 @@ import org.radargun.CacheWrapper;
 import org.radargun.portings.tpcc.ElementNotFoundException;
 import org.radargun.portings.tpcc.TpccTerminal;
 import org.radargun.portings.tpcc.TpccTools;
-import org.radargun.portings.tpcc.domain.*;
+import org.radargun.portings.tpcc.domain.Customer;
+import org.radargun.portings.tpcc.domain.District;
+import org.radargun.portings.tpcc.domain.Item;
+import org.radargun.portings.tpcc.domain.NewOrder;
+import org.radargun.portings.tpcc.domain.Order;
+import org.radargun.portings.tpcc.domain.OrderLine;
+import org.radargun.portings.tpcc.domain.Stock;
+import org.radargun.portings.tpcc.domain.Warehouse;
 
 import java.util.Date;
 
@@ -36,7 +43,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
       this.customerID = tpccTools.nonUniformRandom(TpccTools.C_C_ID, TpccTools.A_C_ID, 1, TpccTools.NB_MAX_CUSTOMER);
 
       this.numItems = (int) tpccTools.randomNumber(TpccTools.NUMBER_OF_ITEMS_INTERVAL[0],
-              TpccTools.NUMBER_OF_ITEMS_INTERVAL[1]); // o_ol_cnt
+                                                   TpccTools.NUMBER_OF_ITEMS_INTERVAL[1]); // o_ol_cnt
       this.itemIDs = new long[numItems];
       this.supplierWarehouseIDs = new long[numItems];
       this.orderQuantities = new long[numItems];
@@ -120,16 +127,16 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
 
       NewOrder no = new NewOrder(o_id, districtID, warehouseID);
 
-      no.store(cacheWrapper,threadId);
+      no.store(cacheWrapper, threadId);
 
       d.setD_next_o_id(d.getD_next_o_id() + 1);
 
-      d.store(cacheWrapper,threadId);
+      d.store(cacheWrapper, threadId);
 
 
       Order o = new Order(o_id, districtID, warehouseID, customerID, new Date(), -1, numItems, allLocal);
 
-      o.store(cacheWrapper,threadId);
+      o.store(cacheWrapper, threadId);
 
 
       // see clause 2.4.2.2 (dot 8)
@@ -175,7 +182,7 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
          s.setS_ytd(s.getS_ytd() + ol_quantity);
          s.setS_remote_cnt(s.getS_remote_cnt() + s_remote_cnt_increment);
          s.setS_order_cnt(s.getS_order_cnt() + 1);
-         s.store(cacheWrapper,threadId);
+         s.store(cacheWrapper, threadId);
 
 
          // clause 2.4.2.2 (dot 8.3)
@@ -226,8 +233,8 @@ public class NewOrderTransaction extends AbstractTpccTransaction {
          // clause 2.4.2.2 (dot 8.5)
 
          OrderLine ol = new OrderLine(o_id, districtID, warehouseID, ol_number, ol_i_id, ol_supply_w_id, null,
-                 ol_quantity, ol_amount, ol_dist_info);
-         ol.store(cacheWrapper,threadId);
+                                      ol_quantity, ol_amount, ol_dist_info);
+         ol.store(cacheWrapper, threadId);
       }
 
    }

@@ -118,7 +118,7 @@ public class ConfigHelper {
             String sysProp = System.getProperties().getProperty(val);
             if (sysProp == null) {
                String errorMessage = "For property '" + originalVal + "' there's no System.property with key " + val
-                       + " .Existing properties are: " + System.getProperties();
+                     + " .Existing properties are: " + System.getProperties();
                log.error(errorMessage);
                throw new RuntimeException(errorMessage);
             } else {

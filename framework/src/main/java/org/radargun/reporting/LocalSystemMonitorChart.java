@@ -5,7 +5,11 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.local.ReportDesc;
 import org.radargun.local.ReportItem;
 import org.radargun.stages.GenerateChartStage;
-import org.radargun.sysmonitor.*;
+import org.radargun.sysmonitor.AbstractActivityMonitor;
+import org.radargun.sysmonitor.CpuUsageMonitor;
+import org.radargun.sysmonitor.GcMonitor;
+import org.radargun.sysmonitor.LocalJmxMonitor;
+import org.radargun.sysmonitor.MemoryUsageMonitor;
 
 import java.math.BigDecimal;
 import java.util.HashMap;

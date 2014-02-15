@@ -47,7 +47,8 @@
                     <property name="dataColumnName" value="DATA_COLUMN"/>
                     <property name="timestampColumnName" value="TIMESTAMP_COLUMN"/>
                     <property name="timestampColumnType" value="BIGINT"/>
-                    <property name="connectionFactoryClass" value="org.infinispan.loaders.jdbc.connectionfactory.PooledConnectionFactory"/>
+                    <property name="connectionFactoryClass"
+                              value="org.infinispan.loaders.jdbc.connectionfactory.PooledConnectionFactory"/>
                     <property name="connectionUrl" value="jdbc:postgresql://localhost:55555/tpcc-10-warehouses"/>
                     <property name="userName" value="postgres"/>
                     <property name="password" value="postgres"/>
@@ -64,5 +65,5 @@
                 strategy="UNORDERED"/>
     </default>
     <namedCache
-            name="x" />
+            name="x"/>
 </infinispan>

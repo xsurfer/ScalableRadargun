@@ -21,9 +21,9 @@ public class MasterConfig {
    private String host;
    private int slavesCount;
 
-    /**
-     * This list contains as many ScalingBenchmarkConfig as the product (PRODUCTS * CONFIGURATION FILE)
-     */
+   /**
+    * This list contains as many ScalingBenchmarkConfig as the product (PRODUCTS * CONFIGURATION FILE)
+    */
    List<FixedSizeBenchmarkConfig> benchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
 
    public MasterConfig(int port, String host, int slavesCount) {
@@ -44,10 +44,11 @@ public class MasterConfig {
       return slavesCount;
    }
 
-    /** questo metodo viene chiamato quando si aggiungono/rimuovono nuovi thread a runtime
-     *  ed è incaricato di aggiornare anche il numero di slaves nello stage attualmente in esecuzione
-     *  che DEVE essere OBLiGATORIAMENTE il WebSessionBenchmarkStage!!!
-     **/
+   /**
+    * questo metodo viene chiamato quando si aggiungono/rimuovono nuovi thread a runtime ed è incaricato di aggiornare
+    * anche il numero di slaves nello stage attualmente in esecuzione che DEVE essere OBLiGATORIAMENTE il
+    * WebSessionBenchmarkStage!!!
+    */
 //    @Deprecated
 //    public void setSlavesCount(int slavesCount){
 //        this.slavesCount = slavesCount;
@@ -57,7 +58,6 @@ public class MasterConfig {
 //        }
 //
 //    }
-
    public List<FixedSizeBenchmarkConfig> getBenchmarks() {
       return benchmarks;
    }

@@ -80,18 +80,18 @@ public class SwitchJmxRequest {
       SwitchJmxRequest switchJmxRequest;
       if (arguments.hasOption(Option.PRINT_STATE)) {
          switchJmxRequest = SwitchJmxRequest.createPrintStateRequest(arguments.getValue(Option.JMX_HOSTNAME),
-                 arguments.getValue(Option.JMX_PORT),
-                 arguments.getValue(Option.JMX_COMPONENT));
+                                                                     arguments.getValue(Option.JMX_PORT),
+                                                                     arguments.getValue(Option.JMX_COMPONENT));
       } else if (arguments.hasOption(Option.PRINT_STATS)) {
          switchJmxRequest = SwitchJmxRequest.createPrintStatsRequest(arguments.getValue(Option.JMX_HOSTNAME),
-                 arguments.getValue(Option.JMX_PORT),
-                 arguments.getValue(Option.JMX_COMPONENT));
+                                                                     arguments.getValue(Option.JMX_PORT),
+                                                                     arguments.getValue(Option.JMX_COMPONENT));
       } else {
          switchJmxRequest = SwitchJmxRequest.createSwitchRequest(arguments.getValue(Option.JMX_HOSTNAME),
-                 arguments.getValue(Option.JMX_PORT),
-                 arguments.getValue(Option.JMX_COMPONENT),
-                 arguments.getValue(Option.PROTOCOL),
-                 arguments.hasOption(Option.FORCE_STOP));
+                                                                 arguments.getValue(Option.JMX_PORT),
+                                                                 arguments.getValue(Option.JMX_COMPONENT),
+                                                                 arguments.getValue(Option.PROTOCOL),
+                                                                 arguments.hasOption(Option.FORCE_STOP));
       }
 
       switchJmxRequest.doRequest();
@@ -130,12 +130,12 @@ public class SwitchJmxRequest {
                String cacheName = name.getKeyProperty("name");
                String cacheManagerName = name.getKeyProperty("manager");
                String objectNameString = new StringBuilder(JMX_DOMAIN)
-                       .append(":type=Cache,name=")
-                       .append(cacheName.startsWith("\"") ? cacheName :
-                               ObjectName.quote(cacheName))
-                       .append(",manager=").append(cacheManagerName.startsWith("\"") ? cacheManagerName :
-                               ObjectName.quote(cacheManagerName))
-                       .append(",component=").append(component).toString();
+                     .append(":type=Cache,name=")
+                     .append(cacheName.startsWith("\"") ? cacheName :
+                                   ObjectName.quote(cacheName))
+                     .append(",manager=").append(cacheManagerName.startsWith("\"") ? cacheManagerName :
+                                                       ObjectName.quote(cacheManagerName))
+                     .append(",component=").append(component).toString();
                return new ObjectName(objectNameString);
             }
          }
@@ -159,7 +159,7 @@ public class SwitchJmxRequest {
          System.out.println();
       } else {
          mBeanServerConnection.invoke(switchComponent, "switchTo", new Object[]{newProtocolId, forceStop},
-                 new String[]{"java.lang.String", "boolean"});
+                                      new String[]{"java.lang.String", "boolean"});
          System.out.println("Switch done!");
       }
    }
@@ -193,7 +193,7 @@ public class SwitchJmxRequest {
             Option option = Option.fromString(args[idx]);
             if (option == null) {
                throw new IllegalArgumentException("unkown option: " + args[idx] + ". Possible options are: " +
-                       Arrays.asList(Option.values()));
+                                                        Arrays.asList(Option.values()));
             }
             idx++;
             if (option.isBoolean()) {
@@ -236,8 +236,8 @@ public class SwitchJmxRequest {
       @Override
       public final String toString() {
          return "Arguments{" +
-                 "argsValues=" + argsValues +
-                 '}';
+               "argsValues=" + argsValues +
+               '}';
       }
    }
 

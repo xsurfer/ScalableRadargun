@@ -6,13 +6,16 @@ import org.radargun.CacheWrapper;
 import org.radargun.portings.tpcc.domain.CustomerLookup;
 import org.radargun.utils.ThreadTpccToolsManager;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Note: the code is not fully-engineered as it lacks some basic checks (for example on the number
- * of threads).
+ * Note: the code is not fully-engineered as it lacks some basic checks (for example on the number of threads).
  *
  * @author Diego Didona <didona@gsd.inesc-id.pt>
  * @author Pedro Ruivo
@@ -31,7 +34,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
                                        long cLastMask, long olIdMask, long cIdMask,
                                        int parallelThreads, int elementsPerBlock) {
       this(wrapper, numWarehouses, slaveIndex, numSlaves, cLastMask, olIdMask, cIdMask, parallelThreads, elementsPerBlock,
-              false, new ThreadTpccToolsManager(System.nanoTime()));
+           false, new ThreadTpccToolsManager(System.nanoTime()));
    }
 
    public ThreadParallelTpccPopulation(CacheWrapper wrapper, int numWarehouses, int slaveIndex, int numSlaves,
@@ -121,7 +124,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       log.trace("Populating Customers for warehouse " + warehouseId + " and district " + districtId);
 
       final ConcurrentHashMap<CustomerLookupQuadruple, Integer> lookupContentionAvoidance =
-              new ConcurrentHashMap<CustomerLookupQuadruple, Integer>();
+            new ConcurrentHashMap<CustomerLookupQuadruple, Integer>();
 
       performMultiThreadPopulation(1, TpccTools.NB_MAX_CUSTOMER, new ThreadCreator() {
          @Override
@@ -183,11 +186,11 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "PopulateOrderThread{" +
-                 "lowerBound=" + lowerBound +
-                 ", upperBound=" + upperBound +
-                 ", warehouseId=" + warehouseId +
-                 ", districtId=" + districtId +
-                 '}';
+               "lowerBound=" + lowerBound +
+               ", upperBound=" + upperBound +
+               ", warehouseId=" + warehouseId +
+               ", districtId=" + districtId +
+               '}';
       }
 
       public PopulateOrderThread(int threadIdx, long l, long u, int w, int d) {
@@ -266,11 +269,11 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "PopulateCustomerThread{" +
-                 "lowerBound=" + lowerBound +
-                 ", upperBound=" + upperBound +
-                 ", warehouseId=" + warehouseId +
-                 ", districtId=" + districtId +
-                 '}';
+               "lowerBound=" + lowerBound +
+               ", upperBound=" + upperBound +
+               ", warehouseId=" + warehouseId +
+               ", districtId=" + districtId +
+               '}';
       }
 
       @SuppressWarnings("unchecked")
@@ -347,9 +350,9 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "PopulateItemThread{" +
-                 "lowerBound=" + lowerBound +
-                 ", upperBound=" + upperBound +
-                 '}';
+               "lowerBound=" + lowerBound +
+               ", upperBound=" + upperBound +
+               '}';
       }
 
       public PopulateItemThread(int threadIdx, long low, long up) {
@@ -400,10 +403,10 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "PopulateStockThread{" +
-                 "lowerBound=" + lowerBound +
-                 ", upperBound=" + upperBound +
-                 ", warehouseId=" + warehouseId +
-                 '}';
+               "lowerBound=" + lowerBound +
+               ", upperBound=" + upperBound +
+               ", warehouseId=" + warehouseId +
+               '}';
       }
 
       public PopulateStockThread(int threadIdx, long low, long up, int warehouseId) {
@@ -455,9 +458,9 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "PopulateCustomerLookupThread{" +
-                 "lowerBound=" + lowerBound +
-                 ", upperBound=" + upperBound +
-                 '}';
+               "lowerBound=" + lowerBound +
+               ", upperBound=" + upperBound +
+               '}';
       }
 
       @SuppressWarnings("unchecked")
@@ -533,8 +536,8 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
          //The customer id does not count!!! it's not part of the key
          //if (customerId != that.customerId) return false;
          return districtId == that.districtId &&
-                 warehouseId == that.warehouseId &&
-                 !(c_last != null ? !c_last.equals(that.c_last) : that.c_last != null);
+               warehouseId == that.warehouseId &&
+               !(c_last != null ? !c_last.equals(that.c_last) : that.c_last != null);
 
       }
 
@@ -551,11 +554,11 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
       @Override
       public String toString() {
          return "CustomerLookupQuadruple{" +
-                 "c_last='" + c_last + '\'' +
-                 ", warehouseId=" + warehouseId +
-                 ", districtId=" + districtId +
-                 ", customerId=" + customerId +
-                 '}';
+               "c_last='" + c_last + '\'' +
+               ", warehouseId=" + warehouseId +
+               ", districtId=" + districtId +
+               ", customerId=" + customerId +
+               '}';
       }
    }
 
@@ -565,7 +568,7 @@ public class ThreadParallelTpccPopulation extends TpccPopulation {
 
    private void startTransactionIfNeeded() {
       if (isBatchingEnabled()) {
-         //Pedro: this is experimental. I want to avoid the overloading of the network. 
+         //Pedro: this is experimental. I want to avoid the overloading of the network.
          // So, instead of starting immediately the transaction, it waits a while
          long sleepFor = waitingPeriod.get();
 

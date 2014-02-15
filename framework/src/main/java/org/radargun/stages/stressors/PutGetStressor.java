@@ -6,14 +6,18 @@ import org.radargun.CacheWrapper;
 import org.radargun.utils.StatSampler;
 import org.radargun.utils.Utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * On multiple threads executes put and get operations against the CacheWrapper, and returns the result as an Map.
- *
+ * <p/>
  * TODO: ACCERTARSI CHE ALL'INIZIO DELLO STAGE E DOPO IL JOIN LE STATISTICHE VENGANO RESETTATE
  *
  * @author Mircea.Markus@jboss.com
@@ -179,7 +183,7 @@ public class PutGetStressor extends AbstractCacheWrapperStressor {
       return nodeIndex == -1;
    }
 
-    protected class Stressor extends Thread {
+   protected class Stressor extends Thread {
 
       private ArrayList<Object> pooledKeys = new ArrayList<Object>(numberOfKeys);
 

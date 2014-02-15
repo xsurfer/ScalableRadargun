@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Do <code>operationCount</code> puts and  <code>operationCount</code> gets on the cache wrapper.
  *
  * @author Mircea.Markus@jboss.com
- * @deprecated this should be replaced with the {@link PutGetWarmupStressor}. This is because that warmup mimics better the
- *             access pattern of the the {@link PutGetStressor}, especially in the case of transactions.
+ * @deprecated this should be replaced with the {@link PutGetWarmupStressor}. This is because that warmup mimics better
+ * the access pattern of the the {@link PutGetStressor}, especially in the case of transactions.
  */
 public class WarmupStressor extends AbstractCacheWrapperStressor {
 
@@ -83,7 +83,7 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
 
    private void doPut(int operationId, int threadId) {
       String key = new StringBuilder(keyPrefix).append("-").append(operationId % keysPerThread).append("-").
-              append(threadId).append("-").append(bucket).toString();
+            append(threadId).append("-").append(bucket).toString();
       try {
          wrapper.put(bucket, key, key);
       } catch (Exception e) {
@@ -93,7 +93,7 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
 
    private void doGet(int operationId, int threadId) {
       String key = new StringBuilder(keyPrefix).append("-").append(operationId % keysPerThread).append("-").
-              append(threadId).append("-").append(bucket).toString();
+            append(threadId).append("-").append(bucket).toString();
       try {
          wrapper.get(bucket, key);
       } catch (Exception e) {
@@ -125,9 +125,9 @@ public class WarmupStressor extends AbstractCacheWrapperStressor {
    @Override
    public String toString() {
       return "WarmupStressor{" +
-              "bucket=" + bucket +
-              "keyPrefix" + keyPrefix +
-              "operationCount=" + operationCount + "}";
+            "bucket=" + bucket +
+            "keyPrefix" + keyPrefix +
+            "operationCount=" + operationCount + "}";
    }
 
 

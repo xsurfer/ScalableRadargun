@@ -9,18 +9,22 @@ import org.radargun.utils.TypedProperties;
 import javax.transaction.TransactionManager;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.Random;
 
 
 /**
- * Plugin measuring the costs of remote gets and puts with JGroups, with regular arguments passed by RadarGun.
- * However, a GET returns a <em>prefabricated</em> value (no cache handling) and a PUT simply invokes the remote call,
- * but doesn't add anything to a hashmap.<p/>
- * The point of this plugin is to measure the overhead of Infinispan's cache handling; it is a base line to the
- * Infinispan plugin. The Infinispan plugin should be slower than the JGroups plugin, but the difference should always
- * be constant, regardless of the cluster size.<p/>
- * Properties, such as the size of the layload for gets, and the number of owners of a key, can be
- * defined in jgroups.properties.
+ * Plugin measuring the costs of remote gets and puts with JGroups, with regular arguments passed by RadarGun. However,
+ * a GET returns a <em>prefabricated</em> value (no cache handling) and a PUT simply invokes the remote call, but
+ * doesn't add anything to a hashmap.<p/> The point of this plugin is to measure the overhead of Infinispan's cache
+ * handling; it is a base line to the Infinispan plugin. The Infinispan plugin should be slower than the JGroups plugin,
+ * but the difference should always be constant, regardless of the cluster size.<p/> Properties, such as the size of the
+ * layload for gets, and the number of owners of a key, can be defined in jgroups.properties.
+ *
  * @author Bela Ban
  */
 public class JGroupsWrapper extends ReceiverAdapter implements CacheWrapper {
@@ -131,7 +135,7 @@ public class JGroupsWrapper extends ReceiverAdapter implements CacheWrapper {
       // we're simulating picking ourselves, which returns the data directly from the local cache - no RPC involved
       if (target == null)
          return get_rsp;
-      
+
       try {
          return disp.callRemoteMethod(target, get_call, get_options);
       } catch (Throwable t) {
@@ -198,7 +202,7 @@ public class JGroupsWrapper extends ReceiverAdapter implements CacheWrapper {
       // self also has the keys for the previous num_owners - 1 nodes
       if (noop_self_requests && index >= members.size() - num_owners)
          return null;
-      
+
       return members.get(index);
    }
 

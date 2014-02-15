@@ -70,9 +70,9 @@ public class StopJmxRequest {
       System.out.println("Options are " + arguments.printOptions());
 
       new StopJmxRequest(arguments.getValue(Option.JMX_COMPONENT),
-              arguments.getValue(Option.JMX_HOSTNAME),
-              arguments.getValue(Option.JMX_PORT))
-              .doRequest();
+                         arguments.getValue(Option.JMX_HOSTNAME),
+                         arguments.getValue(Option.JMX_PORT))
+            .doRequest();
 
    }
 
@@ -110,7 +110,7 @@ public class StopJmxRequest {
             Option option = Option.fromString(args[idx]);
             if (option == null) {
                throw new IllegalArgumentException("unkown option: " + args[idx] + ". Possible options are: " +
-                       Arrays.asList(Option.values()));
+                                                        Arrays.asList(Option.values()));
             }
             idx++;
             if (option.isBoolean()) {
@@ -145,8 +145,8 @@ public class StopJmxRequest {
       @Override
       public final String toString() {
          return "Arguments{" +
-                 "argsValues=" + argsValues +
-                 '}';
+               "argsValues=" + argsValues +
+               '}';
       }
    }
 

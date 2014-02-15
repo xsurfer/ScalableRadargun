@@ -8,7 +8,7 @@ package org.radargun.stages.synthetic;
  */
 public enum XACT_RETRY {
 
-   NO_RETRY,RETRY_SAME_CLASS,RETRY_SAME_XACT
+   NO_RETRY, RETRY_SAME_CLASS, RETRY_SAME_XACT
 
 
 }

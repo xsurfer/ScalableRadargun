@@ -9,9 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * Date: 3/4/12
- * Time: 12:04 PM
+ * Created by IntelliJ IDEA. Date: 3/4/12 Time: 12:04 PM
  *
  * @author Pedro Ruivo
  */
@@ -31,7 +29,7 @@ public class CacheSizeStage extends AbstractDistStage {
          ack.setErrorMessage("Cache Wrapper is null");
          return ack;
       }
-      log.info("Cache size "+wrapper.getCacheSize());
+      log.info("Cache size " + wrapper.getCacheSize());
       ack.setPayload(wrapper.getCacheSize());
       ack.setDuration(0);
       return ack;
@@ -39,11 +37,11 @@ public class CacheSizeStage extends AbstractDistStage {
 
    @Override
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
-      log.info("CacheSizeStage processAckOnMaster see "+getActiveSlaveCount()+" active slaves");
+      log.info("CacheSizeStage processAckOnMaster see " + getActiveSlaveCount() + " active slaves");
       CacheSizeValues cacheSizeValues = new CacheSizeValues(processStatName(), getActiveSlaveCount());
       for (DistStageAck ack : acks) {
          if (ack instanceof DefaultDistStageAck) {
-            log.info("Processing CacheSizeStage for slave "+ack.getSlaveIndex());
+            log.info("Processing CacheSizeStage for slave " + ack.getSlaveIndex());
             Integer cacheSize = (Integer) ((DefaultDistStageAck) ack).getPayload();
             cacheSizeValues.setCacheSize(ack.getSlaveIndex(), cacheSize);
          }
@@ -58,7 +56,7 @@ public class CacheSizeStage extends AbstractDistStage {
       //and you don't want to lose information
       //Nevertheless, once you produce the csv, these info must be erased from the master state!
       allCacheSizeValues.add(cacheSizeValues);
-      log.info("allCacheSizeValues "+allCacheSizeValues.toString());
+      log.info("allCacheSizeValues " + allCacheSizeValues.toString());
       return super.processAckOnMaster(acks, masterState);    //To change body of overridden methods use File | Settings | File Templates.
    }
 
@@ -78,9 +76,9 @@ public class CacheSizeStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "CacheSizeStage{" +
-              "statName='" + statName + '\'' +
-              ", reset=" + reset +
-              '}';
+            "statName='" + statName + '\'' +
+            ", reset=" + reset +
+            '}';
    }
 
    public void setStatName(String statName) {

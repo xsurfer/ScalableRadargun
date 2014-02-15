@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -60,10 +61,11 @@
                                 </goals>
                                 <configuration>
                                     <tasks>
-                                        <echo message="Packaging the coherence3 plugin" />
+                                        <echo message="Packaging the coherence3 plugin"/>
                                         <copy todir="${distribution.artifact}/plugins/coherence3">
-                                            <fileset dir="plugins/coherence3/target/distribution/plugin-coherence3-bin/plugin-coherence3">
-                                                <include name="**/*" />
+                                            <fileset
+                                                    dir="plugins/coherence3/target/distribution/plugin-coherence3-bin/plugin-coherence3">
+                                                <include name="**/*"/>
                                             </fileset>
                                         </copy>
                                     </tasks>
@@ -97,9 +99,9 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <delete dir="target/distribution" />
-                                <mkdir dir="target/distribution" />
-                                <mkdir dir="${distribution.artifact}" />
+                                <delete dir="target/distribution"/>
+                                <mkdir dir="target/distribution"/>
+                                <mkdir dir="${distribution.artifact}"/>
                             </tasks>
                         </configuration>
                     </execution>
@@ -112,17 +114,18 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <echo message="Packaging the framework, and the following plugins: infinispan4, infinispan5, infinispan50, jbosscache2, jbosscache3, ehcache25" />
+                                <echo message="Packaging the framework, and the following plugins: infinispan4, infinispan5, infinispan50, jbosscache2, jbosscache3, ehcache25"/>
 
                                 <copy todir="${distribution.artifact}/plugins/infinispan4">
-                                    <fileset dir="plugins/infinispan4/target/distribution/plugin-infinispan4-bin/plugin-infinispan4">
-                                        <include name="**/*" />
+                                    <fileset
+                                            dir="plugins/infinispan4/target/distribution/plugin-infinispan4-bin/plugin-infinispan4">
+                                        <include name="**/*"/>
                                     </fileset>
                                 </copy>
                                 <chmod perm="ugo+rwx" type="file">
                                     <fileset dir="${distribution.artifact}/plugins/infinispan4/bin">
-                                        <include name="**/*.sh" />
-                                        <include name="**/*.py" />
+                                        <include name="**/*.sh"/>
+                                        <include name="**/*.py"/>
                                     </fileset>
                                 </chmod>
 
@@ -186,25 +189,28 @@
                         </goals>
                         <configuration>
                             <tasks>
-                                <echo message="Packaging the framework, common scripts and building archive" />
+                                <echo message="Packaging the framework, common scripts and building archive"/>
                                 <copy todir="${distribution.artifact}">
-                                    <fileset dir="framework/target/distribution/radargun-framework-bin/radargun-framework">
-                                        <include name="**/*" />
+                                    <fileset
+                                            dir="framework/target/distribution/radargun-framework-bin/radargun-framework">
+                                        <include name="**/*"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${distribution.artifact}/bin">
                                     <fileset dir="bin">
-                                        <include name="**/*" />
+                                        <include name="**/*"/>
                                     </fileset>
                                 </copy>
                                 <chmod perm="ugo+rwx" type="file">
                                     <fileset dir="${distribution.artifact}/bin">
-                                        <include name="**/*.sh" />
-                                        <include name="**/*.py" />
+                                        <include name="**/*.sh"/>
+                                        <include name="**/*.py"/>
                                     </fileset>
                                 </chmod>
-                                <zip destfile="${distribution.zipfile}" basedir="target/distribution" excludes="**/bin/**">
-                                    <zipfileset dir="${distribution.artifact}/bin" filemode="755" prefix="${distribution.name}/bin" />
+                                <zip destfile="${distribution.zipfile}" basedir="target/distribution"
+                                     excludes="**/bin/**">
+                                    <zipfileset dir="${distribution.artifact}/bin" filemode="755"
+                                                prefix="${distribution.name}/bin"/>
                                 </zip>
                             </tasks>
                         </configuration>
@@ -215,7 +221,6 @@
 
         </plugins>
     </build>
-
 
 
 </project>

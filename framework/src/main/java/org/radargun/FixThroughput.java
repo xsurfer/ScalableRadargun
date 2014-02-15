@@ -1,8 +1,17 @@
 package org.radargun;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * fixes the throughput for the PB protocol (or other) based on the expected write percentage value
@@ -111,8 +120,8 @@ public class FixThroughput implements Runnable {
    /**
     * returns the buffered reader for the input file
     *
-    * @return the buffered reader for the input file or null if the some error occurs (file cannot be open or it is
-    *         not found)
+    * @return the buffered reader for the input file or null if the some error occurs (file cannot be open or it is not
+    * found)
     */
    private BufferedReader getBufferedReader() {
       try {
@@ -237,7 +246,7 @@ public class FixThroughput implements Runnable {
          }
 
          return (int) Math.min(writeThroughput.doubleValue() / expectedWritePercentage.doubleValue(),
-                 readThroughput.doubleValue() / (1 - expectedWritePercentage.doubleValue()));
+                               readThroughput.doubleValue() / (1 - expectedWritePercentage.doubleValue()));
       }
    }
 

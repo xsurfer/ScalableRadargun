@@ -22,14 +22,14 @@ public class LaunchMaster {
       out("Configuration file is: " + config);
 
       ConfigParser configParser = ConfigParser.getConfigParser();
-       //configParser è DomConfigParser
-       MasterConfig masterConfig = null;
-       try {
-           masterConfig = configParser.parseConfig(config);
-       } catch (Exception e) {
-           throw new RuntimeException(e);
-       }
-       NewElasticMaster server = new NewElasticMaster(masterConfig);
+      //configParser è DomConfigParser
+      MasterConfig masterConfig = null;
+      try {
+         masterConfig = configParser.parseConfig(config);
+      } catch (Exception e) {
+         throw new RuntimeException(e);
+      }
+      NewElasticMaster server = new NewElasticMaster(masterConfig);
       server.start();
    }
 

@@ -21,7 +21,15 @@ import org.radargun.cachewrappers.parser.StatsParser;
 import org.radargun.utils.TypedProperties;
 import org.radargun.utils.Utils;
 
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanException;
+import javax.management.MBeanInfo;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
@@ -30,7 +38,15 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Observer;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -88,7 +104,7 @@ public class InfinispanWrapper implements CacheWrapper {
          String cacheNames = cacheManager.getDefinedCacheNames();
          if (!cacheNames.contains(cacheName))
             throw new IllegalStateException("The requested cache(" + cacheName + ") is not defined. Defined cache " +
-                    "names are " + cacheNames);
+                                                  "names are " + cacheNames);
          cache = cacheManager.getCache(cacheName);
          log.warn("IgnorePutResult is " + ignorePutResult);
          if (ignorePutResult)
@@ -106,8 +122,8 @@ public class InfinispanWrapper implements CacheWrapper {
             //just ignore
             isPassiveReplicationMethod = null;
          }
-          this.listener = new InfinispanListener();
-          cacheManager.addListener( listener );
+         this.listener = new InfinispanListener();
+         cacheManager.addListener(listener);
       }
       log.debug("Loading JGroups from: " + org.jgroups.Version.class.getProtectionDomain().getCodeSource().getLocation());
       log.info("JGroups version: " + org.jgroups.Version.printDescription());
@@ -388,7 +404,7 @@ public class InfinispanWrapper implements CacheWrapper {
       try {
          //PEDRO's
          return isPassiveReplicationMethod != null && (isPassiveReplicationWithSwitch() ||
-                 (Boolean) isPassiveReplicationMethod.invoke(cache.getConfiguration()));
+                                                             (Boolean) isPassiveReplicationMethod.invoke(cache.getConfiguration()));
       } catch (Exception ee) {
          log.debug("isPassiveReplication method not found or can't be invoked. Assuming *no* passive replication in use");
       }
@@ -410,8 +426,8 @@ public class InfinispanWrapper implements CacheWrapper {
       if (cacheComponentString != null) {
          try {
             return "PB".equals(getAsStringAttribute(mBeanServer,
-                    new ObjectName(cacheComponentString + "ReconfigurableReplicationManager"),
-                    "currentProtocolId"));
+                                                    new ObjectName(cacheComponentString + "ReconfigurableReplicationManager"),
+                                                    "currentProtocolId"));
          } catch (Exception e) {
             log.warn("Unable to check for Passive Replication protocol");
          }
@@ -460,12 +476,12 @@ public class InfinispanWrapper implements CacheWrapper {
                String cacheName = name.getKeyProperty("name");
                String cacheManagerName = name.getKeyProperty("manager");
                return new StringBuilder(domain)
-                       .append(":type=Cache,name=")
-                       .append(cacheName.startsWith("\"") ? cacheName :
-                               ObjectName.quote(cacheName))
-                       .append(",manager=").append(cacheManagerName.startsWith("\"") ? cacheManagerName :
-                               ObjectName.quote(cacheManagerName))
-                       .append(",component=").toString();
+                     .append(":type=Cache,name=")
+                     .append(cacheName.startsWith("\"") ? cacheName :
+                                   ObjectName.quote(cacheName))
+                     .append(",manager=").append(cacheManagerName.startsWith("\"") ? cacheManagerName :
+                                                       ObjectName.quote(cacheManagerName))
+                     .append(",component=").toString();
             }
          }
       }
@@ -484,35 +500,35 @@ public class InfinispanWrapper implements CacheWrapper {
          String filePath = "top-keys-" + transport.getAddress();
 
          log.info("Collecting statistics from Stream Lib component [" + streamLibStats + "] and save them in " +
-                 filePath);
+                        filePath);
          log.debug("Attributes available are " +
-                 mBeanAttributes2String(mBeanServer.getMBeanInfo(streamLibStats).getAttributes()));
+                         mBeanAttributes2String(mBeanServer.getMBeanInfo(streamLibStats).getAttributes()));
 
          BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
 
          bufferedWriter.write("RemoteTopGets=" + getMapAttribute(mBeanServer, streamLibStats, "RemoteTopGets")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("LocalTopGets=" + getMapAttribute(mBeanServer, streamLibStats, "LocalTopGets")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("RemoteTopPuts=" + getMapAttribute(mBeanServer, streamLibStats, "RemoteTopPuts")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("LocalTopPuts=" + getMapAttribute(mBeanServer, streamLibStats, "LocalTopPuts")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("TopLockedKeys=" + getMapAttribute(mBeanServer, streamLibStats, "TopLockedKeys")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("TopContendedKeys=" + getMapAttribute(mBeanServer, streamLibStats, "TopContendedKeys")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("TopLockFailedKeys=" + getMapAttribute(mBeanServer, streamLibStats, "TopLockFailedKeys")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.write("TopWriteSkewFailedKeys=" + getMapAttribute(mBeanServer, streamLibStats, "TopWriteSkewFailedKeys")
-                 .toString());
+               .toString());
          bufferedWriter.newLine();
          bufferedWriter.flush();
          bufferedWriter.close();
@@ -535,7 +551,7 @@ public class InfinispanWrapper implements CacheWrapper {
 
          log.info("Collecting statistics from component [" + objectName + "]");
          log.debug("Attributes available are " +
-                 mBeanAttributes2String(mBeanServer.getMBeanInfo(objectName).getAttributes()));
+                         mBeanAttributes2String(mBeanServer.getMBeanInfo(objectName).getAttributes()));
          log.trace("Attributes to be reported are " + statisticComponent.getStats());
 
          for (Map.Entry<String, String> entry : statisticComponent.getStats()) {
@@ -690,8 +706,8 @@ public class InfinispanWrapper implements CacheWrapper {
       return transport.isCoordinator();
    }
 
-    public void addObserver(Observer o){
-        listener.addObserver(o);
-    }
+   public void addObserver(Observer o) {
+      listener.addObserver(o);
+   }
 
 }

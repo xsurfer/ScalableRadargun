@@ -4,9 +4,7 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
- * Created by IntelliJ IDEA.
- * Date: 3/4/12
- * Time: 1:49 PM
+ * Created by IntelliJ IDEA. Date: 3/4/12 Time: 1:49 PM
  *
  * @author Pedro Ruivo
  */
@@ -36,15 +34,15 @@ public class CacheSizeValues {
    private void checkIndex(int idx) {
       if (idx < 0 || idx >= cacheSizesPerSlave.length) {
          throw new NoSuchElementException("Slave index not found [" + idx + "]. Possible indexes are [" + 0 + "," +
-                 cacheSizesPerSlave.length + "]");
+                                                cacheSizesPerSlave.length + "]");
       }
    }
 
    @Override
    public String toString() {
       return "CacheSizeValues{" +
-              "statName='" + statName + '\'' +
-              ", cacheSizesPerSlave=" + Arrays.toString(cacheSizesPerSlave) +
-              '}';
+            "statName='" + statName + '\'' +
+            ", cacheSizesPerSlave=" + Arrays.toString(cacheSizesPerSlave) +
+            '}';
    }
 }

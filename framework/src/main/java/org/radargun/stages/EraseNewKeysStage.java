@@ -7,8 +7,8 @@ import static org.radargun.utils.Utils.printMemoryFootprint;
 
 /**
  * This stage erases the
- * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 19/12/12
+ *
+ * @author Diego Didona, didona@gsd.inesc-id.pt Date: 19/12/12
  */
 public class EraseNewKeysStage extends AbstractDistStage {
 
@@ -51,8 +51,8 @@ public class EraseNewKeysStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "EraseNewKeysStage{" +
-              "batchSize=" + batchSize +
-              " " + super.toString() +
-              '}';
+            "batchSize=" + batchSize +
+            " " + super.toString() +
+            '}';
    }
 }

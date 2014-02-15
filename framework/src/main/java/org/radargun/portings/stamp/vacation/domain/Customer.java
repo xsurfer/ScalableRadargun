@@ -9,50 +9,51 @@ import java.util.Iterator;
 
 public class Customer implements Serializable {
 
-    /* final */ int id;
-    /* final */ List_t<Reservation_Info> reservationInfoList;
+   /* final */ int id;
+   /* final */ List_t<Reservation_Info> reservationInfoList;
 
-    public Customer() { }
-    
-    public Customer(CacheWrapper cache, int id) {
-	this.id = id;
-	reservationInfoList = new List_t<Reservation_Info>(cache, "List:" + this.id + ":elements");
-    }
+   public Customer() {
+   }
 
-    int customer_compare(Customer aPtr, Customer bPtr) {
-	return (aPtr.id - bPtr.id);
-    }
+   public Customer(CacheWrapper cache, int id) {
+      this.id = id;
+      reservationInfoList = new List_t<Reservation_Info>(cache, "List:" + this.id + ":elements");
+   }
 
-    boolean customer_addReservationInfo(CacheWrapper cache, int type, int id, int price) {
-	Reservation_Info reservationInfo = new Reservation_Info(type, id, price);
+   int customer_compare(Customer aPtr, Customer bPtr) {
+      return (aPtr.id - bPtr.id);
+   }
 
-	reservationInfoList.add(cache, reservationInfo);
-	return true;
-    }
+   boolean customer_addReservationInfo(CacheWrapper cache, int type, int id, int price) {
+      Reservation_Info reservationInfo = new Reservation_Info(type, id, price);
 
-    boolean customer_removeReservationInfo(CacheWrapper cache, int type, int id) {
-	Reservation_Info reservationInfo = reservationInfoList.find(cache, type, id);
+      reservationInfoList.add(cache, reservationInfo);
+      return true;
+   }
 
-	if (reservationInfo == null) {
-	    return false;
-	}
+   boolean customer_removeReservationInfo(CacheWrapper cache, int type, int id) {
+      Reservation_Info reservationInfo = reservationInfoList.find(cache, type, id);
 
-	boolean status = reservationInfoList.remove(cache, reservationInfo);
-	if (!status) {
-	    throw new OpacityException();
-	}
-	return true;
-    }
+      if (reservationInfo == null) {
+         return false;
+      }
 
-    int customer_getBill(CacheWrapper cache) {
-	int bill = 0;
+      boolean status = reservationInfoList.remove(cache, reservationInfo);
+      if (!status) {
+         throw new OpacityException();
+      }
+      return true;
+   }
 
-	Iterator<Reservation_Info> iter = reservationInfoList.iterator(cache);
-	while (iter.hasNext()) {
-	    Reservation_Info it = iter.next();
-	    bill += it.price;
-	}
+   int customer_getBill(CacheWrapper cache) {
+      int bill = 0;
 
-	return bill;
-    }
+      Iterator<Reservation_Info> iter = reservationInfoList.iterator(cache);
+      while (iter.hasNext()) {
+         Reservation_Info it = iter.next();
+         bill += it.price;
+      }
+
+      return bill;
+   }
 }

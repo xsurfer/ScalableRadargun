@@ -35,7 +35,7 @@ public class MemoryUsageMonitor extends AbstractActivityMonitor {
    MemoryUsageMonitor(MBeanServerConnection con) throws IOException {
       this.con = con;
       this.memMbean = ManagementFactory.newPlatformMXBeanProxy(con,
-              ManagementFactory.MEMORY_MXBEAN_NAME, MemoryMXBean.class);
+                                                               ManagementFactory.MEMORY_MXBEAN_NAME, MemoryMXBean.class);
    }
 
    public void run() {
@@ -48,7 +48,7 @@ public class MemoryUsageMonitor extends AbstractActivityMonitor {
          addMeasurement(new BigDecimal(genUsed));
 
          log.trace("Memory usage: used=" + formatDecimal(genUsed) + " B, size=" + formatDecimal(genCapacity) +
-                 " B, max=" + formatDecimal(genMaxCapacity));
+                         " B, max=" + formatDecimal(genMaxCapacity));
       } catch (Exception e) {
          log.error(e);
       }

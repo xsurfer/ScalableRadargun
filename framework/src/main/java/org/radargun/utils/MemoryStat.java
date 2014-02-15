@@ -4,10 +4,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 
 /**
- * Author: Diego Didona
- * Email: didona@gsd.inesc-id.pt
- * Websiste: www.cloudtm.eu
- * Date: 21/05/12
+ * Author: Diego Didona Email: didona@gsd.inesc-id.pt Websiste: www.cloudtm.eu Date: 21/05/12
  */
 public class MemoryStat {
 

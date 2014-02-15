@@ -7,11 +7,13 @@ package org.radargun.config;
  * Time: 11:59 AM
  * To change this template use File | Settings | File Templates.
  */
+
 /**
  * A fixed size benchmark is a benchmark that executes over a fixed number of slaves. This defines the configuration of
  * such a benchmark.
  * <p/>
- * Ho aggiunto una scalingStagesRef che è una variabile locale al thread poichè ogni thread deve portare avanti un suo stato
+ * Ho aggiunto una scalingStagesRef che è una variabile locale al thread poichè ogni thread deve portare avanti un suo
+ * stato
  *
  * @author Mircea.Markus@jboss.com
  * @see org.radargun.config.ScalingBenchmarkConfig

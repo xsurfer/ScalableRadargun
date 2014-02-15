@@ -12,11 +12,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 
 /**
- * Author: Diego Didona
- * Email: didona@gsd.inesc-id.pt
- * Websiste: www.cloudtm.eu
- * Date: 22/05/12
- * Sort of copy paste from a code by Galder Zamarreno
+ * Author: Diego Didona Email: didona@gsd.inesc-id.pt Websiste: www.cloudtm.eu Date: 22/05/12 Sort of copy paste from a
+ * code by Galder Zamarreno
  *
  * @deprecated it is not tested!
  */

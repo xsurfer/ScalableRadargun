@@ -32,7 +32,7 @@ public class StageMBean implements DynamicMBean {
       this.obj = instance;
       Class<?> objectClass = instance.getClass();
 
-      // Load up all fields.      
+      // Load up all fields.
       int i = 0;
       MBeanAttributeInfo[] attInfos = new MBeanAttributeInfo[managedAttributeMethods.size()];
       for (Method method : managedAttributeMethods) {
@@ -41,7 +41,7 @@ public class StageMBean implements DynamicMBean {
          attributes.put(attInfos[i++].getName(), method);
       }
 
-      // And operations      
+      // And operations
       MBeanOperationInfo[] opInfos = new MBeanOperationInfo[managedOperationMethods.size()];
       i = 0;
       for (Method method : managedOperationMethods) {
@@ -51,7 +51,7 @@ public class StageMBean implements DynamicMBean {
       }
 
       mBeanInfo = new MBeanInfo(objectClass.getSimpleName(), objectClass.getAnnotation(MBean.class).description(),
-              attInfos, new MBeanConstructorInfo[0], opInfos, new MBeanNotificationInfo[0]);
+                                attInfos, new MBeanConstructorInfo[0], opInfos, new MBeanNotificationInfo[0]);
    }
 
    @Override

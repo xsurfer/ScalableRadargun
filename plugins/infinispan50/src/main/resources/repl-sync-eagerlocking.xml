@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <infinispan xmlns="urn:infinispan:config:5.0">
-   <global>
-      <transport clusterName="x">
-         <properties>
-            <property name="configurationFile" value="jgroups/fast.xml"/>
-         </properties>
-      </transport>
-   </global>
+    <global>
+        <transport clusterName="x">
+            <properties>
+                <property name="configurationFile" value="jgroups/fast.xml"/>
+            </properties>
+        </transport>
+    </global>
 
-   <default>
-      <transaction
-            transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
-            useEagerLocking="true" />
+    <default>
+        <transaction
+                transactionManagerLookupClass="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+                useEagerLocking="true"/>
 
-      <locking concurrencyLevel="1000" useLockStriping="false" />
-      <clustering mode="r">
-         <sync replTimeout="10000"/>
-         <stateRetrieval fetchInMemoryState="false"/>
-      </clustering>
-   </default>
+        <locking concurrencyLevel="1000" useLockStriping="false"/>
+        <clustering mode="r">
+            <sync replTimeout="10000"/>
+            <stateRetrieval fetchInMemoryState="false"/>
+        </clustering>
+    </default>
 
-   <namedCache name="x" />
+    <namedCache name="x"/>
 </infinispan>

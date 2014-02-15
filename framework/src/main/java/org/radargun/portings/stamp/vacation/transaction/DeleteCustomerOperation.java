@@ -8,29 +8,29 @@ import org.radargun.portings.stamp.vacation.domain.Manager;
 
 public class DeleteCustomerOperation implements ITransaction {
 
-    final private int customerId;
+   final private int customerId;
 
-    public DeleteCustomerOperation(Random randomPtr, int queryRange, int relations) {
-        this.customerId = randomPtr.posrandom_generate() % relations;
-    }
+   public DeleteCustomerOperation(Random randomPtr, int queryRange, int relations) {
+      this.customerId = randomPtr.posrandom_generate() % relations;
+   }
 
-    @Override
-    public void executeTransaction(CacheWrapper cache) throws Throwable {
-        Manager managerPtr = (Manager) cache.get(null, "MANAGER");
-        int bill = managerPtr.manager_queryCustomerBill(cache, customerId);
-        if (bill >= 0) {
-            managerPtr.manager_deleteCustomer(cache, customerId);
-        }
-    }
+   @Override
+   public void executeTransaction(CacheWrapper cache) throws Throwable {
+      Manager managerPtr = (Manager) cache.get(null, "MANAGER");
+      int bill = managerPtr.manager_queryCustomerBill(cache, customerId);
+      if (bill >= 0) {
+         managerPtr.manager_deleteCustomer(cache, customerId);
+      }
+   }
 
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
+   @Override
+   public boolean isReadOnly() {
+      return false;
+   }
 
-    @Override
-    public int getType() {
-        return Definitions.ACTION_DELETE_CUSTOMER;
-    }
+   @Override
+   public int getType() {
+      return Definitions.ACTION_DELETE_CUSTOMER;
+   }
 
 }

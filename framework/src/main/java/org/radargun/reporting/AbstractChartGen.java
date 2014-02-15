@@ -6,7 +6,12 @@ import org.jfree.chart.title.TextTitle;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 public abstract class AbstractChartGen implements ChartGen {
@@ -53,9 +58,9 @@ public abstract class AbstractChartGen implements ChartGen {
 
    public static TextTitle getSubtitle() {
       return new TextTitle("Generated on " + new Date() + " by RadarGun \nJDK: " +
-              System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.version") + ", " +
-              System.getProperty("java.vm.vendor") + ") OS: " + System.getProperty("os.name") + " (" +
-              System.getProperty("os.version") + ", " + System.getProperty("os.arch") + ")");
+                                 System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.version") + ", " +
+                                 System.getProperty("java.vm.vendor") + ") OS: " + System.getProperty("os.name") + " (" +
+                                 System.getProperty("os.version") + ", " + System.getProperty("os.arch") + ")");
    }
 
    protected File[] getFilteredFiles(File file) {

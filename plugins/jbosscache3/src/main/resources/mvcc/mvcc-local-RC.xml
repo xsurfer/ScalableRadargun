@@ -2,6 +2,6 @@
 <jbosscache xmlns="urn:jboss:jbosscache-core:config:3.0">
     <locking isolationLevel="READ_COMMITTED" lockAcquisitionTimeout="600000" nodeLockingScheme="mvcc"
              concurrencyLevel="3000" writeSkewCheck="false"
-             lockParentForChildInsertRemove="false"/>   
+             lockParentForChildInsertRemove="false"/>
     <transaction transactionManagerLookupClass="org.jboss.cache.transaction.GenericTransactionManagerLookup"/>
 </jbosscache>

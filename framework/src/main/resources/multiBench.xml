@@ -24,7 +24,7 @@
                 threadParallelLoad="true"
                 batchLevel="100"
                 numLoaderThreads="2"
-		oneWarmup="true"/>
+                oneWarmup="true"/>
         <ResetStats/>
         <CacheSize
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
@@ -36,32 +36,32 @@
                 accessSameWarehouse="false"
                 paymentWeight="5"
                 orderStatusWeight="5"
-		trackNewKeys="true"/>
+                trackNewKeys="true"/>
         <CacheSize
                 statName="CACHE_SIZE_AFTER_BENCH"/>
-<CacheSize statName="CACHE_SIZE_BEFORE_ERASE"/>
+        <CacheSize statName="CACHE_SIZE_BEFORE_ERASE"/>
         <EraseNewKeys batchSize="50"/>
-        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>       
- <CsvReportGeneration/>
-	<ResetStats/>
-	<CacheSize
+        <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
+        <CsvReportGeneration/>
+        <ResetStats/>
+        <CacheSize
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
-	<TpccBenchmark
-		statsSamplingInterval="5000"
+        <TpccBenchmark
+                statsSamplingInterval="5000"
                 numOfThreads="2"
                 simulationTimeSec="30"
                 arrivalRate="0"
                 accessSameWarehouse="false"
                 paymentWeight="5"
                 orderStatusWeight="5"
-		trackNewKeys="true"/>
-<CacheSize
+                trackNewKeys="true"/>
+        <CacheSize
                 statName="CACHE_SIZE_AFTER_BENCH"/>
-<CacheSize statName="CACHE_SIZE_BEFORE_ERASE"/>
+        <CacheSize statName="CACHE_SIZE_BEFORE_ERASE"/>
         <EraseNewKeys batchSize="50"/>
         <CacheSize statName="CACHE_SIZE_AFTER_ERASE"/>
-	<CsvReportGeneration/> 
- </benchmark>
+        <CsvReportGeneration/>
+    </benchmark>
     <products>
         <infinispan4>
             <config name="provaPC.xml"/>

@@ -25,8 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 23/05/13
+ * @author Diego Didona, didona@gsd.inesc-id.pt Date: 23/05/13
  */
 public class ScriptInvocationStage extends AbstractMasterStage {
 

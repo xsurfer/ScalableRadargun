@@ -4,8 +4,7 @@ import org.radargun.DistStageAck;
 import org.radargun.utils.Utils;
 
 /**
- * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 25/12/12
+ * @author Diego Didona, didona@gsd.inesc-id.pt Date: 25/12/12
  */
 
 /*

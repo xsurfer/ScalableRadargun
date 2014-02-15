@@ -19,10 +19,14 @@
         <stat displayName="RemoteUpdateTxCommitServiceTime" attributeName="RemoteUpdateTxCommitServiceTime"/>
         <stat displayName="RemoteUpdateTxPrepareServiceTime" attributeName="RemoteUpdateTxPrepareServiceTime"/>
         <stat displayName="RemoteUpdateTxPrepareResponseTime" attributeName="RemoteUpdateTxPrepareResponseTime"/>
-        <stat displayName="LocalUpdateTxRemoteRollbackResponseTime" attributeName="LocalUpdateTxRemoteRollbackResponseTime"/>
-        <stat displayName="LocalUpdateTxRemoteRollbackServiceTime" attributeName="LocalUpdateTxRemoteRollbackServiceTime"/>
-        <stat displayName="LocalUpdateTxLocalRollbackResponseTime" attributeName="LocalUpdateTxLocalRollbackResponseTime"/>
-        <stat displayName="LocalUpdateTxLocalRollbackServiceTime" attributeName="LocalUpdateTxLocalRollbackServiceTime"/>
+        <stat displayName="LocalUpdateTxRemoteRollbackResponseTime"
+              attributeName="LocalUpdateTxRemoteRollbackResponseTime"/>
+        <stat displayName="LocalUpdateTxRemoteRollbackServiceTime"
+              attributeName="LocalUpdateTxRemoteRollbackServiceTime"/>
+        <stat displayName="LocalUpdateTxLocalRollbackResponseTime"
+              attributeName="LocalUpdateTxLocalRollbackResponseTime"/>
+        <stat displayName="LocalUpdateTxLocalRollbackServiceTime"
+              attributeName="LocalUpdateTxLocalRollbackServiceTime"/>
         <stat displayName="LocalUpdateTxCommitResponseTime" attributeName="LocalUpdateTxCommitResponseTime"/>
         <stat displayName="LocalUpdateTxCommitServiceTime" attributeName="LocalUpdateTxCommitServiceTime"/>
         <stat displayName="LocalUpdateTxPrepareServiceTime" attributeName="LocalUpdateTxPrepareServiceTime"/>
@@ -39,7 +43,7 @@
         <stat displayName="RemotePutExecutionTime" attributeName="RemotePutExecutionTime"/>
         <stat displayName="AvgPutsPerWrTransaction" attributeName="AvgPutsPerWrTransaction"/>
         <stat displayName="RemoteGetServiceTime" attributeName="RemoteGetServiceTime"/>
-	<stat displayName="RemoteGetResponseTime" attributeName="RemoteGetResponseTime"/>
+        <stat displayName="RemoteGetResponseTime" attributeName="RemoteGetResponseTime"/>
         <stat displayName="AvgRemoteGetsPerROTransaction" attributeName="AvgRemoteGetsPerROTransaction"/>
         <stat displayName="AvgRemoteGetsPerWrTransaction" attributeName="AvgRemoteGetsPerWrTransaction"/>
         <stat displayName="AvgGetsPerWrTransaction" attributeName="AvgGetsPerWrTransaction"/>
@@ -50,13 +54,13 @@
         <stat displayName="AvgClusteredGetCommandSize" attributeName="AvgClusteredGetCommandSize"/>
         <stat displayName="AvgCommitCommandSize" attributeName="AvgCommitCommandSize"/>
         <stat displayName="AvgRollbackCommandSize" attributeName="AvgRollbackCommandSize"/>
-	<stat displayName="AvgPrepareCommandSize" attributeName="AvgPrepareCommandSize"/>
+        <stat displayName="AvgPrepareCommandSize" attributeName="AvgPrepareCommandSize"/>
         <stat displayName="AvgRemoteLockHoldTime" attributeName="AvgRemoteLockHoldTime"/>
         <stat displayName="AvgLocalSuccessfulLockHoldTime" attributeName="AvgLocalSuccessfulLockHoldTime"/>
         <stat displayName="AvgLocalLocalAbortLockHoldTime" attributeName="AvgLocalLocalAbortLockHoldTime"/>
-	<stat displayName="AvgLocalRemoteAbortLockHoldTime" attributeName="AvgLocalRemoteAbortLockHoldTime"/>
-	<stat displayName="AvgLocalLockHoldTime" attributeName="AvgLocalLockHoldTime"/>
-	<stat displayName="AvgLockHoldTime" attributeName="AvgLockHoldTime"/>
+        <stat displayName="AvgLocalRemoteAbortLockHoldTime" attributeName="AvgLocalRemoteAbortLockHoldTime"/>
+        <stat displayName="AvgLocalLockHoldTime" attributeName="AvgLocalLockHoldTime"/>
+        <stat displayName="AvgLockHoldTime" attributeName="AvgLockHoldTime"/>
         <stat displayName="LockContentionProbability" attributeName="LockContentionProbability"/>
         <stat displayName="RemoteContentionProbability" attributeName="RemoteContentionProbability"/>
         <stat displayName="LocalContentionProbability" attributeName="LocalContentionProbability"/>
@@ -79,32 +83,33 @@
         <stat displayName="NumAbortedTxDueToValidation" attributeName="NumAbortedTxDueToValidation"/>
         <stat displayName="NumAbortedTxDueToWriteLock" attributeName="NumAbortedTxDueToWriteLock"/>
         <stat displayName="NumAbortedTxDueToReadLock" attributeName="NumAbortedTxDueToReadLock"/>
-        <stat displayName="NumAbortedTxDueToNotLastValueAccessed" attributeName="NumAbortedTxDueToNotLastValueAccessed"/>
+        <stat displayName="NumAbortedTxDueToNotLastValueAccessed"
+              attributeName="NumAbortedTxDueToNotLastValueAccessed"/>
         <stat displayName="AvgRemoteGetsPerROTransaction" attributeName="AvgRemoteGetsPerROTransaction"/>
         <stat displayName="AvgRemoteGetsPerWrTransaction" attributeName="AvgRemoteGetsPerWrTransaction"/>
         <stat displayName="GMUClusteredGetCommandWaitingTime" attributeName="GMUClusteredGetCommandWaitingTime"/>
-	<stat displayName="LocalUpdateTxTotalCpuTime" attributeName="LocalUpdateTxTotalCpuTime"/>
+        <stat displayName="LocalUpdateTxTotalCpuTime" attributeName="LocalUpdateTxTotalCpuTime"/>
         <stat displayName="LocalUpdateTxTotalResponseTime" attributeName="LocalUpdateTxTotalResponseTime"/>
         <stat displayName="ReadOnlyTxTotalCpuTime" attributeName="ReadOnlyTxTotalCpuTime"/>
-        <stat displayName="ReadOnlyTxTotalResponseTime" attributeName="ReadOnlyTxTotalResponseTime"/>    
-	<stat displayName="AvgNumAsyncSentCommitMsgs" attributeName="AvgNumAsyncSentCommitMsgs"/>
-	<stat displayName="AvgNumSyncSentCommitMsgs" attributeName="AvgNumSyncSentCommitMsgs"/>
-	<stat displayName="TerminationCost" attributeName="TerminationCost"/>
-	<stat displayName="GMUClusteredGetCommandServiceTime" attributeName="GMUClusteredGetCommandServiceTime"/>
-	<stat displayName="GMUClusteredGetCommandResponseTime" attributeName="GMUClusteredGetCommandResponseTime"/>
-	<stat displayName="NumReadsBeforeWrite" attributeName="NumReadsBeforeWrite"/> 
-	<stat displayName="UpdateXactToPrepare" attributeName="UpdateXactToPrepare"/>
+        <stat displayName="ReadOnlyTxTotalResponseTime" attributeName="ReadOnlyTxTotalResponseTime"/>
+        <stat displayName="AvgNumAsyncSentCommitMsgs" attributeName="AvgNumAsyncSentCommitMsgs"/>
+        <stat displayName="AvgNumSyncSentCommitMsgs" attributeName="AvgNumSyncSentCommitMsgs"/>
+        <stat displayName="TerminationCost" attributeName="TerminationCost"/>
+        <stat displayName="GMUClusteredGetCommandServiceTime" attributeName="GMUClusteredGetCommandServiceTime"/>
+        <stat displayName="GMUClusteredGetCommandResponseTime" attributeName="GMUClusteredGetCommandResponseTime"/>
+        <stat displayName="NumReadsBeforeWrite" attributeName="NumReadsBeforeWrite"/>
+        <stat displayName="UpdateXactToPrepare" attributeName="UpdateXactToPrepare"/>
         <stat displayName="RemotelyDeadXact" attributeName="RemotelyDeadXact"/>
-	<stat displayName="NumAbortedXacts" attributeName="NumAbortedXacts"/>
-	<stat displayName="AvgClusteredGetCommandReplySize" attributeName="AvgClusteredGetCommandReplySize"/>
-	<stat displayName="NumWaitedRemoteCommits" attributeName="NumWaitedRemoteCommits"/>
-	<stat displayName="NumWaitedLocalCommits" attributeName="NumWaitedLocalCommits"/>
-	<stat displayName="NumWaitedRemoteGets" attributeName="NumWaitedRemoteGets"/>
-	<stat displayName="NumLocalPrepareAborts" attributeName="NumLocalPrepareAborts"/>
-	<stat displayName="NumEarlyAborts" attributeName="NumEarlyAborts"/>
-	<stat displayName="NumLocalLocalLockContentions" attributeName="NumLocalLocalLockContentions"/>
-	<stat displayName="NumLocalRemoteLockContentions" attributeName="NumLocalRemoteLockContentions"/>
-	<stat displayName="NumRemoteLocalLockContentions" attributeName="NumRemoteLocalLockContentions"/>
-	<stat displayName="NumRemoteRemoteLockContentions" attributeName="NumRemoteRemoteLockContentions"/>
-</component>
+        <stat displayName="NumAbortedXacts" attributeName="NumAbortedXacts"/>
+        <stat displayName="AvgClusteredGetCommandReplySize" attributeName="AvgClusteredGetCommandReplySize"/>
+        <stat displayName="NumWaitedRemoteCommits" attributeName="NumWaitedRemoteCommits"/>
+        <stat displayName="NumWaitedLocalCommits" attributeName="NumWaitedLocalCommits"/>
+        <stat displayName="NumWaitedRemoteGets" attributeName="NumWaitedRemoteGets"/>
+        <stat displayName="NumLocalPrepareAborts" attributeName="NumLocalPrepareAborts"/>
+        <stat displayName="NumEarlyAborts" attributeName="NumEarlyAborts"/>
+        <stat displayName="NumLocalLocalLockContentions" attributeName="NumLocalLocalLockContentions"/>
+        <stat displayName="NumLocalRemoteLockContentions" attributeName="NumLocalRemoteLockContentions"/>
+        <stat displayName="NumRemoteLocalLockContentions" attributeName="NumRemoteLocalLockContentions"/>
+        <stat displayName="NumRemoteRemoteLockContentions" attributeName="NumRemoteRemoteLockContentions"/>
+    </component>
 </stats-collector>

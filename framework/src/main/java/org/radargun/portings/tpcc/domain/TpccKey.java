@@ -32,4 +32,5 @@ public abstract class TpccKey implements Serializable {
 
    public Number getOrderLineId() {
       return null;
-   }}
+   }
+}

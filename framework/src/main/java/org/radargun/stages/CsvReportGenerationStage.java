@@ -161,7 +161,7 @@ public class CsvReportGenerationStage extends AbstractMasterStage {
    }
 
 
-   protected String reportFileName(MasterState masterState){
+   protected String reportFileName(MasterState masterState) {
       return masterState.nameOfTheCurrentBenchmark() + "_" + masterState.configNameOfTheCurrentBenchmark() + "_" + masterState.getSlavesCountForCurrentStage() + ".csv";
    }
 }

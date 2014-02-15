@@ -116,7 +116,7 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
     */
    private String generateSizeInfo() {
       return "size info: " + cacheWrapper.getInfo() + ", clusterSize:" + super.getActiveSlaveCount() + ", nodeIndex:" +
-              super.getSlaveIndex() + ", cacheSize: " + cacheWrapper.getCacheSize();
+            super.getSlaveIndex() + ", cacheSize: " + cacheWrapper.getCacheSize();
    }
 
    public boolean processAckOnMaster(List<DistStageAck> acks, MasterState masterState) {
@@ -226,29 +226,29 @@ public class WebSessionBenchmarkStage extends AbstractDistStage {
    }
 
 
-    public long getStatsSamplingInterval() {
-        return statsSamplingInterval;
-    }
+   public long getStatsSamplingInterval() {
+      return statsSamplingInterval;
+   }
 
-    public void setStatsSamplingInterval(long statsSamplingInterval) {
-        this.statsSamplingInterval = statsSamplingInterval;
-    }
+   public void setStatsSamplingInterval(long statsSamplingInterval) {
+      this.statsSamplingInterval = statsSamplingInterval;
+   }
 
-    @Override
+   @Override
    public String toString() {
       return "WebSessionBenchmarkStage {" +
-              "opsCountStatusLog=" + opsCountStatusLog +
-              ", numberOfRequests=" + numberOfRequests +
-              ", numberOfAttributes=" + numberOfAttributes +
-              ", sizeOfAnAttribute=" + sizeOfAnAttribute +
-              ", writePercentage=" + writePercentage +
-              ", numOfThreads=" + numOfThreads +
-              ", reportNanos=" + reportNanos +
-              ", cacheWrapper=" + cacheWrapper +
-              ", useTransactions=" + useTransactions +
-              ", commitTransactions=" + commitTransactions +
-              ", transactionSize=" + transactionSize +
-              ", durationMillis=" + durationMillis +
-              ", " + super.toString();
+            "opsCountStatusLog=" + opsCountStatusLog +
+            ", numberOfRequests=" + numberOfRequests +
+            ", numberOfAttributes=" + numberOfAttributes +
+            ", sizeOfAnAttribute=" + sizeOfAnAttribute +
+            ", writePercentage=" + writePercentage +
+            ", numOfThreads=" + numOfThreads +
+            ", reportNanos=" + reportNanos +
+            ", cacheWrapper=" + cacheWrapper +
+            ", useTransactions=" + useTransactions +
+            ", commitTransactions=" + commitTransactions +
+            ", transactionSize=" + transactionSize +
+            ", durationMillis=" + durationMillis +
+            ", " + super.toString();
    }
 }

@@ -199,11 +199,11 @@ public class PutGetChartGenerator extends AbstractChartGen {
 
       public String toString() {
          return "StressorStats{" +
-                 "avgPut=" + avgPut +
-                 ", avgGet=" + avgGet +
-                 ", numPuts=" + numPuts +
-                 ", numGets=" + numGets +
-                 '}';
+               "avgPut=" + avgPut +
+               ", avgGet=" + avgGet +
+               ", numPuts=" + numPuts +
+               ", numGets=" + numGets +
+               '}';
       }
    }
 

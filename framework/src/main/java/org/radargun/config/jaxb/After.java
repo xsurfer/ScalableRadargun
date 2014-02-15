@@ -8,7 +8,11 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +36,7 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-        "stage"
+      "stage"
 })
 @XmlRootElement(name = "after")
 public class After {
@@ -44,10 +48,9 @@ public class After {
     * Gets the value of the stage property.
     * <p/>
     * <p/>
-    * This accessor method returns a reference to the live list,
-    * not a snapshot. Therefore any modification you make to the
-    * returned list will be present inside the JAXB object.
-    * This is why there is not a <CODE>set</CODE> method for the stage property.
+    * This accessor method returns a reference to the live list, not a snapshot. Therefore any modification you make to
+    * the returned list will be present inside the JAXB object. This is why there is not a <CODE>set</CODE> method for
+    * the stage property.
     * <p/>
     * <p/>
     * For example, to add a new item, do as follows:
@@ -57,8 +60,7 @@ public class After {
     * <p/>
     * <p/>
     * <p/>
-    * Objects of the following type(s) are allowed in the list
-    * {@link Stage }
+    * Objects of the following type(s) are allowed in the list {@link Stage }
     */
    public List<Stage> getStage() {
       if (stage == null) {

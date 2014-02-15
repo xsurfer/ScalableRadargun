@@ -1,4 +1,3 @@
-
 <!--
   Fast configuration for local mode, ie. all members reside on the same host. Setting ip_ttl to 0 means that
   no multicast packet will make it outside the local host.
@@ -52,12 +51,12 @@
          oob_thread_pool.rejection_policy="discard"/>
 
     <PING timeout="2000"
-            num_initial_members="3"/>
+          num_initial_members="3"/>
     <MERGE2 max_interval="30000"
             min_interval="10000"/>
     <FD_SOCK/>
     <!--FD_ALL/-->
-    <VERIFY_SUSPECT timeout="1500"  />
+    <VERIFY_SUSPECT timeout="1500"/>
 
     <pbcast.NAKACK use_stats_for_retransmission="false"
                    exponential_backoff="300"
@@ -65,18 +64,18 @@
                    use_range_based_retransmitter="true"
                    retransmit_timeout="300,600,1200"
                    discard_delivered_msgs="true"/>
-    <UNICAST2 timeout="300,600,1200" />
+    <UNICAST2 timeout="300,600,1200"/>
     <pbcast.STABLE stability_delay="1000" desired_avg_gossip="50000"
                    max_bytes="8M"/>
-    <pbcast.GMS print_local_addr="true" join_timeout="3000"                
+    <pbcast.GMS print_local_addr="true" join_timeout="3000"
                 view_bundling="true"/>
     <!--RATE_LIMITER max_bytes="50MB" time_period="1000" /-->
     <UFC max_credits="2M"
-        min_threshold="0.4"/>
+         min_threshold="0.4"/>
     <MFC max_credits="2M"
-        min_threshold="0.4"/>
-    <FRAG2 frag_size="60K"  />
+         min_threshold="0.4"/>
+    <FRAG2 frag_size="60K"/>
     <!--pbcast.STREAMING_STATE_TRANSFER /-->
     <!--pbcast.STATE_TRANSFER  /-->
-    <pbcast.FLUSH  />
+    <pbcast.FLUSH/>
 </config>

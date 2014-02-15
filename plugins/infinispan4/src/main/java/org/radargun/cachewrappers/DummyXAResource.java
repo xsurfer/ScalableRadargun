@@ -6,6 +6,7 @@ import javax.transaction.xa.Xid;
 
 /**
  * When enlisted within a transaction, the TM will not run the 1phase commit optimisation.
+ *
  * @author Mircea Markus
  */
 class DummyXAResource implements XAResource {

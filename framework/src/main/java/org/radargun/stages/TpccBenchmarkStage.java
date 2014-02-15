@@ -4,19 +4,20 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.portings.tpcc.transaction.AbstractTpccTransaction;
-import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.stages.stressors.tpcc.TpccParameters;
 import org.radargun.stages.stressors.tpcc.TpccStressor;
 
 
 /**
- * Simulate the activities found in complex OLTP application environments.
- * Execute the TPC-C Benchmark.
+ * Simulate the activities found in complex OLTP application environments. Execute the TPC-C Benchmark.
  * <pre>
  * Params:
  *       - numOfThreads : the number of stressor threads that will work on each slave.
  *       - updateTimes : total time (in seconds) of simulation for each stressor thread.
- *       - arrivalRate : if the value is greater than 0.0, the "open system" mode is active and the parameter represents the arrival rate (in transactions per second) of a job (a transaction to be executed) to the system; otherwise the "closed system" mode is active: this means that each thread generates and executes a new transaction in an iteration as soon as it has completed the previous iteration.
+ *       - arrivalRate : if the value is greater than 0.0, the "open system" mode is active and the parameter represents
+ * the arrival rate (in transactions per second) of a job (a transaction to be executed) to the system; otherwise the
+ * "closed system" mode is active: this means that each thread generates and executes a new transaction in an iteration
+ * as soon as it has completed the previous iteration.
  *       - paymentWeight : percentage of Payment transactions.
  *       - orderStatusWeight : percentage of Order Status transactions.
  * </pre>
@@ -28,32 +29,31 @@ import org.radargun.stages.stressors.tpcc.TpccStressor;
 public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, TpccParameters> {
 
 
-    /**
-     * percentage of Payment transactions
-     */
-    private int paymentWeight = 45;
+   /**
+    * percentage of Payment transactions
+    */
+   private int paymentWeight = 45;
 
-    /**
-     * percentage of Order Status transactions
-     */
-    private int orderStatusWeight = 5;
+   /**
+    * percentage of Order Status transactions
+    */
+   private int orderStatusWeight = 5;
 
-    /**
-     * if true, each node will pick a warehouse and all transactions will work over that warehouse. The warehouses are
-     * picked by order, i.e., slave 0 gets warehouse 1,N+1, 2N+1,[...]; ... slave N-1 gets warehouse N, 2N, [...].
-     */
-    private boolean accessSameWarehouse = false;
+   /**
+    * if true, each node will pick a warehouse and all transactions will work over that warehouse. The warehouses are
+    * picked by order, i.e., slave 0 gets warehouse 1,N+1, 2N+1,[...]; ... slave N-1 gets warehouse N, 2N, [...].
+    */
+   private boolean accessSameWarehouse = false;
 
-    /**
-     * specify the min and the max number of items created by a New Order Transaction.
-     * format: min,max
-     */
-    private String numberOfItemsInterval = null;
+   /**
+    * specify the min and the max number of items created by a New Order Transaction. format: min,max
+    */
+   private String numberOfItemsInterval = null;
 
-    /*
-    If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
-     */
-    private boolean avoidMiss = true;
+   /*
+   If true, notSuchElement exception is not thrown in  transactions if "choose by last name"
+    */
+   private boolean avoidMiss = true;
 
 
 
@@ -61,33 +61,33 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     /* *** OVERRIDING *** */
     /* ****************** */
 
-    @Override
-    protected TpccParameters createStressorConfiguration(){
-        log.trace("Creating TpccParameters...");
+   @Override
+   protected TpccParameters createStressorConfiguration() {
+      log.trace("Creating TpccParameters...");
 
-        TpccParameters parameters = new TpccParameters(
-                cacheWrapper,
-                simulationTimeSec,
-                numOfThreads,
-                getSlaveIndex(),
-                backOffTime,
-                retryOnAbort,
-                statsSamplingInterval,
-                paymentWeight,
-                orderStatusWeight,
-                numberOfItemsInterval,
-                accessSameWarehouse
-        );
+      TpccParameters parameters = new TpccParameters(
+            cacheWrapper,
+            simulationTimeSec,
+            numOfThreads,
+            getSlaveIndex(),
+            backOffTime,
+            retryOnAbort,
+            statsSamplingInterval,
+            paymentWeight,
+            orderStatusWeight,
+            numberOfItemsInterval,
+            accessSameWarehouse
+      );
 
-        AbstractTpccTransaction.setAvoidNotFoundExceptions(avoidMiss);
+      AbstractTpccTransaction.setAvoidNotFoundExceptions(avoidMiss);
 
-        return parameters;
-    }
+      return parameters;
+   }
 
-    @Override
-    public TpccStressor createStressor() {
-        return new TpccStressor(cacheWrapper, this, system, getStressorParameters());
-    }
+   @Override
+   public TpccStressor createStressor() {
+      return new TpccStressor(cacheWrapper, this, system, getStressorParameters());
+   }
 
 
 //    @Override
@@ -140,19 +140,19 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
 //        }
 //    }
 
-    @Override
-    public String toString() {
-        return "TpccBenchmarkStage {" +
-                "numOfThreads=" + numOfThreads +
-                ", updateTimes=" + simulationTimeSec +
-                ", paymentWeight=" + paymentWeight +
-                ", orderStatusWeight=" + orderStatusWeight +
-                ", accessSameWarehouse=" + accessSameWarehouse +
-                ", numberOfItemsInterval=" + numberOfItemsInterval +
-                ", statsSamplingInterval=" + statsSamplingInterval +
-                ", cacheWrapper=" + cacheWrapper +
-                ", " + super.toString();
-    }
+   @Override
+   public String toString() {
+      return "TpccBenchmarkStage {" +
+            "numOfThreads=" + numOfThreads +
+            ", updateTimes=" + simulationTimeSec +
+            ", paymentWeight=" + paymentWeight +
+            ", orderStatusWeight=" + orderStatusWeight +
+            ", accessSameWarehouse=" + accessSameWarehouse +
+            ", numberOfItemsInterval=" + numberOfItemsInterval +
+            ", statsSamplingInterval=" + statsSamplingInterval +
+            ", cacheWrapper=" + cacheWrapper +
+            ", " + super.toString();
+   }
 
 
 
@@ -160,36 +160,36 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     /* *** JMX METHODS *** */
     /* ******************* */
 
-    @ManagedOperation(description = "Change the workload to decrease contention between transactions")
-    public void lowContention(int payment, int order) {
-        stressor.lowContention(payment, order);
+   @ManagedOperation(description = "Change the workload to decrease contention between transactions")
+   public void lowContention(int payment, int order) {
+      stressor.lowContention(payment, order);
 
-    }
+   }
 
-    @ManagedOperation(description = "Change the workload to increase contention between transactions")
-    public void highContention(int payment, int order) {
-        stressor.highContention(payment, order);
-    }
+   @ManagedOperation(description = "Change the workload to increase contention between transactions")
+   public void highContention(int payment, int order) {
+      stressor.highContention(payment, order);
+   }
 
-    @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
-    public void randomContention(int payment, int order) {
-        stressor.randomContention(payment, order);
-    }
+   @ManagedOperation(description = "Change the workload to random select the warehouse to work with")
+   public void randomContention(int payment, int order) {
+      stressor.randomContention(payment, order);
+   }
 
-    @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
-    public final double getExpectedWritePercentage() {
-        return stressor.getExpectedWritePercentage();
-    }
+   @ManagedAttribute(description = "Returns the expected write percentage workload", writable = false)
+   public final double getExpectedWritePercentage() {
+      return stressor.getExpectedWritePercentage();
+   }
 
-    @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
-    public final int getPaymentWeight() {
-        return stressor.getPaymentWeight();
-    }
+   @ManagedAttribute(description = "Returns the Payment transaction type percentage", writable = false)
+   public final int getPaymentWeight() {
+      return stressor.getPaymentWeight();
+   }
 
-    @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
-    public final int getOrderStatusWeight() {
-        return stressor.getOrderStatusWeight();
-    }
+   @ManagedAttribute(description = "Returns the Order Status transaction type percentage", writable = false)
+   public final int getOrderStatusWeight() {
+      return stressor.getOrderStatusWeight();
+   }
 
 
 
@@ -201,38 +201,37 @@ public class TpccBenchmarkStage extends AbstractBenchmarkStage<TpccStressor, Tpc
     /* ********************* */
 
 
-    public void setPaymentWeight(int paymentWeight) {
-        this.paymentWeight = paymentWeight;
-    }
+   public void setPaymentWeight(int paymentWeight) {
+      this.paymentWeight = paymentWeight;
+   }
 
-    public void setOrderStatusWeight(int orderStatusWeight) {
-        this.orderStatusWeight = orderStatusWeight;
-    }
+   public void setOrderStatusWeight(int orderStatusWeight) {
+      this.orderStatusWeight = orderStatusWeight;
+   }
 
-    public void setAccessSameWarehouse(boolean accessSameWarehouse) {
-        this.accessSameWarehouse = accessSameWarehouse;
-    }
+   public void setAccessSameWarehouse(boolean accessSameWarehouse) {
+      this.accessSameWarehouse = accessSameWarehouse;
+   }
 
-    public void setNumberOfItemsInterval(String numberOfItemsInterval) {
-        this.numberOfItemsInterval = numberOfItemsInterval;
-    }
+   public void setNumberOfItemsInterval(String numberOfItemsInterval) {
+      this.numberOfItemsInterval = numberOfItemsInterval;
+   }
 
-    public void setAvoidMiss(boolean avoidMiss) {
-        this.avoidMiss = avoidMiss;
-    }
+   public void setAvoidMiss(boolean avoidMiss) {
+      this.avoidMiss = avoidMiss;
+   }
 
-    public void setTrackNewKeys(boolean trackNewKeys) {
-        this.trackNewKeys = trackNewKeys;
-    }
+   public void setTrackNewKeys(boolean trackNewKeys) {
+      this.trackNewKeys = trackNewKeys;
+   }
 
-    public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
-        this.perThreadTrackNewKeys = trackNewKeys;
-    }
+   public void setPerThreadTrackNewKeys(boolean trackNewKeys) {
+      this.perThreadTrackNewKeys = trackNewKeys;
+   }
 
-    public TpccBenchmarkStage clone() {
-        return (TpccBenchmarkStage) super.clone();
-    }
-
+   public TpccBenchmarkStage clone() {
+      return (TpccBenchmarkStage) super.clone();
+   }
 
 
 }

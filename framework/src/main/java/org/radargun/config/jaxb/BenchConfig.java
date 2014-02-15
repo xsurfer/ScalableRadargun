@@ -8,7 +8,11 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +38,9 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-        "master",
-        "scalingBenchmark",
-        "fixedSizeBenchmark"
+      "master",
+      "scalingBenchmark",
+      "fixedSizeBenchmark"
 })
 @XmlRootElement(name = "bench-config")
 public class BenchConfig {
@@ -51,8 +55,7 @@ public class BenchConfig {
    /**
     * Gets the value of the master property.
     *
-    * @return possible object is
-    *         {@link Master }
+    * @return possible object is {@link Master }
     */
    public Master getMaster() {
       return master;
@@ -61,8 +64,7 @@ public class BenchConfig {
    /**
     * Sets the value of the master property.
     *
-    * @param value allowed object is
-    *              {@link Master }
+    * @param value allowed object is {@link Master }
     */
    public void setMaster(Master value) {
       this.master = value;
@@ -72,10 +74,9 @@ public class BenchConfig {
     * Gets the value of the scalingBenchmark property.
     * <p/>
     * <p/>
-    * This accessor method returns a reference to the live list,
-    * not a snapshot. Therefore any modification you make to the
-    * returned list will be present inside the JAXB object.
-    * This is why there is not a <CODE>set</CODE> method for the scalingBenchmark property.
+    * This accessor method returns a reference to the live list, not a snapshot. Therefore any modification you make to
+    * the returned list will be present inside the JAXB object. This is why there is not a <CODE>set</CODE> method for
+    * the scalingBenchmark property.
     * <p/>
     * <p/>
     * For example, to add a new item, do as follows:
@@ -85,8 +86,7 @@ public class BenchConfig {
     * <p/>
     * <p/>
     * <p/>
-    * Objects of the following type(s) are allowed in the list
-    * {@link ScalingBenchmark }
+    * Objects of the following type(s) are allowed in the list {@link ScalingBenchmark }
     */
    public List<ScalingBenchmark> getScalingBenchmark() {
       if (scalingBenchmark == null) {
@@ -99,10 +99,9 @@ public class BenchConfig {
     * Gets the value of the fixedSizeBenchmark property.
     * <p/>
     * <p/>
-    * This accessor method returns a reference to the live list,
-    * not a snapshot. Therefore any modification you make to the
-    * returned list will be present inside the JAXB object.
-    * This is why there is not a <CODE>set</CODE> method for the fixedSizeBenchmark property.
+    * This accessor method returns a reference to the live list, not a snapshot. Therefore any modification you make to
+    * the returned list will be present inside the JAXB object. This is why there is not a <CODE>set</CODE> method for
+    * the fixedSizeBenchmark property.
     * <p/>
     * <p/>
     * For example, to add a new item, do as follows:
@@ -112,8 +111,7 @@ public class BenchConfig {
     * <p/>
     * <p/>
     * <p/>
-    * Objects of the following type(s) are allowed in the list
-    * {@link FixedSizeBenchmark }
+    * Objects of the following type(s) are allowed in the list {@link FixedSizeBenchmark }
     */
    public List<FixedSizeBenchmark> getFixedSizeBenchmark() {
       if (fixedSizeBenchmark == null) {

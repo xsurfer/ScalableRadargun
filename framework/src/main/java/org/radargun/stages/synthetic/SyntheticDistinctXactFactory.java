@@ -9,14 +9,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
-* // TODO: Document this
-*
-* @author diego
-* @since 4.0
-*/
+ * // TODO: Document this
+ *
+ * @author diego
+ * @since 4.0
+ */
 public class SyntheticDistinctXactFactory extends SyntheticXactFactory {
 
-    private static Log log = LogFactory.getLog(SyntheticDistinctXactFactory.class);
+   private static Log log = LogFactory.getLog(SyntheticDistinctXactFactory.class);
 
    private boolean[] rwB;
 
@@ -37,7 +37,7 @@ public class SyntheticDistinctXactFactory extends SyntheticXactFactory {
       //KeyGenerator kg = (KeyGenerator) Utils.instantiate(parameters.getKeyGeneratorClass());
       //Random r = parameters.getRna();
       int nodeIndex = parameters.getNodeIndex();
-       //int threadIndex = parameters.getThreadIndex();
+      //int threadIndex = parameters.getThreadIndex();
       int sizeS = parameters.getSizeOfAnAttribute();
       boolean bW = parameters.isAllowBlindWrites();
       int numK = parameters.getNumberOfAttributes();

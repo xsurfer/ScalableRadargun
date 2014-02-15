@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author Mircea.Markus@jboss.com
  * @deprecated Do not use, since this only really warms up the PutGetStressor in a very simplistic access path.  Each
- *             <tt>*BenchmarkStage</tt> should have its own customized warmup.
+ * <tt>*BenchmarkStage</tt> should have its own customized warmup.
  */
 @Deprecated
 public class WarmupStage extends AbstractDistStage {
@@ -74,6 +74,6 @@ public class WarmupStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "WarmupStage {" +
-              "operationCount=" + operationCount + ", " + super.toString();
+            "operationCount=" + operationCount + ", " + super.toString();
    }
 }

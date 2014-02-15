@@ -8,6 +8,6 @@ package org.radargun.stages.synthetic;
  */
 public class XactParam {
 
-    // TO DELETE
+   // TO DELETE
 
 }

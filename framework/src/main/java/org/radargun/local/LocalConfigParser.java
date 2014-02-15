@@ -5,11 +5,19 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapperStressor;
 import org.radargun.config.ConfigHelper;
 import org.radargun.config.DomConfigParser;
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Mircea.Markus@jboss.com

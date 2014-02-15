@@ -3,7 +3,11 @@ package org.radargun.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.radargun.NewElasticMaster;
-import org.radargun.config.jaxb.*;
+import org.radargun.config.jaxb.BenchConfig;
+import org.radargun.config.jaxb.FixedSizeBenchmark;
+import org.radargun.config.jaxb.Property;
+import org.radargun.config.jaxb.ScalingBenchmark;
+import org.radargun.config.jaxb.Stage;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.stressors.systems.workloadGenerators.AbstractWorkloadGenerator;
@@ -21,9 +25,8 @@ import java.util.Map;
 /**
  * Helper class for assembling JAXB configs.
  *
- * @author Mircea.Markus@jboss.com
- *         //TODO - add support for System.getEnv
- *         //TODO - make sure that if a benchmark has more nodes than the root an exception is thrown
+ * @author Mircea.Markus@jboss.com //TODO - add support for System.getEnv //TODO - make sure that if a benchmark has
+ *         more nodes than the root an exception is thrown
  */
 public class JaxbConfigParser extends ConfigParser {
 
@@ -117,39 +120,38 @@ public class JaxbConfigParser extends ConfigParser {
    }
 
 
+   public static System getSystem(String systemName) {
+      if (systemName.indexOf('.') < 0) {
+         systemName = "org.radargun.stages.stressors.systems." + systemName;
+      }
+      try {
+         org.radargun.stages.stressors.systems.System obj;
+         Constructor c = Class.forName(systemName).getConstructor();
+         obj = (System) c.newInstance();
+         return obj;
+      } catch (Exception e) {
+         String s = "Could not create system of type: " + systemName;
+         log.error(s);
+         throw new RuntimeException(e);
+      }
+   }
 
-    public static System getSystem(String systemName) {
-        if (systemName.indexOf('.') < 0) {
-            systemName = "org.radargun.stages.stressors.systems." + systemName;
-        }
-        try {
-            org.radargun.stages.stressors.systems.System obj;
-            Constructor c = Class.forName(systemName).getConstructor();
-            obj = (System) c.newInstance();
-            return obj;
-        } catch (Exception e) {
-            String s = "Could not create system of type: " + systemName;
-            log.error(s);
-            throw new RuntimeException(e);
-        }
-    }
 
-
-    public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName, AbstractBenchmarkStage stage) {
-        if (workloadGeneratorName.indexOf('.') < 0) {
-            workloadGeneratorName = "org.radargun.stages.stressors.systems.workloadGenerators." + workloadGeneratorName;
-        }
-        try {
-            AbstractWorkloadGenerator obj;
-            Constructor c = Class.forName(workloadGeneratorName).getConstructor(AbstractBenchmarkStage.class);
-            obj = (AbstractWorkloadGenerator) c.newInstance(stage);
-            return obj;
-        } catch (Exception e) {
-            String s = "Could not create stage of type: " + workloadGeneratorName;
-            log.error(s);
-            throw new RuntimeException(e);
-        }
-    }
+   public static AbstractWorkloadGenerator getWorkloadGenerator(String workloadGeneratorName, AbstractBenchmarkStage stage) {
+      if (workloadGeneratorName.indexOf('.') < 0) {
+         workloadGeneratorName = "org.radargun.stages.stressors.systems.workloadGenerators." + workloadGeneratorName;
+      }
+      try {
+         AbstractWorkloadGenerator obj;
+         Constructor c = Class.forName(workloadGeneratorName).getConstructor(AbstractBenchmarkStage.class);
+         obj = (AbstractWorkloadGenerator) c.newInstance(stage);
+         return obj;
+      } catch (Exception e) {
+         String s = "Could not create stage of type: " + workloadGeneratorName;
+         log.error(s);
+         throw new RuntimeException(e);
+      }
+   }
 
    public static org.radargun.Stage getStage(String stageName) {
       if (stageName.indexOf('.') < 0) {

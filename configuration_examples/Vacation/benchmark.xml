@@ -26,11 +26,11 @@
                 id="c"
                 passiveReplication="false"
                 partialReplication="false"
-                skippable="true"/>                
+                skippable="true"/>
         <VacationPopulation
                 id="d"
-                relations="20" 
-                skippable="true"/>                    
+                relations="20"
+                skippable="true"/>
         <!--GarbageCollection
                 id="e"
                 skippable="true"/-->
@@ -54,15 +54,15 @@
                 skippable="true"
                 scalable="true">
 
-                <!--OpenSystem>
-                  <Ramp
-                    rateDistribution="exponential"
-                    granularity="5000"
-                    initTime="0"
-                    slope="1"
-                    yintercept="0"
-                    maxArrivalRate="3000" /-->
-  
+            <!--OpenSystem>
+              <Ramp
+                rateDistribution="exponential"
+                granularity="5000"
+                initTime="0"
+                slope="1"
+                yintercept="0"
+                maxArrivalRate="3000" /-->
+
             <!--Trace
                     rateDistribution="exponential"
                     granularity="1"
@@ -75,13 +75,13 @@
                     initTime="0"
                     amplitude="1000"
                     maxArrivalRate="3000" /-->
-                <!--/OpenSystem-->
-                
-                
-              <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
-              
-              <MuleSystem thinkTime="2000" rateDistribution="exponential" />
-                
+            <!--/OpenSystem-->
+
+
+            <!--ClosedSystem thinkTime="2000" population="10" rateDistribution="exponential" /-->
+
+            <MuleSystem thinkTime="2000" rateDistribution="exponential"/>
+
         </VacationBenchmark>
 
 

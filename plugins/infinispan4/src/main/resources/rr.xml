@@ -11,7 +11,7 @@
             <properties>
                 <property
                         name="configurationFile"
-                        value="jgroups/jgroups-tcp.xml" />
+                        value="jgroups/jgroups-tcp.xml"/>
             </properties>
         </transport>
     </global>
@@ -35,23 +35,23 @@
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
                 >
-		<recovery enabled="false"/>
-       </transaction>
+            <recovery enabled="false"/>
+        </transaction>
         <jmxStatistics
                 enabled="true"/>
         <customStats sampleServiceTimes="true"/>
-	<deadlockDetection
+        <deadlockDetection
                 enabled="false"/>
         <clustering mode="r">
             <sync
-                    replTimeout="15000" />
+                    replTimeout="15000"/>
             <hash
                     numOwners="1"/>
             <l1
                     enabled="false"
                     onRehash="false"
                     lifespan="600000"
-                    invalidationThreshold="0" />
+                    invalidationThreshold="0"/>
         </clustering>
         <customInterceptors>
             <interceptor
@@ -60,11 +60,11 @@
         </customInterceptors>
         <versioning
                 enabled="true"
-                versioningScheme="SIMPLE" />
+                versioningScheme="SIMPLE"/>
     </default>
     <namedCache
             name="x">
-     <locking
+        <locking
                 isolationLevel="REPEATABLE_READ"
                 concurrencyLevel="32"
                 writeSkewCheck="false"
@@ -83,31 +83,31 @@
                 use1PcForAutoCommitTransactions="false"
                 autoCommit="true"
                 >
-		<recovery enabled="false"/>
-	</transaction>
+            <recovery enabled="false"/>
+        </transaction>
         <jmxStatistics
                 enabled="true"/>
-	<customStats sampleServiceTimes="true"/>
+        <customStats sampleServiceTimes="true"/>
         <deadlockDetection
                 enabled="false"/>
         <clustering mode="r">
             <sync
-                    replTimeout="15000" />
+                    replTimeout="15000"/>
             <hash
                     numOwners="1"/>
             <l1
                     enabled="false"
                     onRehash="false"
                     lifespan="600000"
-                    invalidationThreshold="0" />
+                    invalidationThreshold="0"/>
         </clustering>
         <customInterceptors>
-             <interceptor
+            <interceptor
                     after="org.infinispan.interceptors.InvocationContextInterceptor"
                     class="org.infinispan.distribution.wrappers.CustomStatsInterceptor"/>
         </customInterceptors>
         <versioning
                 enabled="true"
-                versioningScheme="SIMPLE" />
-	</namedCache>
+                versioningScheme="SIMPLE"/>
+    </namedCache>
 </infinispan>

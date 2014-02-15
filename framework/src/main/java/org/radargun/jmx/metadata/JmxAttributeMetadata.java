@@ -88,12 +88,12 @@ public class JmxAttributeMetadata implements Serializable {
    @Override
    public String toString() {
       return "JmxAttributeMetadata{" +
-              "name='" + name + '\'' +
-              ", description='" + description + '\'' +
-              ", writable=" + writable +
-              ", type='" + type + '\'' +
-              ", is=" + is +
-              '}';
+            "name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", writable=" + writable +
+            ", type='" + type + '\'' +
+            ", is=" + is +
+            '}';
    }
 
    private String extractFieldName(String setterOrGetter) {

@@ -20,182 +20,182 @@ import java.util.List;
  */
 public class PaymentTransaction extends AbstractTpccTransaction {
 
-    private final long terminalWarehouseID;
+   private final long terminalWarehouseID;
 
-    private final long districtID;
+   private final long districtID;
 
-    private final long customerDistrictID;
+   private final long customerDistrictID;
 
-    private long customerWarehouseID;
+   private long customerWarehouseID;
 
-    private final long customerID;
+   private final long customerID;
 
-    private final boolean customerByName;
+   private final boolean customerByName;
 
-    private final String customerLastName;
+   private final String customerLastName;
 
-    private final double paymentAmount;
+   private final double paymentAmount;
 
-    private final int slaveIndex;
-
-
-    public PaymentTransaction(TpccTools tpccTools, int threadId, int slaveIndex, int warehouseID) {
-
-        super(tpccTools, threadId);
-        this.slaveIndex = slaveIndex;
-
-        if (warehouseID <= 0) {
-            this.terminalWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
-        } else {
-            this.terminalWarehouseID = warehouseID;
-        }
-
-        this.districtID = tpccTools.randomNumber(1, TpccTools.NB_MAX_DISTRICT);
-
-        long x = tpccTools.randomNumber(1, 100);
-
-        if (x <= 85) {
-            this.customerDistrictID = this.districtID;
-            this.customerWarehouseID = this.terminalWarehouseID;
-        } else {
-            this.customerDistrictID = tpccTools.randomNumber(1, TpccTools.NB_MAX_DISTRICT);
-            do {
-                this.customerWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
-            }
-            while (this.customerWarehouseID == this.terminalWarehouseID && TpccTools.NB_WAREHOUSES > 1);
-        }
-
-        long y = tpccTools.randomNumber(1, 100);
-
-        if (y <= 60) {
-            this.customerByName = true;
-
-            customerLastName = lastName((int) tpccTools.nonUniformRandom(TpccTools.C_C_LAST, TpccTools.A_C_LAST, 0, TpccTools.MAX_C_LAST));
-            this.customerID = -1;
-        } else {
-            this.customerByName = false;
-            this.customerID = tpccTools.nonUniformRandom(TpccTools.C_C_ID, TpccTools.A_C_ID, 1, TpccTools.NB_MAX_CUSTOMER);
-            this.customerLastName = null;
-        }
-
-        this.paymentAmount = tpccTools.randomNumber(100, 500000) / 100.0;
+   private final int slaveIndex;
 
 
-    }
+   public PaymentTransaction(TpccTools tpccTools, int threadId, int slaveIndex, int warehouseID) {
 
-    @Override
-    public void executeTransaction(CacheWrapper cacheWrapper) throws Throwable {
-        paymentTransaction(cacheWrapper);
-    }
+      super(tpccTools, threadId);
+      this.slaveIndex = slaveIndex;
 
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
+      if (warehouseID <= 0) {
+         this.terminalWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
+      } else {
+         this.terminalWarehouseID = warehouseID;
+      }
 
+      this.districtID = tpccTools.randomNumber(1, TpccTools.NB_MAX_DISTRICT);
 
-    private void paymentTransaction(CacheWrapper cacheWrapper) throws Throwable {
-        String w_name;
-        String d_name;
-        long nameCnt;
+      long x = tpccTools.randomNumber(1, 100);
 
-        String new_c_last;
+      if (x <= 85) {
+         this.customerDistrictID = this.districtID;
+         this.customerWarehouseID = this.terminalWarehouseID;
+      } else {
+         this.customerDistrictID = tpccTools.randomNumber(1, TpccTools.NB_MAX_DISTRICT);
+         do {
+            this.customerWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
+         }
+         while (this.customerWarehouseID == this.terminalWarehouseID && TpccTools.NB_WAREHOUSES > 1);
+      }
 
-        String c_data, c_new_data, h_data;
+      long y = tpccTools.randomNumber(1, 100);
 
+      if (y <= 60) {
+         this.customerByName = true;
 
-        Warehouse w = new Warehouse();
-        w.setW_id(terminalWarehouseID);
+         customerLastName = lastName((int) tpccTools.nonUniformRandom(TpccTools.C_C_LAST, TpccTools.A_C_LAST, 0, TpccTools.MAX_C_LAST));
+         this.customerID = -1;
+      } else {
+         this.customerByName = false;
+         this.customerID = tpccTools.nonUniformRandom(TpccTools.C_C_ID, TpccTools.A_C_ID, 1, TpccTools.NB_MAX_CUSTOMER);
+         this.customerLastName = null;
+      }
 
-        boolean found = w.load(cacheWrapper);
-        if (!found) throw new ElementNotFoundException("W_ID=" + terminalWarehouseID + " not found!");
-        w.setW_ytd(paymentAmount);
-        w.store(cacheWrapper, threadId);
-
-
-        District d = new District();
-        d.setD_id(districtID);
-        d.setD_w_id(terminalWarehouseID);
-        found = d.load(cacheWrapper);
-        if (!found)
-            throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
-
-        d.setD_ytd(paymentAmount);
-        d.store(cacheWrapper, threadId);
-
-
-        Customer c = null;
-
-        if (customerByName) {
-
-            List<Customer> cList = customerList(cacheWrapper, customerWarehouseID, customerDistrictID, customerLastName);
-
-            if ((cList == null || cList.isEmpty()))
-                throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + customerDistrictID + " C_W_ID=" + customerWarehouseID + " not found!");
-
-            Collections.sort(cList);
-
-            nameCnt = cList.size();
-
-            if (nameCnt % 2 == 1) nameCnt++;
-            Iterator<Customer> itr = cList.iterator();
-
-            for (int i = 1; i <= nameCnt / 2; i++) {
-                c = itr.next();
-            }
-        } else {
-
-            c = new Customer();
-            c.setC_id(customerID);
-            c.setC_d_id(customerDistrictID);
-            c.setC_w_id(customerWarehouseID);
-            found = c.load(cacheWrapper);
-            if (!found)
-                throw new ElementNotFoundException("C_ID=" + customerID + " C_D_ID=" + customerDistrictID + " C_W_ID=" + customerWarehouseID + " not found!");
+      this.paymentAmount = tpccTools.randomNumber(100, 500000) / 100.0;
 
 
-        }
+   }
+
+   @Override
+   public void executeTransaction(CacheWrapper cacheWrapper) throws Throwable {
+      paymentTransaction(cacheWrapper);
+   }
+
+   @Override
+   public boolean isReadOnly() {
+      return false;
+   }
 
 
-        c.setC_balance(c.getC_balance() + paymentAmount);
-        if (c.getC_credit().equals("BC")) {
+   private void paymentTransaction(CacheWrapper cacheWrapper) throws Throwable {
+      String w_name;
+      String d_name;
+      long nameCnt;
 
-            c_data = c.getC_data();
+      String new_c_last;
 
-            c_new_data = c.getC_id() + " " + customerDistrictID + " " + customerWarehouseID + " " + districtID + " " + terminalWarehouseID + " " + paymentAmount + " |";
-            if (c_data.length() > c_new_data.length()) {
-                c_new_data += c_data.substring(0, c_data.length() - c_new_data.length());
-            } else {
-                c_new_data += c_data;
-            }
-
-            if (c_new_data.length() > 500) c_new_data = c_new_data.substring(0, 500);
-
-            c.setC_data(c_new_data);
-
-            c.store(cacheWrapper, threadId);
+      String c_data, c_new_data, h_data;
 
 
-        } else {
-            c.store(cacheWrapper, threadId);
+      Warehouse w = new Warehouse();
+      w.setW_id(terminalWarehouseID);
 
-        }
-
-        w_name = w.getW_name();
-        d_name = d.getD_name();
-
-        if (w_name.length() > 10) w_name = w_name.substring(0, 10);
-        if (d_name.length() > 10) d_name = d_name.substring(0, 10);
-        h_data = w_name + "    " + d_name;
-
-        History h = new History(c.getC_id(), customerDistrictID, customerWarehouseID, districtID, terminalWarehouseID, new Date(), paymentAmount, h_data);
-        h.store(cacheWrapper, this.threadId);
+      boolean found = w.load(cacheWrapper);
+      if (!found) throw new ElementNotFoundException("W_ID=" + terminalWarehouseID + " not found!");
+      w.setW_ytd(paymentAmount);
+      w.store(cacheWrapper, threadId);
 
 
-    }
+      District d = new District();
+      d.setD_id(districtID);
+      d.setD_w_id(terminalWarehouseID);
+      found = d.load(cacheWrapper);
+      if (!found)
+         throw new ElementNotFoundException("D_ID=" + districtID + " D_W_ID=" + terminalWarehouseID + " not found!");
 
-    @Override
-    public int getType() {
-        return TpccTerminal.PAYMENT;
-    }
+      d.setD_ytd(paymentAmount);
+      d.store(cacheWrapper, threadId);
+
+
+      Customer c = null;
+
+      if (customerByName) {
+
+         List<Customer> cList = customerList(cacheWrapper, customerWarehouseID, customerDistrictID, customerLastName);
+
+         if ((cList == null || cList.isEmpty()))
+            throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + customerDistrictID + " C_W_ID=" + customerWarehouseID + " not found!");
+
+         Collections.sort(cList);
+
+         nameCnt = cList.size();
+
+         if (nameCnt % 2 == 1) nameCnt++;
+         Iterator<Customer> itr = cList.iterator();
+
+         for (int i = 1; i <= nameCnt / 2; i++) {
+            c = itr.next();
+         }
+      } else {
+
+         c = new Customer();
+         c.setC_id(customerID);
+         c.setC_d_id(customerDistrictID);
+         c.setC_w_id(customerWarehouseID);
+         found = c.load(cacheWrapper);
+         if (!found)
+            throw new ElementNotFoundException("C_ID=" + customerID + " C_D_ID=" + customerDistrictID + " C_W_ID=" + customerWarehouseID + " not found!");
+
+
+      }
+
+
+      c.setC_balance(c.getC_balance() + paymentAmount);
+      if (c.getC_credit().equals("BC")) {
+
+         c_data = c.getC_data();
+
+         c_new_data = c.getC_id() + " " + customerDistrictID + " " + customerWarehouseID + " " + districtID + " " + terminalWarehouseID + " " + paymentAmount + " |";
+         if (c_data.length() > c_new_data.length()) {
+            c_new_data += c_data.substring(0, c_data.length() - c_new_data.length());
+         } else {
+            c_new_data += c_data;
+         }
+
+         if (c_new_data.length() > 500) c_new_data = c_new_data.substring(0, 500);
+
+         c.setC_data(c_new_data);
+
+         c.store(cacheWrapper, threadId);
+
+
+      } else {
+         c.store(cacheWrapper, threadId);
+
+      }
+
+      w_name = w.getW_name();
+      d_name = d.getD_name();
+
+      if (w_name.length() > 10) w_name = w_name.substring(0, 10);
+      if (d_name.length() > 10) d_name = d_name.substring(0, 10);
+      h_data = w_name + "    " + d_name;
+
+      History h = new History(c.getC_id(), customerDistrictID, customerWarehouseID, districtID, terminalWarehouseID, new Date(), paymentAmount, h_data);
+      h.store(cacheWrapper, this.threadId);
+
+
+   }
+
+   @Override
+   public int getType() {
+      return TpccTerminal.PAYMENT;
+   }
 }

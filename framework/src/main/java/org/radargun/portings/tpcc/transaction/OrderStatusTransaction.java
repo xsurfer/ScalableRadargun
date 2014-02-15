@@ -32,7 +32,7 @@ public class OrderStatusTransaction extends AbstractTpccTransaction {
 
 
    public OrderStatusTransaction(TpccTools tpccTools, int threadId, int warehouseID) {
-      super(tpccTools,threadId);
+      super(tpccTools, threadId);
       if (warehouseID <= 0) {
          this.terminalWarehouseID = tpccTools.randomNumber(1, TpccTools.NB_WAREHOUSES);
       } else {
@@ -74,7 +74,7 @@ public class OrderStatusTransaction extends AbstractTpccTransaction {
       boolean found;
       Customer c;
       if (customerByName) {
-         List<Customer> cList = customerList(cacheWrapper,terminalWarehouseID,districtID,customerLastName);
+         List<Customer> cList = customerList(cacheWrapper, terminalWarehouseID, districtID, customerLastName);
 
          if (cList == null || cList.isEmpty())
             throw new ElementNotFoundException("C_LAST=" + customerLastName + " C_D_ID=" + districtID + " C_W_ID=" + terminalWarehouseID + " not found!");

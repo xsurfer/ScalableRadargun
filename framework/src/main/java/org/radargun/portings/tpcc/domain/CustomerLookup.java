@@ -29,7 +29,7 @@ public class CustomerLookup extends DomainObject<CustomerLookup> implements Exte
       this.c_last = null;
    }
 
-   public CustomerLookup(String c_last, long c_w_id, long c_d_id){
+   public CustomerLookup(String c_last, long c_w_id, long c_d_id) {
 
       this.ids = null;
       this.c_d_id = c_d_id;
@@ -70,9 +70,9 @@ public class CustomerLookup extends DomainObject<CustomerLookup> implements Exte
       this.ids = ids;
    }
 
-   public void addId(long newId){
+   public void addId(long newId) {
 
-      if(this.ids == null){
+      if (this.ids == null) {
          this.ids = new LinkedList<Long>();
       }
 
@@ -120,13 +120,12 @@ public class CustomerLookup extends DomainObject<CustomerLookup> implements Exte
 
       int sizeIds = in.readInt();
 
-      if(sizeIds == 0){
+      if (sizeIds == 0) {
          this.ids = null;
-      }
-      else{
-         this.ids = new LinkedList<Long> ();
+      } else {
+         this.ids = new LinkedList<Long>();
 
-         for(int i =0; i<sizeIds; i++){
+         for (int i = 0; i < sizeIds; i++) {
 
             this.ids.add(in.readLong());
          }
@@ -142,14 +141,13 @@ public class CustomerLookup extends DomainObject<CustomerLookup> implements Exte
       out.writeLong(this.c_d_id);
       out.writeUTF(this.c_last);
 
-      if(this.ids == null || this.ids.isEmpty()){
+      if (this.ids == null || this.ids.isEmpty()) {
          out.writeInt(0);
-      }
-      else{
+      } else {
          out.writeInt(this.ids.size());
 
          Iterator<Long> itr = this.ids.iterator();
-         while(itr.hasNext()){
+         while (itr.hasNext()) {
             out.writeLong(itr.next());
          }
       }
@@ -157,11 +155,11 @@ public class CustomerLookup extends DomainObject<CustomerLookup> implements Exte
    }
 
    @Override
-   public boolean load(CacheWrapper wrapper)throws Throwable{
+   public boolean load(CacheWrapper wrapper) throws Throwable {
 
       CustomerLookup loaded = internalLoad(wrapper);
 
-      if(loaded == null) return false;
+      if (loaded == null) return false;
 
       this.c_w_id = loaded.c_w_id;
       this.c_d_id = loaded.c_d_id;

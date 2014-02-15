@@ -30,22 +30,19 @@ import org.testng.annotations.Test;
 /**
  * @author Mircea.Markus@jboss.com
  */
-@Test (enabled = false)
-public class EHCacheReplicationTest
-{
+@Test(enabled = false)
+public class EHCacheReplicationTest {
    String cfgFile = "/path/to/file.xml";
+
    @BeforeMethod
-   public void setUp()
-   {
-      System.setProperty("bind.address","127.0.0.1");//bind address referenced from config file
+   public void setUp() {
+      System.setProperty("bind.address", "127.0.0.1");//bind address referenced from config file
    }
 
 
-   public void testSyncReplication() throws Exception
-   {
+   public void testSyncReplication() throws Exception {
       Ehcache cache1;
       Ehcache cache2;
-
 
 
       CacheManager c1 = new CacheManager(cfgFile);
@@ -62,8 +59,7 @@ public class EHCacheReplicationTest
       assert c1.getCachePeerListener("").getBoundCachePeers().size() == 1;
       assert c2.getCachePeerListener("").getBoundCachePeers().size() == 1;
 
-      for (int i = 0; i < 100; i++)
-      {
+      for (int i = 0; i < 100; i++) {
          cache1.put(new Element("key" + i, "value" + i));
          assert cache2.get("key" + i).getValue().equals("value" + i);
       }
@@ -75,8 +71,7 @@ public class EHCacheReplicationTest
    }
 
 
-   public void testInvalidation() throws Exception 
-   {
+   public void testInvalidation() throws Exception {
       Ehcache cache1;
       Ehcache cache2;
 
@@ -93,9 +88,9 @@ public class EHCacheReplicationTest
       assert c1.getCachePeerListener("").getBoundCachePeers().size() == 1;
       assert c2.getCachePeerListener("").getBoundCachePeers().size() == 1;
 
-      cache1.put(new Element("key","value"));
+      cache1.put(new Element("key", "value"));
       assert cache2.get("key").getValue().equals("value");
-      cache2.put(new Element("key","newValue"));
+      cache2.put(new Element("key", "newValue"));
       assert cache1.get("key") == null;
 
       c1.shutdown();

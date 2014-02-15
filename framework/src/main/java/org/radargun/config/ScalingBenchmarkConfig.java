@@ -9,8 +9,8 @@ import java.util.List;
 
 /**
  * A scaling benchmark is one that executes on an increasing number of slaves. E.g. considering the {@link
- * org.radargun.stages.WebSessionBenchmarkStage}, one might want to execute it over multiple clusters of
- * different sizes: e.g 2,3,4,5..10 etc in order to check how a product scales etc.
+ * org.radargun.stages.WebSessionBenchmarkStage}, one might want to execute it over multiple clusters of different
+ * sizes: e.g 2,3,4,5..10 etc in order to check how a product scales etc.
  *
  * @author Mircea.Markus@jboss.com
  */
@@ -19,7 +19,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    // For Apache/commons/logging Log doesn't need to be static.
    protected Log log = LogFactory.getLog(ScalingBenchmarkConfig.class);
 
-    private boolean initialized = false;
+   private boolean initialized = false;
 
    List<FixedSizeBenchmarkConfig> fixedBenchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
 
@@ -60,7 +60,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    public boolean hasNextStage() {
       initialize();
       log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
-       if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
+      if (fixedBenchmarkIt < fixedBenchmarks.size() - 1) return true;
       return currentFixedBenchmark().hasNextStage();
    }
 
@@ -90,7 +90,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
 
       if (!currentFixedBenchmark().hasNextStage()) {
          fixedBenchmarkIt++;
-          log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
+         log.trace("fixedBenchmarkIt=" + fixedBenchmarkIt);
       }
       return currentFixedBenchmark().nextStage();
    }
@@ -106,7 +106,7 @@ public class ScalingBenchmarkConfig extends FixedSizeBenchmarkConfig {
    @Override
    public ScalingBenchmarkConfig clone() {
       ScalingBenchmarkConfig clone = (ScalingBenchmarkConfig) super.clone();
-      clone.fixedBenchmarks= new ArrayList<FixedSizeBenchmarkConfig>();
+      clone.fixedBenchmarks = new ArrayList<FixedSizeBenchmarkConfig>();
       for (FixedSizeBenchmarkConfig fbc : fixedBenchmarks) {
          clone.fixedBenchmarks.add(fbc.clone());
       }

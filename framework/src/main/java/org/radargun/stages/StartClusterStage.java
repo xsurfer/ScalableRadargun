@@ -52,7 +52,7 @@ public class StartClusterStage extends AbstractDistStage {
       CacheWrapper wrapper = null;
       try {
          String plugin = Utils.getCacheWrapperFqnClass(productName);
-          log.info("plugin: " + plugin );
+         log.info("plugin: " + plugin);
          wrapper = (CacheWrapper) createInstance(plugin);
          wrapper.setIgnorePutResult(this.ignorePutResult);
          wrapper.setUp(config, false, slaveIndex, confAttributes);
@@ -106,7 +106,7 @@ public class StartClusterStage extends AbstractDistStage {
       }
       log.info("Creating createStatsContainer " + classFqn + " with classloader " + classLoader);
       Thread.currentThread().setContextClassLoader(classLoader);
-       log.info("a, " + classFqn);
+      log.info("a, " + classFqn);
       return classLoader.loadClass(classFqn).newInstance();
    }
 
@@ -135,10 +135,10 @@ public class StartClusterStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "StartClusterStage {" +
-              "productName='" + productName + '\'' +
-              ", useSmartClassLoading=" + useSmartClassLoading +
-              ", config=" + config +
-              ", " + super.toString();
+            "productName='" + productName + '\'' +
+            ", useSmartClassLoading=" + useSmartClassLoading +
+            ", config=" + config +
+            ", " + super.toString();
    }
 
 

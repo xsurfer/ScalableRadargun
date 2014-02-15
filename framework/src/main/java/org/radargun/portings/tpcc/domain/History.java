@@ -11,198 +11,198 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class History extends DomainObject<History> {
 
-    private static final AtomicLong idGenerator = new AtomicLong(0L);
+   private static final AtomicLong idGenerator = new AtomicLong(0L);
 
-    /* customer id */
-    private long h_c_id;
+   /* customer id */
+   private long h_c_id;
 
-    /* district id */
-    private long h_c_d_id;
+   /* district id */
+   private long h_c_d_id;
 
-    /* warehouse id */
-    private long h_c_w_id;
+   /* warehouse id */
+   private long h_c_w_id;
 
-    private long h_d_id;
+   private long h_d_id;
 
-    private long h_w_id;
+   private long h_w_id;
 
-    private long h_date;
+   private long h_date;
 
-    private double h_amount;
+   private double h_amount;
 
-    private String h_data;
+   private String h_data;
 
 
-    public History() {
+   public History() {
 
-    }
+   }
 
-    public History(long h_c_id, long h_c_d_id, long h_c_w_id, long h_d_id, long h_w_id, Date h_date, double h_amount, String h_data) {
-        this.h_c_id = h_c_id;
-        this.h_c_d_id = h_c_d_id;
-        this.h_c_w_id = h_c_w_id;
-        this.h_d_id = h_d_id;
-        this.h_w_id = h_w_id;
-        this.h_date = (h_date == null) ? -1 : h_date.getTime();
-        this.h_amount = h_amount;
-        this.h_data = h_data;
-    }
+   public History(long h_c_id, long h_c_d_id, long h_c_w_id, long h_d_id, long h_w_id, Date h_date, double h_amount, String h_data) {
+      this.h_c_id = h_c_id;
+      this.h_c_d_id = h_c_d_id;
+      this.h_c_w_id = h_c_w_id;
+      this.h_d_id = h_d_id;
+      this.h_w_id = h_w_id;
+      this.h_date = (h_date == null) ? -1 : h_date.getTime();
+      this.h_amount = h_amount;
+      this.h_data = h_data;
+   }
 
-    public long getH_c_id() {
-        return h_c_id;
-    }
+   public long getH_c_id() {
+      return h_c_id;
+   }
 
-    public long getH_c_d_id() {
-        return h_c_d_id;
-    }
+   public long getH_c_d_id() {
+      return h_c_d_id;
+   }
 
-    public long getH_c_w_id() {
-        return h_c_w_id;
-    }
+   public long getH_c_w_id() {
+      return h_c_w_id;
+   }
 
-    public long getH_d_id() {
-        return h_d_id;
-    }
+   public long getH_d_id() {
+      return h_d_id;
+   }
 
-    public long getH_w_id() {
-        return h_w_id;
-    }
+   public long getH_w_id() {
+      return h_w_id;
+   }
 
-    public Date getH_date() {
-        return (h_date == -1) ? null : new Date(h_date);
-    }
+   public Date getH_date() {
+      return (h_date == -1) ? null : new Date(h_date);
+   }
 
-    public double getH_amount() {
-        return h_amount;
-    }
+   public double getH_amount() {
+      return h_amount;
+   }
 
-    public String getH_data() {
-        return h_data;
-    }
+   public String getH_data() {
+      return h_data;
+   }
 
-    public void setH_c_id(long h_c_id) {
-        this.h_c_id = h_c_id;
-    }
+   public void setH_c_id(long h_c_id) {
+      this.h_c_id = h_c_id;
+   }
 
-    public void setH_c_d_id(long h_c_d_id) {
-        this.h_c_d_id = h_c_d_id;
-    }
+   public void setH_c_d_id(long h_c_d_id) {
+      this.h_c_d_id = h_c_d_id;
+   }
 
-    public void setH_c_w_id(long h_c_w_id) {
-        this.h_c_w_id = h_c_w_id;
-    }
+   public void setH_c_w_id(long h_c_w_id) {
+      this.h_c_w_id = h_c_w_id;
+   }
 
-    public void setH_d_id(long h_d_id) {
-        this.h_d_id = h_d_id;
-    }
+   public void setH_d_id(long h_d_id) {
+      this.h_d_id = h_d_id;
+   }
 
-    public void setH_w_id(long h_w_id) {
-        this.h_w_id = h_w_id;
-    }
+   public void setH_w_id(long h_w_id) {
+      this.h_w_id = h_w_id;
+   }
 
-    public void setH_date(Date h_date) {
-        this.h_date = (h_date == null) ? -1 : h_date.getTime();
-    }
+   public void setH_date(Date h_date) {
+      this.h_date = (h_date == null) ? -1 : h_date.getTime();
+   }
 
-    public void setH_amount(double h_amount) {
-        this.h_amount = h_amount;
-    }
+   public void setH_amount(double h_amount) {
+      this.h_amount = h_amount;
+   }
 
-    public void setH_data(String h_data) {
-        this.h_data = h_data;
-    }
+   public void setH_data(String h_data) {
+      this.h_data = h_data;
+   }
 
-    private static String generateId(int slaveIndex) {
-        return String.valueOf(slaveIndex) + String.valueOf(History.idGenerator.incrementAndGet());
-    }
+   private static String generateId(int slaveIndex) {
+      return String.valueOf(slaveIndex) + String.valueOf(History.idGenerator.incrementAndGet());
+   }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
 
-        History history = (History) o;
+      History history = (History) o;
 
-        if (Double.compare(history.h_amount, h_amount) != 0) return false;
-        if (h_c_d_id != history.h_c_d_id) return false;
-        if (h_c_id != history.h_c_id) return false;
-        if (h_c_w_id != history.h_c_w_id) return false;
-        if (h_d_id != history.h_d_id) return false;
-        if (h_date != history.h_date) return false;
-        if (h_w_id != history.h_w_id) return false;
-        if (h_data != null ? !h_data.equals(history.h_data) : history.h_data != null) return false;
+      if (Double.compare(history.h_amount, h_amount) != 0) return false;
+      if (h_c_d_id != history.h_c_d_id) return false;
+      if (h_c_id != history.h_c_id) return false;
+      if (h_c_w_id != history.h_c_w_id) return false;
+      if (h_d_id != history.h_d_id) return false;
+      if (h_date != history.h_date) return false;
+      if (h_w_id != history.h_w_id) return false;
+      if (h_data != null ? !h_data.equals(history.h_data) : history.h_data != null) return false;
 
-        return true;
-    }
+      return true;
+   }
 
-    @Override
-    public int hashCode() {
-        int result;
-        long temp;
-        result = (int) (h_c_id ^ (h_c_id >>> 32));
-        result = 31 * result + (int) (h_c_d_id ^ (h_c_d_id >>> 32));
-        result = 31 * result + (int) (h_c_w_id ^ (h_c_w_id >>> 32));
-        result = 31 * result + (int) (h_d_id ^ (h_d_id >>> 32));
-        result = 31 * result + (int) (h_w_id ^ (h_w_id >>> 32));
-        result = 31 * result + (int) (h_date ^ (h_date >>> 32));
-        temp = h_amount != +0.0d ? Double.doubleToLongBits(h_amount) : 0L;
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (h_data != null ? h_data.hashCode() : 0);
-        return result;
-    }
+   @Override
+   public int hashCode() {
+      int result;
+      long temp;
+      result = (int) (h_c_id ^ (h_c_id >>> 32));
+      result = 31 * result + (int) (h_c_d_id ^ (h_c_d_id >>> 32));
+      result = 31 * result + (int) (h_c_w_id ^ (h_c_w_id >>> 32));
+      result = 31 * result + (int) (h_d_id ^ (h_d_id >>> 32));
+      result = 31 * result + (int) (h_w_id ^ (h_w_id >>> 32));
+      result = 31 * result + (int) (h_date ^ (h_date >>> 32));
+      temp = h_amount != +0.0d ? Double.doubleToLongBits(h_amount) : 0L;
+      result = 31 * result + (int) (temp ^ (temp >>> 32));
+      result = 31 * result + (h_data != null ? h_data.hashCode() : 0);
+      return result;
+   }
 
-    @Override
-    public void store(CacheWrapper wrapper, int slaveIndex) throws Throwable {
-        wrapper.put(null, new HistoryKey(slaveIndex, idGenerator.incrementAndGet()), this);
-    }
+   @Override
+   public void store(CacheWrapper wrapper, int slaveIndex) throws Throwable {
+      wrapper.put(null, new HistoryKey(slaveIndex, idGenerator.incrementAndGet()), this);
+   }
 
-    @Override
-    public void store(CacheWrapper wrapper) throws Throwable {
-        store(wrapper, -1);
-    }
+   @Override
+   public void store(CacheWrapper wrapper) throws Throwable {
+      store(wrapper, -1);
+   }
 
-    @Override
-    public boolean load(CacheWrapper wrapper) throws Throwable {
-        return true;
-    }
+   @Override
+   public boolean load(CacheWrapper wrapper) throws Throwable {
+      return true;
+   }
 
-    @Override
-    protected TpccKey createTpccKey() {
-        return null;
-    }
+   @Override
+   protected TpccKey createTpccKey() {
+      return null;
+   }
 
-    public static class HistoryKey extends TpccKey {
-        private final int nodeIdx;
-        private final long historyId;
+   public static class HistoryKey extends TpccKey {
+      private final int nodeIdx;
+      private final long historyId;
 
-        public HistoryKey(int nodeIdx, long historyId) {
-            this.nodeIdx = nodeIdx;
-            this.historyId = historyId;
-        }
+      public HistoryKey(int nodeIdx, long historyId) {
+         this.nodeIdx = nodeIdx;
+         this.historyId = historyId;
+      }
 
-        @Override
-        public String toString() {
-            return "HistoryKey{" +
-                    "nodeIdx=" + nodeIdx +
-                    ", historyId=" + historyId +
-                    '}';
-        }
+      @Override
+      public String toString() {
+         return "HistoryKey{" +
+               "nodeIdx=" + nodeIdx +
+               ", historyId=" + historyId +
+               '}';
+      }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+      @Override
+      public boolean equals(Object o) {
+         if (this == o) return true;
+         if (o == null || getClass() != o.getClass()) return false;
 
-            HistoryKey that = (HistoryKey) o;
+         HistoryKey that = (HistoryKey) o;
 
-            return historyId == that.historyId && nodeIdx == that.nodeIdx;
-        }
+         return historyId == that.historyId && nodeIdx == that.nodeIdx;
+      }
 
-        @Override
-        public int hashCode() {
-            int result = nodeIdx;
-            result = 31 * result + (int) (historyId ^ (historyId >>> 32));
-            return result;
-        }
-    }
+      @Override
+      public int hashCode() {
+         int result = nodeIdx;
+         result = 31 * result + (int) (historyId ^ (historyId >>> 32));
+         return result;
+      }
+   }
 }

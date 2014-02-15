@@ -23,8 +23,8 @@ public class ElementNotFoundException extends ApplicationException {
       super(cause);
    }
 
-    @Override
-    public boolean allowsRetry() {
-        return false;
-    }
+   @Override
+   public boolean allowsRetry() {
+      return false;
+   }
 }

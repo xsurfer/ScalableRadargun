@@ -18,29 +18,31 @@ public abstract class ProducerRate {
    private static Log log = LogFactory.getLog(ProducerRate.class);
    private final double lambda;
 
-    /**
-     * Inner class to for exceptions
-     */
-    public static class ProducerRateException extends Exception{
-        public ProducerRateException(Exception e) { super(e); }
-    }
+   /**
+    * Inner class to for exceptions
+    */
+   public static class ProducerRateException extends Exception {
+      public ProducerRateException(Exception e) {
+         super(e);
+      }
+   }
 
-    public static ProducerRate createInstance(RateDistribution producerRateEnum, double producerLambda) throws ProducerRateException{
-        ProducerRate obj;
-        String producerRateString = producerRateEnum.getDistributionRateName();
-        if (producerRateString.indexOf('.') < 0) {
-            producerRateString = "org.radargun.stages.stressors.producer." + producerRateString;
-        }
-        try {
-            Constructor c = Class.forName(producerRateString).getConstructor(Double.TYPE);
-            obj = (ProducerRate) c.newInstance(producerLambda);
-        } catch (Exception e) {
-            String s = "Could not create ProducerRate of type: " + producerRateString;
-            log.error(s);
-            throw new RuntimeException(e);
-        }
-        return obj;
-    }
+   public static ProducerRate createInstance(RateDistribution producerRateEnum, double producerLambda) throws ProducerRateException {
+      ProducerRate obj;
+      String producerRateString = producerRateEnum.getDistributionRateName();
+      if (producerRateString.indexOf('.') < 0) {
+         producerRateString = "org.radargun.stages.stressors.producer." + producerRateString;
+      }
+      try {
+         Constructor c = Class.forName(producerRateString).getConstructor(Double.TYPE);
+         obj = (ProducerRate) c.newInstance(producerLambda);
+      } catch (Exception e) {
+         String s = "Could not create ProducerRate of type: " + producerRateString;
+         log.error(s);
+         throw new RuntimeException(e);
+      }
+      return obj;
+   }
 
    /**
     * @param producerLambda the lambda (arrival rate) in transaction per millisecond
@@ -58,19 +60,21 @@ public abstract class ProducerRate {
       try {
          Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
-          log.warn("Interrupt");
+         log.warn("Interrupt");
       }
       return sleepTime;
    }
 
-    /**
-     * returns the lambda of this producer rate
-     *
-     * @return the lambda of this producer rate
-     */
-    public double getLambda() { return lambda; }
+   /**
+    * returns the lambda of this producer rate
+    *
+    * @return the lambda of this producer rate
+    */
+   public double getLambda() {
+      return lambda;
+   }
 
-    public abstract double timeToSleep(double lambda);
+   public abstract double timeToSleep(double lambda);
 
 
 }

@@ -4,68 +4,67 @@ import org.radargun.CacheWrapper;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.stamp.vacation.VacationParameter;
 import org.radargun.stages.stressors.stamp.vacation.VacationStressor;
-import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 
 
 public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStressor, VacationParameter> {
 
-    private static final String SIZE_INFO = "SIZE_INFO";
+   private static final String SIZE_INFO = "SIZE_INFO";
 
-    //public static int THREADS;
+   //public static int THREADS;
 
-    private int clients;
+   private int clients;
 
     /* number of threads per node */
-    //private int localThreads;
+   //private int localThreads;
 
-    private int readOnly;
+   private int readOnly;
 
-    /* number of operations per transaction */
-    private int number;
+   /* number of operations per transaction */
+   private int number;
 
-    private int queries;
+   private int queries;
 
-    /* the size of the tables */
-    private int relations;
+   /* the size of the tables */
+   private int relations;
 
-    /* the percentage of reservations */
-    private int user;
+   /* the percentage of reservations */
+   private int user;
 
 //    private int time;
 
 
-    @Override
-    protected VacationParameter createStressorConfiguration() {
-        log.trace("Creating VacationParameter...");
+   @Override
+   protected VacationParameter createStressorConfiguration() {
+      log.trace("Creating VacationParameter...");
 
-        VacationParameter parameters = new VacationParameter(
-                cacheWrapper,
-                simulationTimeSec,
-                numOfThreads,
-                getSlaveIndex(),
-                backOffTime,
-                retryOnAbort,
-                statsSamplingInterval,
-                number,
-                user,
-                queries,
-                readOnly,
-                relations
-                );
+      VacationParameter parameters = new VacationParameter(
+            cacheWrapper,
+            simulationTimeSec,
+            numOfThreads,
+            getSlaveIndex(),
+            backOffTime,
+            retryOnAbort,
+            statsSamplingInterval,
+            number,
+            user,
+            queries,
+            readOnly,
+            relations
+      );
 
-        return parameters;
-    }
+      return parameters;
+   }
 
-    @Override
-    public VacationStressor createStressor() {
-        return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
-    }
+   @Override
+   public VacationStressor createStressor() {
+      return new VacationStressor(cacheWrapper, this, system, getStressorParameters());
+   }
 
-    @Override
-    @ManagedOperation(description = "Stop the current benchmark")
-    public void stopBenchmark() {
-        stressor.stopBenchmark();
-    }
+   @Override
+   @ManagedOperation(description = "Stop the current benchmark")
+   public void stopBenchmark() {
+      stressor.stopBenchmark();
+   }
 
 //    /* NEW EXECUTE by FABIO */
 //    public DistStageAck executeOnSlave() {
@@ -130,32 +129,66 @@ public class VacationBenchmarkStage extends AbstractBenchmarkStage<VacationStres
     /* *** GETTER/SETTER *** */
     /* ********************* */
 
-    public CacheWrapper getCacheWrapper() { return cacheWrapper; }
-    public void setCacheWrapper(CacheWrapper cacheWrapper) { this.cacheWrapper = cacheWrapper; }
+   public CacheWrapper getCacheWrapper() {
+      return cacheWrapper;
+   }
 
-    public int getClients() { return clients; }
-    public void setClients(int clients) { this.clients = clients; }
+   public void setCacheWrapper(CacheWrapper cacheWrapper) {
+      this.cacheWrapper = cacheWrapper;
+   }
+
+   public int getClients() {
+      return clients;
+   }
+
+   public void setClients(int clients) {
+      this.clients = clients;
+   }
 
 //    public int getLocalThreads() { return localThreads; }
 //    public void setLocalThreads(int localThreads) { this.localThreads = localThreads; }
 
-    public int getNumber() { return number; }
-    public void setNumber(int number) { this.number = number; }
+   public int getNumber() {
+      return number;
+   }
 
-    public int getQueries() { return queries; }
-    public void setQueries(int queries) { this.queries = queries; }
+   public void setNumber(int number) {
+      this.number = number;
+   }
 
-    public int getRelations() { return relations; }
-    public void setRelations(int relations) { this.relations = relations; }
+   public int getQueries() {
+      return queries;
+   }
+
+   public void setQueries(int queries) {
+      this.queries = queries;
+   }
+
+   public int getRelations() {
+      return relations;
+   }
+
+   public void setRelations(int relations) {
+      this.relations = relations;
+   }
 
 //    public int getTime() { return time; }
 //    public void setTime(int time) { this.time = time; }
 
-    public int getUser() { return user; }
-    public void setUser(int user) { this.user = user; }
+   public int getUser() {
+      return user;
+   }
 
-    public static String getSizeInfo() { return SIZE_INFO; }
+   public void setUser(int user) {
+      this.user = user;
+   }
 
-    public void setReadOnly(int ro) { this.readOnly = ro; }
+   public static String getSizeInfo() {
+      return SIZE_INFO;
+   }
+
+   public void setReadOnly(int ro) {
+      this.readOnly = ro;
+   }
 
 }

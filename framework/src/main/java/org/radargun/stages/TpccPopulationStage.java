@@ -9,9 +9,8 @@ import org.radargun.state.MasterState;
 import java.util.List;
 
 /**
- * This stage shuld be run before the <b>TpccBenchmarkStage</b>. It will perform the population of
- * <b>numWarehouses</b> warehouses in cache. Note: this stage won't clear the added data from
- * slave.
+ * This stage shuld be run before the <b>TpccBenchmarkStage</b>. It will perform the population of <b>numWarehouses</b>
+ * warehouses in cache. Note: this stage won't clear the added data from slave.
  * <pre>
  * Params:
  *       - numWarehouses : the number of warehouses to be populated.
@@ -73,7 +72,6 @@ public class TpccPopulationStage extends AbstractDistStage {
    If true, the cache gets warmed up just the first time
     */
    private boolean oneWarmup = false;
-
 
 
    public DistStageAck executeOnSlave() {
@@ -161,14 +159,14 @@ public class TpccPopulationStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "TpccPopulationStage {" +
-              "numWarehouses=" + numWarehouses +
-              ", cLastMask=" + cLastMask +
-              ", olIdMask=" + olIdMask +
-              ", cIdMask=" + cIdMask +
-              ", threadParallelLoad=" + threadParallelLoad +
-              ", numLoaderThreads=" + numLoaderThreads +
-              ", batchLevel=" + batchLevel +
-              ", preloadedFromDB=" + preloadedFromDB +
-              ", " + super.toString();
+            "numWarehouses=" + numWarehouses +
+            ", cLastMask=" + cLastMask +
+            ", olIdMask=" + olIdMask +
+            ", cIdMask=" + cIdMask +
+            ", threadParallelLoad=" + threadParallelLoad +
+            ", numLoaderThreads=" + numLoaderThreads +
+            ", batchLevel=" + batchLevel +
+            ", preloadedFromDB=" + preloadedFromDB +
+            ", " + super.toString();
    }
 }

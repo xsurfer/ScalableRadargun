@@ -3,13 +3,14 @@ package org.radargun.utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
- * Author: Diego Didona
- * Email: didona@gsd.inesc-id.pt
- * Websiste: www.cloudtm.eu
- * Date: 21/05/12
+ * Author: Diego Didona Email: didona@gsd.inesc-id.pt Websiste: www.cloudtm.eu Date: 21/05/12
  */
 public class StatSampler {
 
@@ -94,10 +95,10 @@ public class StatSampler {
    @Override
    public String toString() {
       return "StatSampler{" +
-              "interval=" + interval +
-              ", usedMemories=" + usedMemories +
-              ", usedCpu=" + usedCpu +
-              '}';
+            "interval=" + interval +
+            ", usedMemories=" + usedMemories +
+            ", usedCpu=" + usedCpu +
+            '}';
    }
 
    private class Collector extends TimerTask {

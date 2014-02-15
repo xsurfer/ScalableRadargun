@@ -18,10 +18,10 @@ public class GroupProducerRateFactory {
 
    /**
     * @param rateDistribution the defaultRate type (exponential, uniform)
-    * @param globalLambda  the global system lambda (a.k.a arrival rate) in transactions per seconds
-    * @param numberOfNodes the number of nodes in the system (>= 1)
-    * @param nodeIndex     the node index [0..numberOfNodes - 1]
-    * @param avgSleepTime  The average sleeping time desire for a producer
+    * @param globalLambda     the global system lambda (a.k.a arrival rate) in transactions per seconds
+    * @param numberOfNodes    the number of nodes in the system (>= 1)
+    * @param nodeIndex        the node index [0..numberOfNodes - 1]
+    * @param avgSleepTime     The average sleeping time desire for a producer
     */
    public GroupProducerRateFactory(RateDistribution rateDistribution,
                                    double globalLambda, int numberOfNodes, int nodeIndex, int avgSleepTime) {
@@ -70,55 +70,55 @@ public class GroupProducerRateFactory {
       ProducerRate[] producers = new ProducerRate[numberOfNormalProducers + (slowProducerRate != 0 ? 1 : 0)];
 
       for (int i = 0; i < numberOfNormalProducers; ++i) {
-          try {
-              producers[i] = ProducerRate.createInstance(rateDistribution, normalProducerRate);
-          } catch (ProducerRate.ProducerRateException e) {
-              throw new RuntimeException(e);
-          }
+         try {
+            producers[i] = ProducerRate.createInstance(rateDistribution, normalProducerRate);
+         } catch (ProducerRate.ProducerRateException e) {
+            throw new RuntimeException(e);
+         }
       }
 
       //the slower producer
       if (slowProducerRate != 0) {
-          try {
-              producers[producers.length - 1] = ProducerRate.createInstance(rateDistribution, slowProducerRate);
-          } catch (ProducerRate.ProducerRateException e) {
-              throw new RuntimeException(e);
-          }
+         try {
+            producers[producers.length - 1] = ProducerRate.createInstance(rateDistribution, slowProducerRate);
+         } catch (ProducerRate.ProducerRateException e) {
+            throw new RuntimeException(e);
+         }
       }
       return producers;
    }
 
 
-    /**
-     * it creates an array of producers, each one with the desire rate in order to achieve the global system rate
-     *
-     * @return an array of producers
-     */
-    public static ProducerRate[] createClients(long populationSize,
-                                                     RateDistribution rateDistribution,
-                                                     int numberOfNodes,
-                                                     int nodeIndex,
-                                                     long thinkTime ) {
+   /**
+    * it creates an array of producers, each one with the desire rate in order to achieve the global system rate
+    *
+    * @return an array of producers
+    */
+   public static ProducerRate[] createClients(long populationSize,
+                                              RateDistribution rateDistribution,
+                                              int numberOfNodes,
+                                              int nodeIndex,
+                                              long thinkTime) {
 
-        long remainder = populationSize % numberOfNodes;
+      long remainder = populationSize % numberOfNodes;
 
-        //this is the producer rate common to all nodes
-        int myClients = (int) (populationSize - remainder) / numberOfNodes;
+      //this is the producer rate common to all nodes
+      int myClients = (int) (populationSize - remainder) / numberOfNodes;
 
-        //if this node is unlucky, it can get more load than the others
-        if (nodeIndex < remainder) {
-            myClients++;
-        }
+      //if this node is unlucky, it can get more load than the others
+      if (nodeIndex < remainder) {
+         myClients++;
+      }
 
-        ProducerRate[] producers = new ProducerRate[myClients];
+      ProducerRate[] producers = new ProducerRate[myClients];
 
-        for (int i = 0; i < myClients; ++i) {
-            try {
-                producers[i] = ProducerRate.createInstance(rateDistribution, Math.pow((double) thinkTime, -1D));
-            } catch (ProducerRate.ProducerRateException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return producers;
-    }
+      for (int i = 0; i < myClients; ++i) {
+         try {
+            producers[i] = ProducerRate.createInstance(rateDistribution, Math.pow((double) thinkTime, -1D));
+         } catch (ProducerRate.ProducerRateException e) {
+            throw new RuntimeException(e);
+         }
+      }
+      return producers;
+   }
 }

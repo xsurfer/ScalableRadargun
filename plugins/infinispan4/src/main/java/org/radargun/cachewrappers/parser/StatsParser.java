@@ -33,8 +33,9 @@ public class StatsParser {
 
    /**
     * it parses the xml file with the stats to be collected
+    *
     * @param file the file path
-    * @return     a list of component and the stats to be collected
+    * @return a list of component and the stats to be collected
     */
    public static List<StatisticComponent> parse(String file) {
       Document document;
@@ -67,7 +68,7 @@ public class StatsParser {
       Element root = (Element) document.getElementsByTagName(ROOT_TAG).item(0);
 
       if (root == null) {
-         log.warn("The root tag wasn't found. Expected: "+ ROOT_TAG +". No stats will be reported");
+         log.warn("The root tag wasn't found. Expected: " + ROOT_TAG + ". No stats will be reported");
          return Collections.emptyList();
       }
 
@@ -104,10 +105,11 @@ public class StatsParser {
 
    /**
     * returns all the class loaders in which it will try to find the xml file for the parser
-    * @return  all the class loaders in which it will try to find the xml file for the parser
+    *
+    * @return all the class loaders in which it will try to find the xml file for the parser
     */
    private static ClassLoader[] getPossibleClassLoaders() {
-      return new ClassLoader[] {
+      return new ClassLoader[]{
             Thread.currentThread().getContextClassLoader(),
             StatsParser.class.getClassLoader(),
             ClassLoader.getSystemClassLoader()

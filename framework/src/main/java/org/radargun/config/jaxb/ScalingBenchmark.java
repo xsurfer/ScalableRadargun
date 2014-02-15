@@ -8,7 +8,12 @@
 
 package org.radargun.config.jaxb;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
@@ -37,9 +42,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-        "before",
-        "benchmarkStages",
-        "after"
+      "before",
+      "benchmarkStages",
+      "after"
 })
 @XmlRootElement(name = "scaling-benchmark")
 public class ScalingBenchmark {
@@ -71,8 +76,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the before property.
     *
-    * @return possible object is
-    *         {@link Before }
+    * @return possible object is {@link Before }
     */
    public Before getBefore() {
       return before;
@@ -81,8 +85,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the before property.
     *
-    * @param value allowed object is
-    *              {@link Before }
+    * @param value allowed object is {@link Before }
     */
    public void setBefore(Before value) {
       this.before = value;
@@ -91,8 +94,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the benchmarkStages property.
     *
-    * @return possible object is
-    *         {@link BenchmarkStages }
+    * @return possible object is {@link BenchmarkStages }
     */
    public BenchmarkStages getBenchmarkStages() {
       return benchmarkStages;
@@ -101,8 +103,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the benchmarkStages property.
     *
-    * @param value allowed object is
-    *              {@link BenchmarkStages }
+    * @param value allowed object is {@link BenchmarkStages }
     */
    public void setBenchmarkStages(BenchmarkStages value) {
       this.benchmarkStages = value;
@@ -111,8 +112,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the after property.
     *
-    * @return possible object is
-    *         {@link After }
+    * @return possible object is {@link After }
     */
    public After getAfter() {
       return after;
@@ -121,8 +121,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the after property.
     *
-    * @param value allowed object is
-    *              {@link After }
+    * @param value allowed object is {@link After }
     */
    public void setAfter(After value) {
       this.after = value;
@@ -131,8 +130,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the increment property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getIncrement() {
       return increment;
@@ -141,8 +139,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the increment property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setIncrement(String value) {
       this.increment = value;
@@ -151,8 +148,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the initSize property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getInitSize() {
       return initSize;
@@ -161,8 +157,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the initSize property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setInitSize(String value) {
       this.initSize = value;
@@ -171,8 +166,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the maxSize property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getMaxSize() {
       return maxSize;
@@ -181,8 +175,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the maxSize property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setMaxSize(String value) {
       this.maxSize = value;
@@ -191,8 +184,7 @@ public class ScalingBenchmark {
    /**
     * Gets the value of the name property.
     *
-    * @return possible object is
-    *         {@link String }
+    * @return possible object is {@link String }
     */
    public String getProductName() {
       return productName;
@@ -201,8 +193,7 @@ public class ScalingBenchmark {
    /**
     * Sets the value of the name property.
     *
-    * @param value allowed object is
-    *              {@link String }
+    * @param value allowed object is {@link String }
     */
    public void setProductName(String value) {
       this.productName = value;

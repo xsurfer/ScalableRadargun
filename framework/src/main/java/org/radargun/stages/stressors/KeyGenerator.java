@@ -10,6 +10,7 @@ package org.radargun.stages.stressors;
  */
 public interface KeyGenerator {
    static final int CONTEND = 0;
+
    /**
     * Called for distributed benchmarks.
     */

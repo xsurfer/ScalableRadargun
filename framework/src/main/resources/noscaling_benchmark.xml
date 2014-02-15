@@ -6,7 +6,7 @@
             initSize="4"
             maxSize="4"
             increment="2">
-            
+
         <!--DestroyWrapper
                 runOnAllSlaves="true"/-->
         <StartCluster
@@ -25,9 +25,9 @@
                 threadParallelLoad="true"
                 batchLevel="50"
                 numLoaderThreads="3"
-                oneWarmup="true"/>        
-       <GarbageCollection/>
-        <!--GC only here because eraseNewKeys already includes a gc phase--> 
+                oneWarmup="true"/>
+        <GarbageCollection/>
+        <!--GC only here because eraseNewKeys already includes a gc phase-->
         <ResetStats/>
         <CacheSize
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
@@ -39,12 +39,12 @@
                 accessSameWarehouse="false"
                 paymentWeight="43"
                 orderStatusWeight="53"
-		retryOnAbort="true"
-		backOffTime="0"
-		perThreadTrackNewKeys="true"/>
-	<TpccCsvReportGeneration/>  
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+                retryOnAbort="true"
+                backOffTime="0"
+                perThreadTrackNewKeys="true"/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -58,11 +58,11 @@
                 paymentWeight="43"
                 orderStatusWeight="53"
                 retryOnAbort="true"
-		backOffTime="0"
+                backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -76,11 +76,11 @@
                 paymentWeight="43"
                 orderStatusWeight="53"
                 retryOnAbort="true"
-		backOffTime="0"
+                backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -94,13 +94,13 @@
                 paymentWeight="43"
                 orderStatusWeight="53"
                 backOffTime="0"
-		retryOnAbort="true"
+                retryOnAbort="true"
                 perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>         
-<ResetStats/>
-         
-         
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
+
+
         <CacheSize
                 statName="CACHE_SIZE_BEFORE_BENCH"/>
         <TpccBenchmark
@@ -111,12 +111,12 @@
                 accessSameWarehouse="false"
                 paymentWeight="5"
                 orderStatusWeight="90"
-		retryOnAbort="true"
-		backOffTime="0"
-		perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+                retryOnAbort="true"
+                backOffTime="0"
+                perThreadTrackNewKeys="true"/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -130,11 +130,11 @@
                 paymentWeight="5"
                 orderStatusWeight="90"
                 retryOnAbort="true"
-		backOffTime="0"
+                backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -148,11 +148,11 @@
                 paymentWeight="5"
                 orderStatusWeight="90"
                 retryOnAbort="true"
-		backOffTime="0"
+                backOffTime="0"
                 perThreadTrackNewKeys="true"/>
-<TpccCsvReportGeneration/>
-      <EraseNewKeys batchSize="50"/>
-<ResetStats/>
+        <TpccCsvReportGeneration/>
+        <EraseNewKeys batchSize="50"/>
+        <ResetStats/>
 
 
         <CacheSize
@@ -166,11 +166,11 @@
                 paymentWeight="5"
                 orderStatusWeight="90"
                 backOffTime="0"
-		retryOnAbort="true"
+                retryOnAbort="true"
                 perThreadTrackNewKeys="true"/>
- 
-<TpccCsvReportGeneration/>
- </benchmark>
+
+        <TpccCsvReportGeneration/>
+    </benchmark>
     <products>
         <infinispan4>
             <config name="provaPC.xml"/>

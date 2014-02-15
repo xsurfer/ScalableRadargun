@@ -13,7 +13,7 @@ import org.radargun.config.ConfigHelper;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 public class Adapter1
-        extends XmlAdapter<String, String> {
+      extends XmlAdapter<String, String> {
 
 
    public String unmarshal(String value) {

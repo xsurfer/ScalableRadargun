@@ -34,7 +34,7 @@ public class GcMonitor extends AbstractActivityMonitor {
    GcMonitor(MBeanServerConnection con) throws Exception {
       this.con = con;
       OperatingSystemMXBean os = ManagementFactory.newPlatformMXBeanProxy(con,
-              ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
+                                                                          ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME, OperatingSystemMXBean.class);
       procCount = os.getAvailableProcessors();
       cpuTimeMultiplier = getCpuMultiplier(con);
    }
@@ -58,7 +58,7 @@ public class GcMonitor extends AbstractActivityMonitor {
          long upTimeDiff = (upTime * 1000000) - (prevUpTime * 1000000);
 
          long gcUsage = upTimeDiff > 0 ? Math.min((long)
-                 (1000 * (float) processGcTimeDiff / (float) upTimeDiff), 1000) : 0;
+                                                        (1000 * (float) processGcTimeDiff / (float) upTimeDiff), 1000) : 0;
 
          addMeasurementAsPercentage(gcUsage);
 

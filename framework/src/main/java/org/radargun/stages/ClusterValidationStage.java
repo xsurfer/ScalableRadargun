@@ -128,7 +128,7 @@ public class ClusterValidationStage extends AbstractDistStage {
             if (!wrapper.isPassiveReplication() || wrapper.isTheMaster()) {
                wrapper.put(nodeBucket(getSlaveIndex()), key(getSlaveIndex()), "true");
             }
-             log.info("Successfully put "+key(getSlaveIndex()));
+            log.info("Successfully put " + key(getSlaveIndex()));
             return;
          } catch (Throwable e) {
             log.warn("Error while trying to put data: ", e);
@@ -145,17 +145,17 @@ public class ClusterValidationStage extends AbstractDistStage {
       for (int i = 0; i < replicationTryCount; i++) {
          replCount = replicationCount();
          if ((isPartialReplication && replCount >= 1) ||
-                 (!isPartialReplication && !isPassiveReplication && (replCount == getActiveSlaveCount() - 1)) ||
-                 (isPassiveReplication && replCount == 1)) {
+               (!isPartialReplication && !isPassiveReplication && (replCount == getActiveSlaveCount() - 1)) ||
+               (isPassiveReplication && replCount == 1)) {
             log.info("Replication test successfully passed. isPartialReplication? " + isPartialReplication +
-                    ", isPassiveReplication? " + isPassiveReplication +
-                    ", replicationCount = " + replCount);
+                           ", isPassiveReplication? " + isPassiveReplication +
+                           ", replicationCount = " + replCount);
             return replCount;
          }
          //adding our stuff one more time
          tryToPut();
          log.info("Replication test failed, " + (i + 1) + " tries so far. Sleeping for " + Utils.prettyPrintMillis(replicationTimeSleep)
-                 + " and trying again.");
+                        + " and trying again.");
          Thread.sleep(replicationTimeSleep);
       }
       log.info("Replication test failed. Last replication count is " + replCount);
@@ -187,7 +187,7 @@ public class ClusterValidationStage extends AbstractDistStage {
       int tryCont = 0;
       while (tryCont < 5) {
          try {
-             log.info("Going to ask for "+key(i));
+            log.info("Going to ask for " + key(i));
             return wrapper.getReplicatedData(nodeBucket(i), key(i));
          } catch (Throwable e) {
             tryCont++;
@@ -219,10 +219,10 @@ public class ClusterValidationStage extends AbstractDistStage {
    @Override
    public String toString() {
       return "ClusterValidationStage {" +
-              "isPassiveReplication=" + isPassiveReplication +
-              ", isPartialReplication=" + isPartialReplication +
-              ", replicationTryCount=" + replicationTryCount +
-              ", replicationTimeSleep=" + replicationTimeSleep +
-              ", wrapper=" + wrapper + ", " + super.toString();
+            "isPassiveReplication=" + isPassiveReplication +
+            ", isPartialReplication=" + isPartialReplication +
+            ", replicationTryCount=" + replicationTryCount +
+            ", replicationTimeSleep=" + replicationTimeSleep +
+            ", wrapper=" + wrapper + ", " + super.toString();
    }
 }

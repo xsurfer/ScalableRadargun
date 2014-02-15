@@ -22,10 +22,9 @@ package org.radargun.stages.stressors;/*
  */
 
 /**
- * @author Diego Didona, didona@gsd.inesc-id.pt
- *         Date: 20/03/13
+ * @author Diego Didona, didona@gsd.inesc-id.pt Date: 20/03/13
  */
-public class ContentionObjectKeyGenerator extends ObjectKeyGenerator{
+public class ContentionObjectKeyGenerator extends ObjectKeyGenerator {
 
    @Override
    public Object generateKey(int nodeIndex, int threadIndex, int keyIndex) {

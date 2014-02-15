@@ -5,22 +5,22 @@ import org.radargun.portings.microbenchmark.domain.IntSet;
 
 public class AddTransaction implements MicrobenchmarkTransaction {
 
-    public final int value;
+   public final int value;
 
-    public AddTransaction(int value) {
-        this.value = value;
-    }
+   public AddTransaction(int value) {
+      this.value = value;
+   }
 
-    @Override
-    public boolean executeTransaction(CacheWrapper cacheWrapper) throws Throwable {
-        IntSet set = (IntSet)cacheWrapper.get(null, "SET");
-        boolean res = set.add(cacheWrapper, this.value);
-        return res;
-    }
+   @Override
+   public boolean executeTransaction(CacheWrapper cacheWrapper) throws Throwable {
+      IntSet set = (IntSet) cacheWrapper.get(null, "SET");
+      boolean res = set.add(cacheWrapper, this.value);
+      return res;
+   }
 
-    @Override
-    public boolean isReadOnly() {
-        return false;
-    }
+   @Override
+   public boolean isReadOnly() {
+      return false;
+   }
 
 }

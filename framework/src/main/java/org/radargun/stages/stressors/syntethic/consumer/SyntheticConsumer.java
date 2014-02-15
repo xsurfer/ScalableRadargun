@@ -9,29 +9,27 @@ import org.radargun.stages.stressors.systems.System;
 import org.radargun.stages.synthetic.SyntheticXactFactory;
 
 /**
- * Author: Fabio Perfetti (perfabio87 [at] gmail.com)
- * Date: 8/3/13
- * Time: 3:47 PM
+ * Author: Fabio Perfetti (perfabio87 [at] gmail.com) Date: 8/3/13 Time: 3:47 PM
  */
 public class SyntheticConsumer extends Consumer {
 
-    private SyntheticXactFactory factory;
+   private SyntheticXactFactory factory;
 
-    public SyntheticConsumer(CacheWrapper cacheWrapper,
-                             int threadIndex,
-                             System system,
-                             AbstractBenchmarkStage stage,
-                             AbstractBenchmarkStressor stressor,
-                             SyntheticParameters parameters,
-                             SyntheticXactFactory factory) {
-        super(cacheWrapper, threadIndex, system, stage, stressor, parameters, factory);
+   public SyntheticConsumer(CacheWrapper cacheWrapper,
+                            int threadIndex,
+                            System system,
+                            AbstractBenchmarkStage stage,
+                            AbstractBenchmarkStressor stressor,
+                            SyntheticParameters parameters,
+                            SyntheticXactFactory factory) {
+      super(cacheWrapper, threadIndex, system, stage, stressor, parameters, factory);
 
 
-        this.factory = factory;
-    }
+      this.factory = factory;
+   }
 
-    public SyntheticXactFactory getFactory(){
-        return factory;
-    }
+   public SyntheticXactFactory getFactory() {
+      return factory;
+   }
 
 }
