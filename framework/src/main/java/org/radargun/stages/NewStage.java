@@ -4,7 +4,7 @@
 //
 //import org.radargun.stages.stressors.StringKeyGenerator;
 //import org.radargun.stages.stressors.SyntheticStressor;
-//import org.radargun.stages.stressors.syntethic.SyntheticParameters;
+//import org.radargun.stages.synthetic.SyntheticParameters;
 //
 ///**
 // * Author: Fabio Perfetti (perfabio87 [at] gmail.com)

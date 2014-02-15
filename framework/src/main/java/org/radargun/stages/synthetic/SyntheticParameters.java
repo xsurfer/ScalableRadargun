@@ -1,8 +1,7 @@
-package org.radargun.stages.stressors.syntethic;
+package org.radargun.stages.synthetic;
 
 import org.radargun.CacheWrapper;
 import org.radargun.stages.stressors.Parameters;
-import org.radargun.stages.synthetic.XACT_RETRY;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com) Date: 8/3/13 Time: 2:40 PM
@@ -37,6 +36,8 @@ public class SyntheticParameters extends Parameters {
 
    private final int readsBeforeFirstWrite;
 
+   private final long spinBetweenOps;
+
    public SyntheticParameters(CacheWrapper cacheWrapper,
                               long simulationTimeSec,
                               int numOfThreads,
@@ -53,7 +54,8 @@ public class SyntheticParameters extends Parameters {
                               int readOnlyXactSize,
                               int updateXactReads,
                               boolean allowBlindWrites,
-                              int readsBeforeFirstWrite
+                              int readsBeforeFirstWrite,
+                              long spinBetweenOps
    ) {
       super(cacheWrapper, simulationTimeSec, numOfThreads, nodeIndex, backOffTime, retryOnAbort, statsSamplingInterval);
       this.numberOfAttributes = numberOfAttributes;
@@ -65,6 +67,7 @@ public class SyntheticParameters extends Parameters {
       this.readOnlyXactSize = readOnlyXactSize;
       this.allowBlindWrites = allowBlindWrites;
       this.readsBeforeFirstWrite = readsBeforeFirstWrite;
+      this.spinBetweenOps = spinBetweenOps;
 
    }
 
@@ -161,8 +164,9 @@ public class SyntheticParameters extends Parameters {
       return readsBeforeFirstWrite;
    }
 
-//    public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
-//        this.readsBeforeFirstWrite = readsBeforeFirstWrite;
-//    }
+   public long getSpinBetweenOps() {
+      return spinBetweenOps;
+   }
+
 
 }

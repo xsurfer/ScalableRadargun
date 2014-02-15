@@ -6,9 +6,9 @@ import org.radargun.ITransaction;
 import org.radargun.TransactionFactory;
 import org.radargun.stages.stressors.KeyGenerator;
 import org.radargun.stages.stressors.producer.RequestType;
-import org.radargun.stages.stressors.syntethic.SyntheticParameters;
 import org.radargun.utils.Utils;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -17,9 +17,8 @@ import java.util.Random;
  * @author diego
  * @since 4.0
  */
-public class SyntheticXactFactory implements TransactionFactory {
-
-   private static Log log = LogFactory.getLog(SyntheticXactFactory.class);
+public abstract class SyntheticXactFactory implements TransactionFactory {
+   protected static Log log = LogFactory.getLog(SyntheticXactFactory.class);
 
    protected Random rnd = new Random();
    protected KeyGenerator keyGenerator;
@@ -27,42 +26,113 @@ public class SyntheticXactFactory implements TransactionFactory {
 
    protected final SyntheticParameters parameters;
 
+   protected boolean[] rwB;
+
    public SyntheticXactFactory(SyntheticParameters params, int threadIndex) {
       this.parameters = params;
       this.keyGenerator = (KeyGenerator) Utils.instantiate(params.getKeyGeneratorClass());
       this.threadIndex = threadIndex;
+      if (parameters.getNumberOfAttributes() < parameters.getReadOnlyXactSize() ||
+            parameters.getNumberOfAttributes() < parameters.getUpdateXactWrites()) {
+         log.fatal("You cannot read distinct keys if the number of keys is less than the number of accesses");
+         throw new IllegalArgumentException("You cannot read distinct keys if the number of keys is less than the number of accesses");
+      }
+      rwB = this.rwB();
+      if (log.isTraceEnabled()) {
+         log.trace(Arrays.toString(rwB));
+      }
    }
 
+   private boolean[] rwB() {
+      int numReads = parameters.getUpdateXactReads();
+      int numWrites = parameters.getUpdateXactWrites();
+      int total = numReads + numWrites;
+      boolean[] rwB = new boolean[total];
+      String msgExc = null;
+      int fW = parameters.getReadsBeforeFirstWrite();
+      if (fW > numReads)
+         msgExc = ("NumReadsBeforeFirstWrite > numReads!");
+      if (numReads < numWrites && !parameters.isAllowBlindWrites())
+         msgExc = "NumWrites has to be greater than numReads to avoid blindWrites and have no duplicates";
+      if (fW == 0 && !parameters.isAllowBlindWrites())
+         msgExc = ("Without blind writes you must at least read once before writing! NumReadsBeforeWrites at least 1!");
+      if (msgExc != null) {
+         log.fatal(msgExc);
+         throw new RuntimeException(msgExc);
+      }
+      int readI = 0;
+      final boolean readBeforeFirstWrite = fW != -1;
+      try {
+         double remainingReads = numReads;
+         double remainingWrites = numWrites;
+         if (readBeforeFirstWrite) {
+            //If I have to read before doing the first write...
+            for (; readI < fW; readI++) {
+               rwB[readI] = false;
+            }
+            rwB[fW] = true;
+            if (total == fW + 1)
+               return rwB;
+            remainingReads = numReads - fW;
+            remainingWrites = numWrites - 1;
+         }
+
+         boolean moreReads = false;
+         //If you have more remaining reads than writes, then each X reads you'll do ONE write; otherwise it's the opposite. If you have no more of one kind, you'll only have of the other one
+         int groupRead, groupWrite, numGroups;
+         if (remainingReads >= remainingWrites) {
+            moreReads = true;
+            groupRead = remainingWrites > 0 ? (int) Math.floor(remainingReads / remainingWrites) : (int) remainingReads;
+            groupWrite = remainingWrites > 0 ? 1 : 0;
+            numGroups = remainingWrites > 0 ? (int) remainingWrites : 1;
+            log.trace("More remaining reads than write: " + remainingReads + " vs " + remainingWrites);
+            log.trace("I will have " + numGroups + " groups of " + groupRead + " reads and " + groupWrite + " writes");
+         } else {
+            moreReads = false;
+            groupRead = remainingReads > 0 ? 1 : 0;
+            groupWrite = remainingReads > 0 ? (int) Math.floor(remainingWrites / remainingReads) : (int) remainingWrites;
+            numGroups = remainingReads > 0 ? (int) remainingReads : 1;
+            log.trace("More remaining writes than reads: " + remainingWrites + " vs " + remainingReads);
+            log.trace("I will have " + numGroups + " groups of " + groupRead + " reads and " + groupWrite + " writes");
+         }
+         int index = readBeforeFirstWrite ? fW + 1 : 0;
+         while (numGroups-- > 0) {
+            log.trace(numGroups + " groups to go");
+            int r = groupRead;
+            int w = groupWrite;
+            while (r-- > 0) {
+               rwB[index++] = false;
+            }
+            while (w-- > 0) {
+               rwB[index++] = true;
+            }
+         }
+         while (index < total) {
+            rwB[index++] = !moreReads;  //If you had more reads you have to top-up with writes(true) and vice versa
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+
+      return rwB;
+
+   }
+
+   @Override
+   public ITransaction generateTransaction(RequestType type) {
+
+      if (type.getTransactionType() == xactClass.RO.getId()) {
+         return generateROXact();
+      } else {
+         return generateUPXact();
+      }
+   }
 
    @Override
    public int nextTransaction() {
       if (!parameters.getCacheWrapper().isTheMaster() || (1 + rnd.nextInt(100)) > parameters.getWritePercentage())
          return xactClass.RO.getId();
       return xactClass.WR.getId();
-   }
-
-
-   @Override
-   public ITransaction generateTransaction(RequestType type) {
-      SyntheticXact toRet;
-      XactOp[] ops;
-
-      if (type.getTransactionType() == xactClass.RO.getId()) {
-         ops = buildReadSet();
-         toRet = new SyntheticXact(true);
-      } else {
-         ops = buildReadWriteSet();
-         toRet = new SyntheticXact(false);
-      }
-
-
-      toRet.setOps(ops);
-      toRet.setClazz(type.getTransactionType());
-
-      if (log.isTraceEnabled()) {
-         log.trace("New xact built " + toRet.toString());
-      }
-      return toRet;
    }
 
    @Override
@@ -73,93 +143,15 @@ public class SyntheticXactFactory implements TransactionFactory {
       return generateTransaction(requestType);
    }
 
-
-   /**
-    * This method builds a set containing keys to be read and <key, value> pairs to be written.  Put operations are
-    * uniformly distributed across read operations (should work also with numReads<numWrites as long as there is at
-    * least one read). If blind writes are not allowed, then writes are delayed till the first read operation. After
-    * that point, put operations are allowed and write always on the last read value (even multiple times in a row, for
-    * simplicity)
-    *
-    * @return a readWriteSet
-    */
-   protected XactOp[] buildReadWriteSet() {
-      int toDoRead = parameters.getUpdateXactReads();
-      int toDoWrite = parameters.getUpdateXactWrites();
-      int toDo = toDoRead + toDoWrite;
-      int total = toDo;
-      int writePerc = (int) (100 * (((double) toDoWrite) / ((double) (toDo))));
-
-      int numKeys = parameters.getNumberOfAttributes();
-      boolean allowBlindWrites = parameters.isAllowBlindWrites();
-      XactOp[] ops = new XactOp[toDo];
-      boolean doPut;
-      int size = parameters.getSizeOfAnAttribute();
-      boolean canWrite = false;
-      int keyToAccess;
-      int lastRead = 0;
-      Object value;
-      for (int i = 0; i < total; i++) {
-         //Determine if you can read or not
-
-         if (toDo == toDoWrite)      //I have only puts left
-            doPut = true;
-         else if (toDo == toDoRead)  //I have only reads left
-            doPut = false;
-         else if (allowBlindWrites) {     //I choose uniformly
-            doPut = rnd.nextInt(100) < writePerc;
-         } else {
-            if (!canWrite) {   //first read
-               doPut = false;
-               canWrite = true;
-            } else {
-               doPut = rnd.nextInt(100) < writePerc;
-            }
-         }
-         if (doPut) {  //xact can write
-            if (allowBlindWrites) { //xact can choose what it wants
-               keyToAccess = rnd.nextInt(numKeys);
-            } else { //xact has to write something it has already read
-               keyToAccess = lastRead;
-            }
-         } else {    //xact reads
-            keyToAccess = rnd.nextInt(numKeys);
-            lastRead = keyToAccess;
-         }
-         value = doPut ? generateRandomString(size) : "";
-         ops[i] = new XactOp(keyToAccess, value, doPut);
-         toDo--;
-         if (doPut) {
-            toDoWrite--;
-         } else {
-            toDoRead--;
-         }
-      }
-      return ops;
-   }
-
-   private XactOp[] buildReadSet() {
-      int numR = parameters.getReadOnlyXactSize();
-      XactOp[] ops = new XactOp[numR];
-      Object key;
-      int keyToAccess;
-      Random r = rnd;
-      int numKeys = parameters.getNumberOfAttributes();
-      int nodeIndex = parameters.getNodeIndex();
-
-      for (int i = 0; i < numR; i++) {
-         keyToAccess = r.nextInt(numKeys);
-         key = keyGenerator.generateKey(nodeIndex, threadIndex, keyToAccess);
-         ops[i] = new XactOp(key, "", false);
-      }
-      return ops;
-   }
-
-   protected String generateRandomString(int size) {
+   protected final String generateRandomString(int size) {
       // each char is 2 bytes
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < size / 2; i++) sb.append((char) (64 + rnd.nextInt(26)));
       return sb.toString();
    }
+
+   protected abstract ITransaction generateROXact();
+
+   protected abstract ITransaction generateUPXact();
 
 }

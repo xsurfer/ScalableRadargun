@@ -4,7 +4,7 @@ import org.radargun.jmx.annotations.MBean;
 import org.radargun.jmx.annotations.ManagedAttribute;
 import org.radargun.jmx.annotations.ManagedOperation;
 import org.radargun.stages.stressors.SyntheticStressor;
-import org.radargun.stages.stressors.syntethic.SyntheticParameters;
+import org.radargun.stages.synthetic.SyntheticParameters;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com) Date: 8/5/13 Time: 11:03 AM
@@ -38,7 +38,11 @@ public class SyntheticBenchmarkStage extends AbstractBenchmarkStage<SyntheticStr
 
    private boolean allowBlindWrites = false;
 
-   private int readsBeforeFirstWrite = -1;
+   //If >=0, it is the number of reads to perform before doing the first put
+   private int readsBeforeFirstWrite = -1;   //-1 means do not take into account this params
+
+   //If >0, after each operation the xact will spin on the cpu for a time proportional to this value (to simulate cpu operations)
+   private long spinBetweenOps = 0L;
 
 
    @Override
@@ -60,30 +64,9 @@ public class SyntheticBenchmarkStage extends AbstractBenchmarkStage<SyntheticStr
             readOnlyXactSize,
             updateXactReads,
             allowBlindWrites,
-            readsBeforeFirstWrite
+            readsBeforeFirstWrite,
+            spinBetweenOps
       );
-
-
-//        TO DELETE
-//        parameters.setCacheWrapper(cacheWrapper);
-//        parameters.setNodeIndex(getSlaveIndex());
-//        parameters.setBackOffTime(backOffTime);
-//        parameters.setRetryOnAbort( retryOnAbort );
-//        parameters.setSimulationTimeSec(simulationTimeSec);
-//        parameters.setNumOfThreads(numOfThreads);
-//        parameters.setNumSlaves(getActiveSlaveCount());
-//        parameters.setStatsSamplingInterval(statsSamplingInterval);
-//
-//        parameters.setNumberOfAttributes( getNumberOfAttributes() );
-//        parameters.setSizeOfAnAttribute( getSizeOfAnAttribute() );
-//        parameters.setWritePercentage( getWritePercentage() );
-//        parameters.setKeyGeneratorClass( getKeyGeneratorClass() );
-//        parameters.setUpdateXactWrites( getUpdateXactWrites() );
-//        parameters.setUpdateXactReads( getUpdateXactReads() );
-//        parameters.setAllowBlindWrites( isAllowBlindWrites() );
-//        parameters.setReadsBeforeFirstWrite( getReadsBeforeFirstWrite() );
-//        END
-
       return parameters;
    }
 
@@ -237,5 +220,9 @@ public class SyntheticBenchmarkStage extends AbstractBenchmarkStage<SyntheticStr
    public void setReadsBeforeFirstWrite(int readsBeforeFirstWrite) {
       log.trace("Set setReadsBeforeFirstWrite to : " + readsBeforeFirstWrite);
       this.readsBeforeFirstWrite = readsBeforeFirstWrite;
+   }
+
+   public void setSpinBetweenOps(long spinBetweenOps) {
+      this.spinBetweenOps = spinBetweenOps;
    }
 }
