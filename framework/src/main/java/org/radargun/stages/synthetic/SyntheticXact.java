@@ -3,7 +3,7 @@ package org.radargun.stages.synthetic;
 import org.radargun.CacheWrapper;
 import org.radargun.ITransaction;
 
-import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * // TODO: Document this
@@ -17,9 +17,10 @@ public class SyntheticXact implements ITransaction {
    private long initServiceTime;
    public int clazz;
    private boolean isCommit;  //we track only commit-abort without considering also xact that can abort because of application logic (and might be not restarted, then)
-   XactOp[] ops;
+   private long spinBetweenOps;
 
    private boolean isReadOnly;
+   private Iterator<XactOp> iterator;
 
 
    public SyntheticXact(boolean isreadOnly) {
@@ -28,12 +29,9 @@ public class SyntheticXact implements ITransaction {
       this.isReadOnly = isreadOnly;
    }
 
-   public XactOp[] getOps() {
-      return ops;
-   }
 
-   public void setOps(XactOp[] ops) {
-      this.ops = ops;
+   public void setSpinBetweenOps(long spinBetweenOps) {
+      this.spinBetweenOps = spinBetweenOps;
    }
 
    public long getInitResponseTime() {
@@ -68,14 +66,6 @@ public class SyntheticXact implements ITransaction {
       isCommit = commit;
    }
 
-//   public void executeLocally() throws Exception {
-//      for(XactOp op:ops){
-//         if(op.isPut())
-//            cache.put(null,op.getKey(),op.getValue());
-//         else
-//            cache.get(null,op.getKey());
-//      }
-//   }
 
    @Override
    public String toString() {
@@ -84,19 +74,26 @@ public class SyntheticXact implements ITransaction {
             ", initServiceTime=" + initServiceTime +
             ", clazz=" + clazz +
             ", isCommit=" + isCommit +
-            ", ops=" + Arrays.toString(ops) +
             '}';
    }
 
    @Override
    public void executeTransaction(CacheWrapper cache) throws Throwable {
-      for (XactOp op : ops) {
+      XactOp op;
+      final boolean isSpin = spinBetweenOps > 0;
+      while (iterator.hasNext()) {
+         op = iterator.next();
          if (op.isPut())
             cache.put(null, op.getKey(), op.getValue());
          else
             cache.get(null, op.getKey());
+         if (isSpin)
+            doSpin(spinBetweenOps);
       }
+   }
 
+   private void doSpin(long spin) {
+      for (long l = 0; l < spin; l++) ;
    }
 
    @Override
@@ -108,4 +105,9 @@ public class SyntheticXact implements ITransaction {
    public int getType() {
       return 0;
    }
+
+   public void setIterator(Iterator<XactOp> iterator) {
+      this.iterator = iterator;
+   }
+
 }

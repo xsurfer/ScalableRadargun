@@ -5,15 +5,16 @@ import org.apache.commons.logging.LogFactory;
 import org.radargun.CacheWrapper;
 import org.radargun.stages.AbstractBenchmarkStage;
 import org.radargun.stages.stressors.producer.SyntheticProducer;
-import org.radargun.stages.stressors.syntethic.SyntheticParameters;
-import org.radargun.stages.stressors.syntethic.consumer.SyntheticConsumer;
 import org.radargun.stages.stressors.systems.System;
-import org.radargun.stages.synthetic.SyntheticDistinctXactFactory;
+import org.radargun.stages.synthetic.SyntheticConsumer;
+import org.radargun.stages.synthetic.SyntheticParameters;
+import org.radargun.stages.synthetic.SyntheticXactFactory;
+import org.radargun.stages.synthetic.runTimeDap.SyntheticXactFactory_RunTimeDaP;
 
 /**
  * Author: Fabio Perfetti (perfabio87 [at] gmail.com) Date: 8/3/13 Time: 2:20 PM
  */
-public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParameters, SyntheticConsumer, SyntheticProducer, SyntheticDistinctXactFactory> {
+public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParameters, SyntheticConsumer, SyntheticProducer, SyntheticXactFactory> {
 
    private static Log log = LogFactory.getLog(SyntheticStressor.class);
 
@@ -33,25 +34,6 @@ public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParame
       // nothing to do
    }
 
-//    @Override
-//    public int nextTransaction(int threadIndex) {
-//        SyntheticXactFactory factory = this.consumers.get(threadIndex).getFactory();
-//        return factory.chooseTransactionType(cacheWrapper.isTheMaster());
-//    }
-
-//    @Override
-//    public ITransaction generateTransaction(RequestType type, int threadIndex) {
-//        SyntheticXactFactory factory = this.consumers.get(threadIndex).getFactory();
-//        return factory.createTransaction(type.getTransactionType());
-//    }
-//
-//    @Override
-//    public ITransaction choiceTransaction(boolean isPassiveReplication, boolean isTheMaster, int threadId) {
-//        SyntheticConsumer consumer = this.consumers.get(threadId);
-//        ITransaction transaction = consumer.getFactory().choiceTransaction(cacheWrapper.isPassiveReplication(), cacheWrapper.isTheMaster());
-//        log.info("Closed system: starting a brand new transaction of type " + transaction.getType());
-//        return transaction;
-//    }
 
    public void changeUpdateTx(int writePercentage, int updateXactReads, int updateXactWrites) {
 
@@ -97,16 +79,16 @@ public class SyntheticStressor extends AbstractBenchmarkStressor<SyntheticParame
       return 100 - parameters.getWritePercentage();
    }
 
+   //For now, hardcoded, but we may want to use different Synthetic factories
    @Override
-   protected SyntheticDistinctXactFactory createTransactionFactory(int threadIndex) {
-      SyntheticDistinctXactFactory factory = new SyntheticDistinctXactFactory(parameters, threadIndex);
-      return factory;
+   protected SyntheticXactFactory createTransactionFactory(int threadIndex) {
+      return new SyntheticXactFactory_RunTimeDaP(parameters, threadIndex);
    }
 
    @Override
    protected SyntheticConsumer createConsumer(int threadIndex) {
       log.trace("creating consumer (threadIndex: " + threadIndex + " )");
-      SyntheticDistinctXactFactory factory = createTransactionFactory(threadIndex);
+      SyntheticXactFactory factory = createTransactionFactory(threadIndex);
       return new SyntheticConsumer(cacheWrapper, threadIndex, system, benchmarkStage, this, parameters, factory);
    }
 }

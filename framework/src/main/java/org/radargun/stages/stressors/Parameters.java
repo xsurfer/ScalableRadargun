@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Parameters {
 
-   private static Log log = LogFactory.getLog(Parameters.class);
+   private final static Log log = LogFactory.getLog(Parameters.class);
 
     /* ******************* */
     /* *** CONSTRUCTOR *** */
